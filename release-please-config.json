@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "changelog-sections": [
+    { "type": "feat", "section": "Tính năng mới" },
+    { "type": "fix", "section": "Sửa lỗi" },
+    { "type": "docs", "section": "Tài liệu" },
+    { "type": "refactor", "section": "Cải tổ" },
+    { "type": "perf", "section": "Hiệu năng" },
+    { "type": "test", "section": "Kiểm thử" },
+    { "type": "chore", "section": "Bảo trì", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "vietnam-accounting-skills",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

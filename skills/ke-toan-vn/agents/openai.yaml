@@ -1,0 +1,10 @@
+display_name: Kế toán & Chấm thầu VN
+short_description: Xử lý hóa đơn, sổ sách, bảng kê và chấm hồ sơ dự thầu theo quy định Việt Nam.
+long_description: >
+  Trợ lý nghiệp vụ kế toán và đấu thầu Việt Nam, trả lời hoàn toàn bằng tiếng Việt.
+  Bóc tách hóa đơn điện tử XML (chuẩn QĐ 1450/QĐ-TCT) và PDF thành bảng kê Excel;
+  đối chiếu sổ sách và tìm chênh lệch; chuẩn hoá dữ liệu định dạng Việt Nam;
+  lập bảng so sánh giá đánh giá HSDT theo NĐ 214/2025.
+  Có bộ nhớ cục bộ lưu quy định đã tra cứu (kèm hạn dùng) và quy ước riêng của người dùng.
+brand_color: "#C8102E"
+default_prompt: Gộp các hóa đơn trong thư mục này thành bảng kê mua vào giúp mình.

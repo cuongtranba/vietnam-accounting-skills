@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  kiem-thu:
+    name: Chạy script trên dữ liệu mẫu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cài thư viện
+        run: pip install --quiet openpyxl pandas pdfplumber pypdf lxml python-dateutil XlsxWriter reportlab
+
+      - name: Sinh dữ liệu mẫu
+        run: python evals/tao_fixtures.py
+
+      # Bộ nhớ chạy trong thư mục tạm để CI không phụ thuộc trạng thái sẵn có,
+      # và để không lẫn với bộ nhớ thật của người dùng khi chạy cục bộ.
+      - name: Kiểm thử hồi quy
+        env:
+          KE_TOAN_VN_HOME: /tmp/kt-ci
+        run: python evals/kiem_thu.py

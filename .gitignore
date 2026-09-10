@@ -1,0 +1,27 @@
+# Bộ nhớ chạy thật — của từng nơi triển khai, KHÔNG đóng gói theo repo.
+# quy-uoc/ chứa quy ước của một đơn vị cụ thể; phát tán nó sang nơi khác là đưa thông tin sai.
+# Ghi chú pháp lý dùng chung được đóng gói riêng ở skills/ke-toan-vn/assets/bo-nho-mau/.
+.ke-toan-vn/
+
+# Dữ liệu mẫu do evals/tao_fixtures.py sinh ra — chạy lại là có, không cần commit
+evals/fixtures/
+
+# Kết quả chạy eval: file kết quả, transcript, phản hồi
+ke-toan-vn-workspace/
+
+# Thư mục làm việc của công cụ, không liên quan tới skill
+.kanna/
+
+# Symlink tiện dụng cho bản làm việc cục bộ (.claude/skills/ke-toan-vn -> ../../skills/ke-toan-vn).
+# KHÔNG commit: `npx skills add` quét cả skills/ lẫn .claude/skills/, commit symlink vào đây
+# sẽ khiến nó tìm thấy cùng một skill hai lần. Nguồn thật là skills/ke-toan-vn/.
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# macOS
+.DS_Store

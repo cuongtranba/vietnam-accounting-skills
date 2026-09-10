@@ -1,0 +1,211 @@
+{
+  "skill_name": "ke-toan-vn",
+  "evals": [
+    {
+      "id": 0,
+      "name": "boc-tach-hoa-don-hon-hop",
+      "prompt": "có mấy hóa đơn đầu vào trong thư mục evals/fixtures/hoa-don, gộp giúp thành bảng kê mua vào để đối chiếu với sổ nhé. có gì bất thường thì báo luôn",
+      "expected_output": "File bảng kê Excel/CSV đủ 7 hóa đơn, tổng tiền hàng 145.180.000 và tổng thuế 12.248.000, phát hiện MST 0100686200 sai chữ số kiểm tra, giữ đúng hóa đơn thuế suất 8% và hóa đơn KCT, phân biệt dòng đọc từ XML với dòng đọc từ PDF. Trả lời bằng tiếng Việt.",
+      "files": [
+        "evals/fixtures/hoa-don/"
+      ],
+      "assertions": [
+        {
+          "id": "hd-1",
+          "text": "Kết quả có đủ 7 hóa đơn (5 từ XML + 2 từ PDF)"
+        },
+        {
+          "id": "hd-2",
+          "text": "Tổng tiền hàng chưa thuế = 145.180.000 đồng"
+        },
+        {
+          "id": "hd-3",
+          "text": "Tổng tiền thuế GTGT = 12.248.000 đồng"
+        },
+        {
+          "id": "hd-4",
+          "text": "Phát hiện và báo MST bên bán 0100686200 (hóa đơn 00000103) có vấn đề về chữ số kiểm tra"
+        },
+        {
+          "id": "hd-5",
+          "text": "Giữ đúng thuế suất 8% của hóa đơn 00000104, KHÔNG coi đó là lỗi hay sửa thành 10%"
+        },
+        {
+          "id": "hd-6",
+          "text": "Xử lý đúng hóa đơn 00000105 diện KCT (không chịu thuế) — KHÔNG quy đổi thành thuế suất 0%"
+        },
+        {
+          "id": "hd-7",
+          "text": "Phân biệt rõ dòng nào đọc từ XML và dòng nào đọc từ PDF (có cột nguồn hoặc nói rõ trong báo cáo)"
+        },
+        {
+          "id": "hd-8",
+          "text": "Có tạo ra file bảng kê (.xlsx hoặc .csv) trong thư mục outputs"
+        },
+        {
+          "id": "hd-9",
+          "text": "Toàn bộ phần trả lời cho người dùng viết bằng tiếng Việt"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "doi-chieu-ban-ra-so-511",
+      "prompt": "đối chiếu file bảng kê bán ra với sổ chi tiết 511 trong evals/fixtures/doi-chieu xem lệch chỗ nào không. cộng tổng thấy không khớp mà tìm mãi không ra",
+      "expected_output": "Tìm đúng 3 sai lệch: hóa đơn 00000205 có trong bảng kê nhưng thiếu trong sổ; hóa đơn 00000207 lệch 900.000 đồng; hóa đơn 00000209 bị ghi trùng hai lần trong sổ. Không báo sai lệch giả. Trả lời bằng tiếng Việt, chỉ rõ số chứng từ.",
+      "files": [
+        "evals/fixtures/doi-chieu/"
+      ],
+      "assertions": [
+        {
+          "id": "dc-1",
+          "text": "Phát hiện hóa đơn 00000205 có trong bảng kê bán ra nhưng thiếu trong sổ chi tiết 511"
+        },
+        {
+          "id": "dc-2",
+          "text": "Phát hiện hóa đơn 00000207 lệch tiền, và nêu đúng mức lệch 900.000 đồng"
+        },
+        {
+          "id": "dc-3",
+          "text": "Phát hiện hóa đơn 00000209 bị ghi TRÙNG hai lần trong sổ chi tiết 511"
+        },
+        {
+          "id": "dc-4",
+          "text": "KHÔNG báo thêm sai lệch giả nào ngoài 3 sai lệch có thật"
+        },
+        {
+          "id": "dc-5",
+          "text": "Chỉ rõ số chứng từ / số hóa đơn cụ thể cho từng sai lệch, không nói chung chung"
+        },
+        {
+          "id": "dc-6",
+          "text": "Có đối chiếu tổng: nói được các sai lệch tìm ra có giải thích đủ chênh lệch tổng hay không"
+        },
+        {
+          "id": "dc-7",
+          "text": "Toàn bộ phần trả lời cho người dùng viết bằng tiếng Việt"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "quy-dinh-nguong-ho-kinh-doanh",
+      "prompt": "năm 2026 hộ kinh doanh doanh thu bao nhiêu thì không phải nộp thuế GTGT? nhớ mang máng là 100 triệu mà nghe nói đổi rồi",
+      "expected_output": "Trả lời 1 tỷ đồng/năm theo NĐ 141/2026/NĐ-CP (29/4/2026, sửa NĐ 68/2026/NĐ-CP), hiệu lực hồi tố từ 01/01/2026. Đây là mức thứ TƯ trong hai năm: 100tr → 200tr (Luật 48/2024) → 500tr (Luật 149/2025 rồi NĐ 68/2026) → 1 tỷ (NĐ 141/2026). Phải tra web và kiểm cả 'văn bản còn hiệu lực không', chứ chỉ tra một lần sẽ dừng ở 500 triệu. Ghi lại vào bộ nhớ kèm hạn dùng và nguồn.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "qd-1",
+          "text": "Trả lời đúng ngưỡng 1 tỷ đồng/năm"
+        },
+        {
+          "id": "qd-2",
+          "text": "KHÔNG kết luận 100 triệu, 200 triệu hoặc 500 triệu là mức đang áp dụng cho 2026"
+        },
+        {
+          "id": "qd-3",
+          "text": "Dẫn đúng văn bản NĐ 141/2026/NĐ-CP (hoặc NĐ 68/2026 đã được sửa)"
+        },
+        {
+          "id": "qd-4",
+          "text": "Nêu hiệu lực áp dụng từ 01/01/2026"
+        },
+        {
+          "id": "qd-5",
+          "text": "Có thực hiện tra cứu web, không trả lời từ trí nhớ"
+        },
+        {
+          "id": "qd-6",
+          "text": "Có tạo file ghi chú mới trong .ke-toan-vn/phap-ly/"
+        },
+        {
+          "id": "qd-7",
+          "text": "Ghi chú đó có đủ trường het_han và nguon"
+        },
+        {
+          "id": "qd-8",
+          "text": "Toàn bộ phần trả lời cho người dùng viết bằng tiếng Việt"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "cham-thau-mua-sam-hang-hoa",
+      "prompt": "Đơn vị đang chấm gói thầu mua thiết bị tin học. Có 4 bộ HSDT trong evals/fixtures/goi-thau/hsdt, HSMT kèm danh mục và yêu cầu kỹ thuật ở evals/fixtures/goi-thau. Đề nghị chấm kỹ thuật rồi lập bảng so sánh giá đánh giá để trình tổ chuyên gia.",
+      "expected_output": "Bảng so sánh Excel. Phát hiện đủ 4 vấn đề: nhà thầu A chào thiếu Máy chiếu Epson EB-X51; nhà thầu B sai số học dòng máy in (ghi 102.500.000 thay vì 101.850.000, chênh 650.000); nhà thầu C có thư giảm giá 35.448.180 phải trừ SAU khi sửa lỗi và hiệu chỉnh; nhà thầu D có bảo đảm dự thầu hết hiệu lực 15/10/2026 sớm hơn yêu cầu 30/11/2026. Dẫn NĐ 214/2025, KHÔNG dẫn NĐ 63/2014 hay NĐ 24/2024. Không tuyên bố nhà thầu nào trúng thầu. Ngoài ra phải lập phiếu đối chiếu kỹ thuật TRƯỚC: phát hiện nhà thầu C chào RAM 8GB dưới ngưỡng 16GB (khách quan), nhà thầu B thiếu hẳn tiêu chí bảo hành laptop, nhà thầu D chào xuất xứ Trung Quốc so với yêu cầu G7/EU (cần người quyết, KHÔNG tự loại). Không tự kết luận đạt/không đạt cho bất kỳ tiêu chí nào.",
+      "files": [
+        "evals/fixtures/goi-thau/"
+      ],
+      "assertions": [
+        {
+          "id": "ct-1",
+          "text": "Phát hiện nhà thầu A chào THIẾU mặt hàng Máy chiếu Epson EB-X51"
+        },
+        {
+          "id": "ct-2",
+          "text": "Phát hiện lỗi số học của nhà thầu B ở dòng máy in laser (25 × 4.074.000 = 101.850.000 nhưng HSDT ghi 102.500.000)"
+        },
+        {
+          "id": "ct-3",
+          "text": "Xử lý thư giảm giá của nhà thầu C ĐÚNG THỨ TỰ: trừ giảm giá SAU khi đã sửa lỗi và hiệu chỉnh sai lệch, không trừ trước"
+        },
+        {
+          "id": "ct-4",
+          "text": "Phát hiện bảo đảm dự thầu của nhà thầu D hết hiệu lực 15/10/2026, sớm hơn mốc 30/11/2026 mà HSMT yêu cầu"
+        },
+        {
+          "id": "ct-5",
+          "text": "Dẫn căn cứ pháp lý là Nghị định 214/2025/NĐ-CP"
+        },
+        {
+          "id": "ct-6",
+          "text": "KHÔNG dẫn Nghị định 63/2014 hoặc Nghị định 24/2024 làm căn cứ đang áp dụng (cả hai đã hết hiệu lực)"
+        },
+        {
+          "id": "ct-7",
+          "text": "KHÔNG tự tuyên bố nhà thầu nào trúng thầu hoặc đạt/không đạt — nêu rõ đây là kết quả sơ bộ để tổ chuyên gia quyết định"
+        },
+        {
+          "id": "ct-8",
+          "text": "Có ghi nguồn truy vết (số trang hoặc tên file) cho các số liệu trích từ HSDT"
+        },
+        {
+          "id": "ct-9",
+          "text": "KHÔNG có truy vấn web nào chứa tên nhà thầu, giá dự thầu, hay tên gói thầu"
+        },
+        {
+          "id": "ct-10",
+          "text": "Có tạo ra file bảng so sánh (.xlsx) trong thư mục outputs"
+        },
+        {
+          "id": "ct-11",
+          "text": "Toàn bộ phần trả lời cho người dùng viết bằng tiếng Việt"
+        },
+        {
+          "id": "ct-12",
+          "text": "Có lập phiếu đối chiếu kỹ thuật (chạy cham_ky_thuat.py hoặc tương đương) TRƯỚC khi tính tài chính"
+        },
+        {
+          "id": "ct-13",
+          "text": "Phát hiện nhà thầu C chào RAM 8 GB thấp hơn ngưỡng 16 GB mà HSMT yêu cầu"
+        },
+        {
+          "id": "ct-14",
+          "text": "Phát hiện nhà thầu B thiếu hẳn tiêu chí Bảo hành cho mặt hàng laptop"
+        },
+        {
+          "id": "ct-15",
+          "text": "Với xuất xứ Trung Quốc của nhà thầu D: nêu là điểm cần tổ chuyên gia xem xét, KHÔNG tự kết luận không đạt"
+        },
+        {
+          "id": "ct-16",
+          "text": "KHÔNG tự điền kết luận Đạt/Không đạt cho bất kỳ tiêu chí kỹ thuật nào — để trống cho tổ chuyên gia"
+        },
+        {
+          "id": "ct-17",
+          "text": "Nói rõ kết quả kỹ thuật ảnh hưởng tới giá trị hiệu chỉnh chào thiếu (đơn giá chỉ lấy từ HSDT vượt kỹ thuật)"
+        }
+      ]
+    }
+  ]
+}
