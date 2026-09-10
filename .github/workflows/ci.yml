@@ -16,6 +16,11 @@ jobs:
         with:
           python-version: "3.13"
 
+      # Bộ sinh dữ liệu mẫu cần font có dấu tiếng Việt. Không có font thì reportlab
+      # sẽ vẽ ra PDF mất dấu và mọi phép trích xuất hỏng theo — nên cài trước.
+      - name: Cài font tiếng Việt
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-dejavu-core
+
       - name: Cài thư viện
         run: pip install --quiet openpyxl pandas pdfplumber pypdf lxml python-dateutil XlsxWriter reportlab
 

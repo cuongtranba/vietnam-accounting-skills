@@ -115,26 +115,54 @@ def vnd(n):
     return f"{n:,.0f}".replace(",", ".")
 
 
+# Font có dấu tiếng Việt, tìm trên cả macOS lẫn Linux (CI).
+FONT_UNGVIEN = [
+    # macOS
+    "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+    "/Library/Fonts/Arial Unicode.ttf",
+    "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+    # Linux — DejaVu phủ đủ tiếng Việt và có sẵn trên hầu hết bản phân phối
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/TTF/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+]
+
+
+def tim_font_tieng_viet() -> str:
+    """Đăng ký font có dấu tiếng Việt, trả về tên font.
+
+    KHÔNG rơi về Helvetica: Helvetica không có glyph tiếng Việt nên PDF sinh ra sẽ mất dấu
+    hoặc ra ô vuông, và toàn bộ phép trích xuất phía sau hỏng theo — nhưng hỏng ÂM THẦM,
+    trông như lỗi của script đọc PDF chứ không phải của bộ sinh dữ liệu. Thà dừng hẳn.
+    """
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    for thu in FONT_UNGVIEN:
+        if Path(thu).exists():
+            try:
+                pdfmetrics.registerFont(TTFont("VN", thu))
+                return "VN"
+            except Exception:
+                continue
+    raise SystemExit(
+        "Không tìm thấy font có dấu tiếng Việt để sinh PDF mẫu.\n"
+        "  macOS: thường có sẵn Arial Unicode.\n"
+        "  Debian/Ubuntu: sudo apt-get install -y fonts-dejavu-core\n"
+        "  Fedora/Arch:   dejavu-sans-fonts / ttf-dejavu\n"
+        f"Đã tìm ở: {', '.join(FONT_UNGVIEN)}")
+
+
 def sinh_pdf(hd, ra: Path) -> bool:
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.pdfgen import canvas
-        from reportlab.pdfbase import pdfmetrics
-        from reportlab.pdfbase.ttfonts import TTFont
     except ImportError:
         return False
 
-    font = "Helvetica"
-    for thu in ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-                "/Library/Fonts/Arial Unicode.ttf",
-                "/System/Library/Fonts/Supplemental/Times New Roman.ttf"):
-        if Path(thu).exists():
-            try:
-                pdfmetrics.registerFont(TTFont("VN", thu))
-                font = "VN"
-                break
-            except Exception:
-                continue
+    font = tim_font_tieng_viet()
 
     hang, thue, tong = tien(hd)
     c = canvas.Canvas(str(ra), pagesize=A4)
@@ -308,20 +336,8 @@ NHA_THAU = [
 def _pdf_canvas(ra: Path):
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
 
-    font = "Helvetica"
-    for thu in ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-                "/Library/Fonts/Arial Unicode.ttf"):
-        if Path(thu).exists():
-            try:
-                pdfmetrics.registerFont(TTFont("VN", thu))
-                font = "VN"
-                break
-            except Exception:
-                continue
-    return canvas.Canvas(str(ra), pagesize=A4), A4, font
+    return canvas.Canvas(str(ra), pagesize=A4), A4, tim_font_tieng_viet()
 
 
 def sinh_hsmt(ra: Path) -> bool:
