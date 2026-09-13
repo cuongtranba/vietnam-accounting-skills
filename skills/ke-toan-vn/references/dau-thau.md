@@ -1,14 +1,16 @@
 # Chấm thầu — gói mua sắm hàng hóa
 
 > **Kiểm hiệu lực văn bản trước khi tin file này.** Chạy `bo_nho.py tra "dau thau"`. Nội dung dưới
-> đây lập ngày 2026-09-10 theo NĐ 214/2025/NĐ-CP, và **đã có dự thảo sửa nghị định này** — nên TTL
-> bộ nhớ cho mảng đấu thầu chỉ 45 ngày.
+> đây cập nhật ngày 2026-09-13 theo NĐ 214/2025/NĐ-CP và Luật Đấu thầu (bản hợp nhất
+> 74/VBHN-VPQH), và **đã có dự thảo viết lại toàn diện Luật Đấu thầu** (xem cảnh báo bên dưới) —
+> nên TTL bộ nhớ cho mảng đấu thầu chỉ 45 ngày.
 
 ## Khung pháp lý hiện hành
 
 | Văn bản | Vai trò |
 |---|---|
-| Luật 22/2023/QH15, sửa bởi Luật 57/2024/QH15 và Luật 90/2025/QH15 (hiệu lực 01/7/2025) | Luật Đấu thầu |
+| Luật Đấu thầu 22/2023/QH15, sửa bởi Luật 57/2024/QH15, Luật 90/2025/QH15 (hiệu lực 01/7/2025), Luật Phục hồi, phá sản 142/2025/QH15 (01/3/2026), Luật An ninh mạng 116/2025/QH15 và Luật Công nghệ cao 133/2025/QH15 (cả hai 01/7/2026) | Luật Đấu thầu — **cả 5 lần sửa đều đã có hiệu lực** |
+| **Văn bản hợp nhất số 74/VBHN-VPQH (2026)** | Bản hợp nhất đủ 5 lần sửa trên vào một văn bản — **tra số điều ở đây**, đừng tự cộng dồn các luật sửa đổi |
 | **NĐ 214/2025/NĐ-CP** (hiệu lực 04/8/2025) | Chi tiết lựa chọn nhà thầu — **văn bản đang áp dụng** |
 | TT 79/2025/TT-BTC | Mẫu HSMT, đăng tải thông tin |
 | TT 80/2025/TT-BTC | Mẫu HSYC, **báo cáo đánh giá**, báo cáo thẩm định |
@@ -16,6 +18,12 @@
 ❌ **Không dùng NĐ 63/2014 và NĐ 24/2024** — đã hết hiệu lực. Đây là lỗi rất dễ mắc vì hai văn bản
 này vẫn xếp đầu kết quả tìm kiếm và vẫn được nhiều blog trích dẫn. Nếu bạn thấy mình sắp viết
 "theo Nghị định 63/2014" hay "theo Nghị định 24/2024", dừng lại và tra lại.
+
+⚠️ **Có dự thảo viết lại toàn diện Luật Đấu thầu, đề ngày 28/7/2026** (chưa có số hiệu, chưa qua
+Quốc hội — **không áp dụng**). Dự thảo đánh số lại toàn bộ luật, từ 96 điều xuống còn **73 điều**
+(ví dụ Điều 60 và Điều 61 hiện hành gộp làm một thành Điều 39 dự thảo). Nếu dự thảo này được thông
+qua, **mọi số điều trích trong file này sẽ đổi** — trước khi trích dẫn số điều, kiểm xem luật mới
+đã có hiệu lực chưa; nếu có, tra lại toàn bộ bảng ánh xạ điều khoản, đừng suy đoán điều tương ứng.
 
 ## Nguyên tắc chi phối mọi việc ở đây
 
@@ -129,10 +137,23 @@ làm nhà thầu bị loại.
 > **đảo thứ hạng nhà thầu** — hậu quả trực tiếp lên kết quả gói thầu. Logic của quy định: hiệu chỉnh
 > theo mức cao nhất để nhà thầu chào thiếu không được lợi thế giá so với nhà thầu chào đủ.
 
-**Và: giá trị hiệu chỉnh chỉ dùng để so sánh, xếp hạng.** Nếu sau hiệu chỉnh nhà thầu vẫn xếp thứ
-nhất thì **giá đề nghị trúng thầu KHÔNG bao gồm giá trị hiệu chỉnh sai lệch**. Nói cách khác: cộng
-thêm để xếp hạng, nhưng không cộng vào giá ký hợp đồng. Nêu rõ điều này khi trình tổ chuyên gia,
-vì hai con số khác nhau và rất dễ bị dùng nhầm chỗ.
+**Khoản 4 Điều 31 — chuẩn THỨ HAI, ngược chiều, cho riêng nhà thầu thắng.** Đây là chỗ dễ hiểu sai
+tiếp theo, vì rất dễ tưởng chỉ có một đơn giá hiệu chỉnh dùng xuyên suốt. Thực ra có **hai bước**:
+
+1. **Xếp hạng** (điểm c khoản 2, ở trên): hiệu chỉnh bằng đơn giá **CAO NHẤT** cho MỌI nhà thầu
+   chào thiếu, để so sánh công bằng.
+2. **Áp đơn giá cho nhà thầu xếp hạng nhất** (khoản 4): nếu sau bước 1 nhà thầu chào thiếu **vẫn
+   xếp hạng nhất**, và HSDT của họ không có đơn giá cho phần chào thiếu đó, thì giá trị đưa vào
+   **giá đề nghị trúng thầu** (giá sẽ ký hợp đồng) cho riêng phần đó phải tính lại bằng đơn giá
+   **THẤP NHẤT** trong số các HSDT vượt kỹ thuật — cùng thứ tự ưu tiên dự toán rồi giá gói thầu,
+   chỉ đảo chiều đơn giá.
+
+⇒ Cùng một hạng mục chào thiếu có **hai giá trị khác nhau**: cao nhất khi xếp hạng, thấp nhất khi
+tính tiền hợp đồng thật của người thắng. **"Giá đề nghị trúng thầu" theo định nghĩa của Luật vẫn
+BAO GỒM giá trị hiệu chỉnh sai lệch** — không phải bỏ đi, chỉ là tính lại bằng đơn giá khác. Đừng
+nhầm với `ΔG`/`ΔƯĐ` (mục "Giá đánh giá" bên dưới) — đó mới là phần chỉ phục vụ xếp hạng và không
+cộng vào giá hợp đồng. Nêu rõ cả hai con số (giá trị hiệu chỉnh dùng để xếp hạng, và giá đề nghị
+trúng thầu dự kiến theo khoản 4) khi trình tổ chuyên gia, vì rất dễ dùng nhầm chỗ.
 
 ## Ba cái bẫy số học
 
@@ -166,6 +187,12 @@ G = (giá dự thầu ± giá trị sửa lỗi ± giá trị hiệu chỉnh sai
 kết quả thực hiện hợp đồng trước đây — **chỉ tính những gì HSMT quy định**, và phải nêu rõ đang
 dùng công thức nào của HSMT. Nếu HSMT không quy định thì `ΔG = 0`, đừng tự nghĩ ra.
 
+**`ΔG` và `ΔƯĐ` — không phải giá trị hiệu chỉnh sai lệch — mới là phần KHÔNG cộng vào giá hợp
+đồng.** Chúng chỉ là quy đổi để so sánh, xếp hạng công bằng giữa các nhà thầu (vd quy đổi chi phí
+vòng đời, cộng tiền cho hàng hóa không được ưu đãi) và biến mất khỏi giá ký hợp đồng sau khi đã
+chọn được người thắng. Giá trị hiệu chỉnh sai lệch (mục "Sửa lỗi ≠ hiệu chỉnh sai lệch" ở trên)
+thì khác — nó **có mặt** trong giá đề nghị trúng thầu, chỉ đổi đơn giá theo khoản 4 Điều 31.
+
 Phương pháp xếp hạng tuỳ HSMT: **giá thấp nhất** (xếp theo giá sau sửa lỗi, hiệu chỉnh, trừ giảm
 giá) hoặc **giá đánh giá** (xếp theo `G`). Đọc HSMT để biết đang dùng cái nào — đừng mặc định.
 
@@ -186,7 +213,7 @@ Các sheet `so_sanh_thau.py` sinh ra:
 
 | Sheet | Nội dung |
 |---|---|
-| `Tong hop` | Mỗi nhà thầu một dòng: giá dự thầu, sửa lỗi, hiệu chỉnh, giảm giá, ΔG, ΔƯĐ, giá đánh giá, xếp hạng sơ bộ |
+| `Tong hop` | Mỗi nhà thầu một dòng: giá dự thầu, sửa lỗi, hiệu chỉnh (đơn giá cao nhất, để xếp hạng), giảm giá, giá đánh giá, xếp hạng sơ bộ, và **giá đề nghị trúng thầu dự kiến** (đơn giá thấp nhất — khoản 4 Điều 31, chỉ tính cho nhà thầu xếp hạng nhất). Cột Ghi chú nêu rõ ΔG/ΔƯĐ chưa tính — chỉ tính khi HSMT có công thức |
 | `Doi chieu danh muc` | Ma trận mặt hàng × nhà thầu, đánh dấu chào thiếu / chào thừa |
 | `Sua loi` | Từng dòng sai số học, số cũ, số đúng, chênh lệch |
 | `Canh bao` | Mọi thứ đáng ngờ: sai lệch vượt 10%, bảo lãnh hết hiệu lực, thiếu tài liệu |
@@ -195,8 +222,45 @@ Các sheet `so_sanh_thau.py` sinh ra:
 Ô A1 của sheet `Tong hop` ghi rõ: *"Kết quả tính toán sơ bộ. Tổ chuyên gia phải rà soát, đối chiếu
 với HSMT và HSDT gốc trước khi kết luận. Tài liệu này không phải là kết quả đánh giá."*
 
-Báo cáo đánh giá chính thức theo **mẫu tại TT 80/2025/TT-BTC** — nếu người dùng cần lập, tra mẫu
-hiện hành trước, đừng dựng theo trí nhớ.
+### Tra mẫu biểu — đừng dựng theo trí nhớ
+
+Báo cáo, hồ sơ chính thức phải theo đúng mẫu ban hành kèm thông tư — nội dung, thứ tự mục trong
+mẫu có thể đổi giữa các lần sửa thông tư, nên **tra mẫu hiện hành trước khi dựng file**, đừng nhớ
+lại cấu trúc mẫu cũ. Bảng dưới đây chỉ để biết **nên tìm mẫu số mấy trong thông tư nào** — không
+thay cho việc mở đúng mẫu ra xem.
+
+**TT 80/2025/TT-BTC** — báo cáo đánh giá, thẩm định, kiểm tra:
+
+| Việc cần lập | Mẫu số |
+|---|---|
+| Hồ sơ yêu cầu (chỉ định thầu, chào hàng cạnh tranh...) — xây lắp / hàng hóa / phi tư vấn / tư vấn | 01A / 01B / 01C / 01D |
+| Báo cáo đánh giá HSDT — 1 giai đoạn 1 túi hồ sơ (hàng hóa, xây lắp, phi tư vấn, hỗn hợp, thiết bị y tế, chào giá trực tuyến) | 02A |
+| Báo cáo đánh giá HSDT — 1 giai đoạn 2 túi hồ sơ | 02B |
+| Báo cáo đánh giá HSDT — gói thầu tư vấn | 02C |
+| Báo cáo thẩm định HSMT / danh sách đáp ứng kỹ thuật / kết quả lựa chọn nhà thầu | 03A / 03B / 03C |
+| Kế hoạch, báo cáo, kết luận kiểm tra hoạt động đấu thầu | 04.1 – 04.5 |
+| Báo cáo tình hình thực hiện hoạt động đấu thầu | 05 |
+
+**TT 79/2025/TT-BTC** — E-HSMT theo loại gói thầu (mẫu `A` = 1 túi/thông thường, `B` = 2 túi,
+`C` = hồ sơ mời sơ tuyển, trừ khi ghi khác):
+
+| Loại gói thầu | Mẫu số |
+|---|---|
+| Xây lắp | 3A / 3B / 3C |
+| Hàng hóa | 4A / 4B / 4C |
+| Phi tư vấn | 5A / 5B / 5C |
+| Tư vấn (tổ chức / mời quan tâm / cá nhân) | 6A / 6B / 6C |
+| Hỗn hợp EP (tư vấn + hàng hóa) | 7A / 7B / 7C |
+| Hỗn hợp EC (tư vấn + xây lắp) | 8A / 8B / 8C |
+| Hỗn hợp PC (hàng hóa + xây lắp) | 9A / 9B / 9C |
+| Hỗn hợp EPC (tư vấn + hàng hóa + xây lắp) | 10A / 10B / 10C |
+| Máy đặt máy mượn | 11A / 11B |
+| Chào giá trực tuyến (thông thường / rút gọn, theo loại gói) | 12A – 12G |
+| Mua sắm trực tuyến | 13 |
+| Kế hoạch lựa chọn nhà thầu | 01A – 02C |
+
+Cả hai thông tư đều còn nhiều mẫu khác (phụ lục, đề cương báo cáo...) ngoài bảng trên — nếu không
+thấy việc cần làm trong hai bảng này, hỏi lại người dùng tên mẫu chính xác thay vì đoán.
 
 ## Lệnh
 

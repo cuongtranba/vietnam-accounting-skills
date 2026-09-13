@@ -138,17 +138,25 @@ với cá nhân — nên công cụ kiểm tra phải chấp nhận cả dạng 
 
 | Văn bản | Nội dung | Hiệu lực | Tình trạng |
 |---|---|---|---|
-| Luật 22/2023/QH15 | Luật Đấu thầu | 01/01/2024 | còn hiệu lực, **đã bị sửa** |
-| Luật 57/2024/QH15 | Sửa Luật Đấu thầu | | |
-| Luật 90/2025/QH15 | Sửa Luật Đấu thầu | 01/07/2025 | |
+| Luật 22/2023/QH15 | Luật Đấu thầu | 01/01/2024 | còn hiệu lực, **đã bị sửa 5 lần** |
+| Luật 57/2024/QH15 | Sửa Luật Đấu thầu (cùng Luật Quy hoạch, Đầu tư, PPP) | 15/01/2025 | |
+| Luật 90/2025/QH15 | Sửa Luật Đấu thầu (cùng PPP, Hải quan, thuế...) | 01/07/2025 | |
+| Luật Phục hồi, phá sản 142/2025/QH15 | Sửa vài điều liên quan phá sản trong Luật Đấu thầu | 01/03/2026 | |
+| Luật An ninh mạng 116/2025/QH15 | Sửa vài điều liên quan an ninh mạng | 01/07/2026 | |
+| Luật Công nghệ cao 133/2025/QH15 | Sửa vài điều, thêm nhóm doanh nghiệp công nghệ cao | 01/07/2026 | |
+| **Văn bản hợp nhất 74/VBHN-VPQH (2026)** | Hợp nhất đủ 5 lần sửa trên | | **dùng bản này để tra số điều**, đừng tự cộng dồn |
 | **NĐ 214/2025/NĐ-CP** | Chi tiết Luật Đấu thầu, **lựa chọn nhà thầu** | **04/08/2025** | **văn bản đang áp dụng** |
 | TT 79/2025/TT-BTC | Mẫu HSMT, đăng tải thông tin lên Hệ thống mạng đấu thầu quốc gia | | |
 | TT 80/2025/TT-BTC | Mẫu HSYC, **báo cáo đánh giá**, báo cáo thẩm định | | |
 | ~~NĐ 63/2014/NĐ-CP~~ | | | ❌ **hết hiệu lực** |
 | ~~NĐ 24/2024/NĐ-CP~~ | | | ❌ **đã bị NĐ 214/2025 thay** |
 
-⚠️ **Đã có dự thảo sửa NĐ 214/2025** (mở rộng chỉ định thầu, tăng công khai giám sát). Vì vậy
-TTL bộ nhớ cho mảng đấu thầu đặt ngắn nhất — **45 ngày**. Nếu ghi chú quá 45 ngày, tra lại.
+⚠️ **Có dự thảo viết lại toàn diện Luật Đấu thầu, đề ngày 28/7/2026** — chưa có số hiệu, chưa qua
+Quốc hội, **chưa áp dụng**. Không phải chỉ sửa vài điều: dự thảo đánh số lại toàn bộ luật, từ 96
+điều xuống còn 73 điều (vd Điều 60 + Điều 61 hiện hành gộp thành một điều mới). Nếu văn bản này
+được thông qua, toàn bộ số điều đang trích trong `references/dau-thau.md` sẽ sai — phải tra lại
+bảng ánh xạ điều khoản cũ → mới, không suy đoán. Vì đang có một thay đổi lớn treo lơ lửng, TTL bộ
+nhớ cho mảng đấu thầu đặt ngắn nhất — **45 ngày**. Nếu ghi chú quá 45 ngày, tra lại.
 
 ## Cách tra một quy định
 

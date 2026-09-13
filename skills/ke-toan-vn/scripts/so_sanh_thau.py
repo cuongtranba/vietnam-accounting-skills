@@ -18,6 +18,16 @@ Ba cái bẫy số học được xử lý đúng ở đây:
   3. Sai lệch thiếu không quá 10% giá dự thầu là điều kiện xét duyệt trúng thầu — vượt thì
      cảnh báo, nhưng KHÔNG tự tuyên bố loại.
 
+HAI CHUẨN ĐƠN GIÁ NGƯỢC CHIỀU CHO CÙNG MỘT HẠNG MỤC CHÀO THIẾU (Điều 31 NĐ 214/2025):
+  - Điểm c khoản 2 — hiệu chỉnh để SO SÁNH, XẾP HẠNG (cột "Giá đánh giá (G)"): đơn giá CAO NHẤT
+    trong các HSDT khác đã vượt bước kỹ thuật → dự toán → giá gói thầu.
+  - Khoản 4 — áp đơn giá cho GIÁ ĐỀ NGHỊ TRÚNG THẦU (giá hợp đồng) của riêng nhà thầu đang xếp
+    hạng nhất, nếu HSDT của họ không có đơn giá phần chào thiếu: đơn giá THẤP NHẤT trong các HSDT
+    khác đã vượt bước kỹ thuật → dự toán → giá gói thầu.
+  "Giá đề nghị trúng thầu" theo Luật VẪN bao gồm giá trị hiệu chỉnh sai lệch (định nghĩa "giá đề
+  nghị trúng thầu" = giá dự thầu đã sửa lỗi, hiệu chỉnh sai lệch, trừ giảm giá) — chỉ đơn giá dùng
+  để tính lại khác đi. Cái thật sự không cộng vào giá hợp đồng là ΔG/ΔƯĐ ở trên.
+
 NGUYÊN TẮC: đây là bảng tính SƠ BỘ. Script không kết luận nhà thầu nào đạt hay trúng thầu.
 Xếp hạng in ra là xếp hạng theo con số, không phải kết quả lựa chọn nhà thầu.
 """
@@ -280,7 +290,24 @@ def main() -> int:
                 if khop not in don_gia_cao_nhat or dg > don_gia_cao_nhat[khop]:
                     don_gia_cao_nhat[khop] = dg
 
+    # Đơn giá THẤP NHẤT của từng mặt hàng — dùng RIÊNG cho khoản 4 Điều 31 NĐ 214/2025: áp cho
+    # nhà thầu ĐANG XẾP HẠNG NHẤT khi tính giá đề nghị trúng thầu (giá đưa vào hợp đồng), nếu
+    # HSDT của họ không có đơn giá cho phần chào thiếu. NGƯỢC CHIỀU với don_gia_cao_nhat ở trên —
+    # hai biến phục vụ hai mục đích khác nhau (xếp hạng vs. giá hợp đồng thật), đừng gộp lại.
+    don_gia_thap_nhat: dict[str, Decimal] = {}
+    for nt in nha_thau:
+        if nt["nha_thau"] not in vuot_kt:
+            continue
+        for d in nt.get("danh_muc", []):
+            khop = khop_ten(d["ten"], ten_yeu_cau) if ten_yeu_cau else d["ten"]
+            dg = d.get("don_gia")
+            if khop and dg is not None:
+                dg = Decimal(str(dg))
+                if khop not in don_gia_thap_nhat or dg < don_gia_thap_nhat[khop]:
+                    don_gia_thap_nhat[khop] = dg
+
     bang_tong, bang_doi_chieu, bang_sua_loi, bang_canh_bao, bang_can_cu = [], [], [], [], []
+    thieu_theo_nha_thau: dict[str, list[dict]] = {}
 
     for nt in nha_thau:
         ten_nt = nt["nha_thau"]
@@ -331,12 +358,35 @@ def main() -> int:
         for muc in yeu_cau:
             ten = muc["ten"]
             if ten in da_chao:
+                dg_rieng = da_chao[ten].get("don_gia")
                 bang_doi_chieu.append({
                     "Mặt hàng (HSMT)": ten, "Nhà thầu": ten_nt, "Tình trạng": "Có chào",
-                    "Đơn giá": da_chao[ten].get("don_gia"),
+                    "Đơn giá": dg_rieng,
                     "Thành tiền": da_chao[ten].get("thanh_tien"),
                     "Nguồn": da_chao[ten].get("nguon_trang"),
                 })
+                # Mặt hàng có tên trong bảng giá nhưng KHÔNG đọc được đơn giá riêng — dòng này
+                # KHÔNG vào sai_lech_thieu/thieu_theo_nha_thau (nó không phải "không được liệt
+                # kê"), nhưng cũng không có đơn giá thật để hiệu chỉnh hay để tính khoản 4. Nếu
+                # có thành tiền, điểm d khoản 1 Điều 31 NĐ 214/2025 yêu cầu suy đơn giá = thành
+                # tiền / số lượng (sửa lỗi) — script chưa tự làm việc đó, nên cảnh báo thay vì im
+                # lặng bỏ qua, để tổ chuyên gia tự kiểm thay vì nhận một cột trống không rõ lý do.
+                if dg_rieng is None:
+                    tt_rieng = da_chao[ten].get("thanh_tien")
+                    bang_canh_bao.append({
+                        "Nhà thầu": ten_nt, "Loại": "Thiếu đơn giá dòng đã chào",
+                        "Nội dung": (
+                            f"'{ten}' có trong bảng giá dự thầu nhưng KHÔNG đọc được đơn giá "
+                            "riêng, nên KHÔNG được tính vào sai lệch thiếu (khoản 2/4 Điều 31) ở "
+                            "bảng này. " + (
+                                f"Có thành tiền ({tt_rieng}) — theo điểm d khoản 1 Điều 31 NĐ "
+                                "214/2025, đơn giá phải suy ra bằng thành tiền chia số lượng "
+                                "(là bước sửa lỗi); script chưa tự tính, cần làm thủ công."
+                                if tt_rieng is not None else
+                                "Không có cả thành tiền — không đọc được số nào cho dòng này."
+                            ) + " Kiểm tra lại trang HSDT trước khi dùng số liệu."
+                        ),
+                    })
                 continue
 
             # Chào thiếu. Thuế/phí thì KHÔNG tính vào sai lệch thiếu.
@@ -358,6 +408,8 @@ def main() -> int:
             gia_tri = dg * sl if dg is not None else None
             if gia_tri is not None:
                 sai_lech_thieu += gia_tri
+            thieu_theo_nha_thau.setdefault(ten_nt, []).append(
+                {"ten": ten, "so_luong": muc.get("so_luong")})
 
             bang_doi_chieu.append({
                 "Mặt hàng (HSMT)": ten, "Nhà thầu": ten_nt, "Tình trạng": "CHÀO THIẾU",
@@ -438,6 +490,7 @@ def main() -> int:
             "Thư giảm giá": giam_gia,
             "% sai lệch thiếu": (float(ty_le * 100) if ty_le is not None else None),
             "Giá đánh giá (G)": gia_danh_gia,
+            "Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)": None,
             "Ghi chú": ("ΔG và ΔƯĐ chưa tính — chỉ tính khi HSMT có quy định công thức"),
         })
 
@@ -450,6 +503,48 @@ def main() -> int:
         r["Xếp hạng sơ bộ"] = i
     for r in bang_tong:
         r.setdefault("Xếp hạng sơ bộ", None)
+
+    # --- Khoản 4 Điều 31: giá đề nghị trúng thầu dự kiến, riêng cho nhà thầu xếp hạng nhất -----
+    # Chỉ áp dụng cho nhà thầu ĐANG xếp hạng nhất (dù xếp theo giá thấp nhất hay giá đánh giá G),
+    # và chỉ cho phần chào thiếu mà HSDT của họ hoàn toàn không có đơn giá riêng. Đơn giá dùng ở
+    # đây là don_gia_thap_nhat — NGƯỢC CHIỀU với đơn giá đã dùng để xếp hạng nhà thầu này.
+    gia_de_nghi_khoan4 = None
+    if co_gia:
+        nguoi_thang = co_gia[0]["Nhà thầu"]
+        muc_thieu = thieu_theo_nha_thau.get(nguoi_thang, [])
+        if muc_thieu:
+            gia_tri_khoan4 = Decimal(0)
+            thieu_khong_xac_dinh = []
+            for muc in muc_thieu:
+                dg = don_gia_thap_nhat.get(muc["ten"])
+                if dg is None and args.du_toan:
+                    dg = Decimal(str(args.du_toan))
+                if dg is None:
+                    thieu_khong_xac_dinh.append(muc["ten"])
+                    continue
+                sl = Decimal(str(muc["so_luong"])) if muc.get("so_luong") else Decimal(1)
+                gia_tri_khoan4 += dg * sl
+
+            hang_thang = next(r for r in bang_tong if r["Nhà thầu"] == nguoi_thang)
+            if not thieu_khong_xac_dinh:
+                hieu_chinh_khoan4 = gia_tri_khoan4 - hang_thang["Sai lệch thừa"]
+                gia_de_nghi_khoan4 = (hang_thang["Giá dự thầu"] + hang_thang["Giá trị sửa lỗi"]
+                                      + hieu_chinh_khoan4 - hang_thang["Thư giảm giá"])
+                hang_thang["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"] = gia_de_nghi_khoan4
+
+            bang_canh_bao.append({
+                "Nhà thầu": nguoi_thang, "Loại": "Khoản 4 Điều 31",
+                "Nội dung": (
+                    f"{nguoi_thang} đang xếp hạng nhất và có chào thiếu không tự có đơn giá "
+                    "riêng. Theo khoản 4 Điều 31 NĐ 214/2025, giá đề nghị trúng thầu (giá đưa vào "
+                    "hợp đồng) cho phần chào thiếu này phải tính bằng đơn giá THẤP NHẤT trong các "
+                    "HSDT vượt kỹ thuật — ngược chiều với đơn giá CAO NHẤT đã dùng để xếp hạng ở "
+                    "cột 'Giá đánh giá (G)'. Xem cột 'Giá đề nghị trúng thầu (dự kiến, khoản 4 "
+                    "Điều 31)'. Nếu nhà thầu này KHÔNG trúng thầu sau cùng, cột này không áp dụng."
+                    + (f" KHÔNG xác định được đơn giá cho: {', '.join(thieu_khong_xac_dinh)} — "
+                       "cần --du-toan hoặc xác định thủ công." if thieu_khong_xac_dinh else "")
+                ),
+            })
 
     tom_tat = {
         "so_nha_thau": len(bang_tong),
@@ -464,6 +559,9 @@ def main() -> int:
         "so_canh_bao": len(bang_canh_bao),
         "xep_hang_so_bo": [{"hang": r.get("Xếp hạng sơ bộ"), "nha_thau": r["Nhà thầu"],
                             "gia_danh_gia": r["Giá đánh giá (G)"]} for r in co_gia],
+        "gia_de_nghi_trung_thau_du_kien_khoan_4": (
+            {"nha_thau": co_gia[0]["Nhà thầu"], "gia_tri": gia_de_nghi_khoan4}
+            if co_gia and gia_de_nghi_khoan4 is not None else None),
         "luu_y": LUU_Y,
         "can_cu_phap_ly": "NĐ 214/2025/NĐ-CP (KHÔNG dùng NĐ 63/2014 hay NĐ 24/2024 — đã hết hiệu lực)",
         "canh_bao_chung": canh_bao_chung,
