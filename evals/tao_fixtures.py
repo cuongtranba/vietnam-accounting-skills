@@ -540,12 +540,38 @@ def sinh_dau_thau():
                 # và không lẫn vào don_gia_cao_nhat/don_gia_thap_nhat của các nhà thầu khác.
                 {"nha_thau": "NT Tu", "gia_du_thau": "1000000", "danh_muc": [
                     {"ten": "Muc X", "don_gia": None, "so_luong": 10, "thanh_tien": "2500"}]},
+                # Có thành tiền nhưng KHÔNG có số lượng riêng — không suy được đơn giá (khác với
+                # NT Tu ở trên). Cảnh báo phải nói đúng lý do (thiếu số lượng), không nói chung
+                # chung "không đọc được đơn giá lẫn thành tiền" khi thành tiền rõ ràng có.
+                {"nha_thau": "NT Nam", "gia_du_thau": "1000000", "danh_muc": [
+                    {"ten": "Muc X", "don_gia": None, "so_luong": None, "thanh_tien": "2000"}]},
+                # so_luong là CHUỖI "0" (mô phỏng qua JSON từ doc_hsdt.py, vốn tuần tự hoá
+                # Decimal(0) thành chuỗi) — chuỗi "0" vẫn truthy trong Python, nên đây là ca kiểm
+                # tra không được chia cho 0 mà làm sập cả báo cáo.
+                {"nha_thau": "NT Tam", "gia_du_thau": "1000000", "danh_muc": [
+                    {"ten": "Muc X", "don_gia": None, "so_luong": "0", "thanh_tien": "500"}]},
             ]
         }, f, ensure_ascii=False, indent=2)
     with (goc / "khoan4_danh_muc.csv").open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(["stt", "ten_hang_hoa", "dvt", "so_luong"])
         w.writerow([1, "Muc X", "Chiec", 10])
+
+    # Fixture riêng: HSMT không đọc được số lượng của 'Muc Z' (cột để trống). NT Rot chào thiếu
+    # và vẫn xếp hạng nhất — kiểm rằng số lượng thiếu KHÔNG bị mặc định = 1, dù đơn giá tham
+    # chiếu (của NT Hai2) có sẵn.
+    with (goc / "soluong_thieu_hsdt.json").open("w", encoding="utf-8") as f:
+        json.dump({
+            "nha_thau": [
+                {"nha_thau": "NT Rot", "gia_du_thau": "5000", "danh_muc": []},
+                {"nha_thau": "NT Hai2", "gia_du_thau": "50000", "danh_muc": [
+                    {"ten": "Muc Z", "don_gia": "100", "so_luong": 10, "thanh_tien": "1000"}]},
+            ]
+        }, f, ensure_ascii=False, indent=2)
+    with (goc / "soluong_thieu_danh_muc.csv").open("w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        w.writerow(["stt", "ten_hang_hoa", "dvt", "so_luong"])
+        w.writerow([1, "Muc Z", "Chiec", ""])
 
     if not sinh_hsmt(goc / "hsmt.pdf"):
         print("  ⚠️  Chưa cài reportlab — bỏ qua HSMT/HSDT dạng PDF")
