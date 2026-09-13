@@ -151,6 +151,29 @@ kiem("C không còn trong bảng xếp hạng",
      [x["nha_thau"].split(" - ")[0] for x in d["tom_tat"]["xep_hang_so_bo"]],
      ["Nha thau B", "Nha thau D", "Nha thau A"])
 
+print("\nKhoản 4 Điều 31 — đơn giá THẤP NHẤT cho nhà thầu xếp hạng nhất (ngược chiều khoản 2)")
+# Dữ liệu dựng tay (không qua doc_hsdt.py): NT Thang chào thiếu 'Muc X' (10 cái), nhưng giá dự
+# thầu đủ thấp để vẫn xếp hạng nhất SAU KHI bị cộng hiệu chỉnh bằng đơn giá CAO NHẤT (300, của
+# NT Ba) theo khoản 2. Khoản 4 phải dùng đơn giá THẤP NHẤT (200, của NT Hai) khi tính giá đề
+# nghị trúng thầu — một con số khác, thấp hơn, cho đúng nhà thầu đó.
+d = chay(str(SCRIPTS / "so_sanh_thau.py"), str(FIX / "goi-thau/khoan4_hsdt.json"),
+         "--danh-muc", str(FIX / "goi-thau/khoan4_danh_muc.csv"))
+g = {r["Nhà thầu"]: r for r in d["tong_hop"]}
+kiem("NT Thang xếp hạng nhất dù chào thiếu", g["NT Thang"]["Xếp hạng sơ bộ"], 1)
+kiem("giá đánh giá (G) dùng đơn giá CAO NHẤT (300×10=3000 cộng vào 10000)",
+     g["NT Thang"]["Giá đánh giá (G)"], "13000")
+kiem("giá đề nghị trúng thầu dự kiến dùng đơn giá THẤP NHẤT (200×10=2000 cộng vào 10000)",
+     g["NT Thang"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"], "12000")
+kiem("nhà thầu không xếp hạng nhất thì không có giá đề nghị trúng thầu dự kiến",
+     (g["NT Hai"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"],
+      g["NT Ba"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"]), (None, None))
+kiem("NT Tu có chào 'Muc X' nhưng thiếu đơn giá riêng -> cảnh báo, không bịa số",
+     any(c["Nhà thầu"] == "NT Tu" and c["Loại"] == "Thiếu đơn giá dòng đã chào"
+         for c in d["canh_bao"]), True)
+kiem("đơn giá thiếu của NT Tu không lẫn vào đơn giá cao/thấp nhất dùng chung",
+     (g["NT Thang"]["Giá đánh giá (G)"],
+      g["NT Thang"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"]), ("13000", "12000"))
+
 print("\nBộ nhớ — hạn dùng và bản lưu trữ")
 bn = str(SCRIPTS / "bo_nho.py")
 import os  # noqa: E402

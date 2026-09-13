@@ -7,6 +7,7 @@ Cần: reportlab (cho PDF). Không có reportlab thì phần XML/CSV vẫn sinh 
 from __future__ import annotations
 
 import csv
+import json
 import random
 from pathlib import Path
 
@@ -521,6 +522,30 @@ def sinh_dau_thau():
         for idx, tc in YEU_CAU_KT.items():
             for ten_tc, yc in tc:
                 w.writerow([DANH_MUC[idx][0], ten_tc, yc])
+
+    # Fixture riêng cho khoản 4 Điều 31 NĐ 214/2025 — dựng tay dạng JSON/CSV (đầu vào của
+    # so_sanh_thau.py), không qua PDF/OCR vì chỉ cần kiểm phép tính, không kiểm bóc tách.
+    # NT Thang chào thiếu 'Muc X' nhưng giá đủ thấp để vẫn xếp hạng nhất SAU hiệu chỉnh bằng
+    # đơn giá CAO NHẤT (khoản 2) — dùng để kiểm khoản 4 phải chuyển sang đơn giá THẤP NHẤT.
+    with (goc / "khoan4_hsdt.json").open("w", encoding="utf-8") as f:
+        json.dump({
+            "nha_thau": [
+                {"nha_thau": "NT Thang", "gia_du_thau": "10000", "danh_muc": []},
+                {"nha_thau": "NT Hai", "gia_du_thau": "15000", "danh_muc": [
+                    {"ten": "Muc X", "don_gia": "200", "so_luong": 10, "thanh_tien": "2000"}]},
+                {"nha_thau": "NT Ba", "gia_du_thau": "16000", "danh_muc": [
+                    {"ten": "Muc X", "don_gia": "300", "so_luong": 10, "thanh_tien": "3000"}]},
+                # Có liệt kê 'Muc X' nhưng KHÔNG đọc được đơn giá riêng (don_gia null) — kiểm
+                # rằng dòng này bị cảnh báo thay vì âm thầm rơi vào 'Có chào' không đơn giá,
+                # và không lẫn vào don_gia_cao_nhat/don_gia_thap_nhat của các nhà thầu khác.
+                {"nha_thau": "NT Tu", "gia_du_thau": "1000000", "danh_muc": [
+                    {"ten": "Muc X", "don_gia": None, "so_luong": 10, "thanh_tien": "2500"}]},
+            ]
+        }, f, ensure_ascii=False, indent=2)
+    with (goc / "khoan4_danh_muc.csv").open("w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        w.writerow(["stt", "ten_hang_hoa", "dvt", "so_luong"])
+        w.writerow([1, "Muc X", "Chiec", 10])
 
     if not sinh_hsmt(goc / "hsmt.pdf"):
         print("  ⚠️  Chưa cài reportlab — bỏ qua HSMT/HSDT dạng PDF")
