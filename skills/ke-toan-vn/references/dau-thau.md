@@ -222,6 +222,12 @@ Các sheet `so_sanh_thau.py` sinh ra:
 Ô A1 của sheet `Tong hop` ghi rõ: *"Kết quả tính toán sơ bộ. Tổ chuyên gia phải rà soát, đối chiếu
 với HSMT và HSDT gốc trước khi kết luận. Tài liệu này không phải là kết quả đánh giá."*
 
+**Nhà thầu còn hạng mục chào thiếu chưa định giá được (thiếu đơn giá và/hoặc số lượng, kể cả sau
+khi đã thử suy từ thành tiền theo điểm d khoản 1 Điều 31) sẽ KHÔNG có số ở cột `Xếp hạng sơ bộ`.**
+Lý do: `Giá đánh giá (G)` của họ đang ngầm coi phần chưa định giá đó bằng 0 vì không có cách nào
+khác để tính — con số này chỉ để tham khảo, không đủ tin cậy để đặt cạnh nhà thầu khác trong bảng
+xếp hạng, vì giá trị thật của phần thiếu có thể đổi cả thứ hạng. Xem `Canh bao` để biết thiếu gì.
+
 ### Tra mẫu biểu — đừng dựng theo trí nhớ
 
 Báo cáo, hồ sơ chính thức phải theo đúng mẫu ban hành kèm thông tư — nội dung, thứ tự mục trong

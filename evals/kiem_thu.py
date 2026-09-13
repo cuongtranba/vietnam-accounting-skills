@@ -167,12 +167,47 @@ kiem("giá đề nghị trúng thầu dự kiến dùng đơn giá THẤP NHẤT
 kiem("nhà thầu không xếp hạng nhất thì không có giá đề nghị trúng thầu dự kiến",
      (g["NT Hai"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"],
       g["NT Ba"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"]), (None, None))
-kiem("NT Tu có chào 'Muc X' nhưng thiếu đơn giá riêng -> cảnh báo, không bịa số",
-     any(c["Nhà thầu"] == "NT Tu" and c["Loại"] == "Thiếu đơn giá dòng đã chào"
+kiem("NT Tu chào 'Muc X' nhưng thiếu đơn giá riêng -> suy từ thành tiền (2500/10=250), có cảnh báo",
+     any(c["Nhà thầu"] == "NT Tu" and c["Loại"] == "Đơn giá suy từ thành tiền"
          for c in d["canh_bao"]), True)
-kiem("đơn giá thiếu của NT Tu không lẫn vào đơn giá cao/thấp nhất dùng chung",
+kiem("dòng 'Có chào' của NT Tu hiện đơn giá đã suy ra, không bỏ trống",
+     next(r["Đơn giá"] for r in d["doi_chieu_danh_muc"]
+          if r["Nhà thầu"] == "NT Tu" and r["Tình trạng"] == "Có chào"), "250")
+kiem("đơn giá suy ra của NT Tu (250) nằm giữa 200-300 nên không đổi cao/thấp nhất dùng chung",
      (g["NT Thang"]["Giá đánh giá (G)"],
       g["NT Thang"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"]), ("13000", "12000"))
+kiem("NT Nam có thành tiền nhưng thiếu số lượng -> cảnh báo nêu đúng lý do, không nói chung chung",
+     any(c["Nhà thầu"] == "NT Nam" and c["Loại"] == "Thiếu đơn giá dòng đã chào"
+         and "thiếu số lượng" in c["Nội dung"] and "2000" in c["Nội dung"]
+         for c in d["canh_bao"]), True)
+kiem("NT Tam có số lượng là chuỗi '0' -> không chia cho 0, không sập báo cáo (script đã chạy tới đây)",
+     next(r["Đơn giá"] for r in d["doi_chieu_danh_muc"]
+          if r["Nhà thầu"] == "NT Tam" and r["Tình trạng"] == "Có chào"), None)
+
+print("\nThiếu số lượng yêu cầu trong HSMT — không bịa = 1, và KHÔNG xếp hạng khi chưa định giá được")
+# HSMT không đọc được số lượng của 'Muc Z'; NT Rot chào thiếu mặt hàng này và không có cách nào
+# định giá phần chào thiếu đó. Giá dự thầu riêng của NT Rot rẻ hơn NT Hai2 nhiều, nhưng vì phần
+# chưa định giá được CÓ THỂ đổi thứ hạng thật, NT Rot phải bị loại khỏi bảng xếp hạng — không
+# được ngầm coi phần thiếu đó bằng 0 rồi vẫn công bố NT Rot xếp hạng nhất.
+d = chay(str(SCRIPTS / "so_sanh_thau.py"), str(FIX / "goi-thau/soluong_thieu_hsdt.json"),
+         "--danh-muc", str(FIX / "goi-thau/soluong_thieu_danh_muc.csv"))
+g = {r["Nhà thầu"]: r for r in d["tong_hop"]}
+kiem("dòng CHÀO THIẾU của 'Muc Z' không có Thành tiền vì thiếu số lượng, không bịa = 1",
+     next(r["Thành tiền"] for r in d["doi_chieu_danh_muc"] if r["Tình trạng"] == "CHÀO THIẾU"),
+     None)
+kiem("cảnh báo nêu rõ thiếu số lượng, không âm thầm bỏ qua",
+     any("số lượng" in c["Nội dung"] for c in d["canh_bao"]
+         if c["Loại"] == "Thiếu dữ liệu để hiệu chỉnh"), True)
+kiem("NT Rot KHÔNG được xếp hạng vì còn hạng mục chào thiếu chưa định giá được",
+     g["NT Rot"]["Xếp hạng sơ bộ"], None)
+kiem("NT Hai2 (không có gì chưa xác định) được xếp hạng nhất thay vào đó",
+     g["NT Hai2"]["Xếp hạng sơ bộ"], 1)
+kiem("có cảnh báo giải thích vì sao NT Rot chưa được xếp hạng",
+     any(c["Nhà thầu"] == "NT Rot"
+         and c["Loại"] == "Chưa xếp hạng — sai lệch chưa định giá được" for c in d["canh_bao"]),
+     True)
+kiem("thiếu số lượng thì KHÔNG công bố giá đề nghị trúng thầu dự kiến (thà để trống còn hơn sai)",
+     g["NT Rot"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"], None)
 
 print("\nBộ nhớ — hạn dùng và bản lưu trữ")
 bn = str(SCRIPTS / "bo_nho.py")

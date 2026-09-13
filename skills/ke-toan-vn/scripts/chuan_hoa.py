@@ -12,6 +12,7 @@ Dùng như lệnh:
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import sys
 import unicodedata
@@ -60,6 +61,11 @@ def so_vn(gia_tri, mac_dinh=None):
     if isinstance(gia_tri, (int, Decimal)):
         return Decimal(gia_tri)
     if isinstance(gia_tri, float):
+        # pandas trả NaN (float) cho ô trống ngay cả khi đọc dtype=str — không phải là 0 hay
+        # "chưa biết dạng số", mà đúng nghĩa "ô này trống". Trả mac_dinh (thường là None) chứ
+        # đừng để lọt thành Decimal('NaN'): so sánh NaN ném InvalidOperation ở nơi dùng.
+        if math.isnan(gia_tri):
+            return mac_dinh
         return Decimal(str(gia_tri))
 
     s = _RAC_TIEN.sub("", str(gia_tri)).strip()
