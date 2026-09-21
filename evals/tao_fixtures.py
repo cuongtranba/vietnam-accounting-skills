@@ -589,18 +589,20 @@ def sinh_dau_thau():
 #     sai cột mà vẫn ra số trông hợp lý, script phải DỪNG
 
 COT_DLBC = ["NGAYTHU", "QUYENSO", "SOBIENLAI", "TENCHIDINH", "DVT", "DONGIA", "SOLUONG",
-            "SOTIENCT", "TENLOAIVP", "TENNHOMBHYT", "MABN", "HOTEN", "NAMSINH",
-            "MADOITUONG", "TENKP"]
+            "SOTIENCT", "BNTRACT", "TENLOAIVP", "TENNHOM", "TENNHOMBHYT", "MABN", "HOTEN",
+            "NAMSINH", "MADOITUONG", "TENKP"]
 
-# (TENCHIDINH, DONGIA, SOLUONG, TENLOAIVP, TENNHOMBHYT, MADOITUONG)
+# (TENCHIDINH, DONGIA, SOLUONG, TENLOAIVP, TENNHOM, TENNHOMBHYT, MADOITUONG)
 DONG_DLBC = [
-    ("Kham noi tong quat", 50600, 2, "Kham benh", "Công khám", 1),
-    ("Kham noi tong quat [yeu cau]", 99400, 3, "Kham benh", "Công khám", 8),
-    ("Kham noi tong quat [yeu cau]", 150000, 1, "Kham benh", "Công khám", 11),
-    ("Duong mau mao mach", 16000, 4, "Xet nghiem", "Xét nghiệm ", 1),
-    ("Ure mau", 21000, 2, "Xet nghiem", "Xét nghiệm ", 2),   # mẫu KHÔNG có dòng này
-    ("Cong Thu Thuat", 30000, 1, "Công Thủ Thuật", "Dịch vụ kĩ thuật thông thường", 8),
-    ("H001 Giuong noi khoa", 214500, 2, "Giuong", "Tiền giường", 8),
+    ("Kham noi tong quat", 50600, 2, "Kham benh", "Cong kham", "Công khám", 1),
+    ("Kham noi tong quat [yeu cau]", 99400, 3, "Kham benh", "Cong kham", "Công khám", 8),
+    ("Kham noi tong quat [yeu cau]", 150000, 1, "Kham benh", "Cong kham", "Công khám", 11),
+    ("Duong mau mao mach", 16000, 4, "Xet nghiem", "Xet nghiem", "Xét nghiệm ", 1),
+    # "Ure mau": mẫu KHÔNG có dòng này -> phải được cảnh báo
+    ("Ure mau", 21000, 2, "Xet nghiem", "Xet nghiem", "Xét nghiệm ", 2),
+    ("Cong Thu Thuat", 30000, 1, "Công Thủ Thuật", "Phau thuat",
+     "Dịch vụ kĩ thuật thông thường", 8),
+    ("H001 Giuong noi khoa", 214500, 2, "Giuong", "Giường bệnh", "Tiền giường", 8),
 ]
 
 NHAN_XET_NGHIEM = ["Duong mau mao mach"]           # thiếu "Ure mau" là cố ý
@@ -614,11 +616,12 @@ def _sinh_dlbc(ws, dao_cot: bool) -> None:
         i, j = cot.index("DONGIA"), cot.index("SOLUONG")
         cot[i], cot[j] = cot[j], cot[i]
     ws.append(cot)
-    for k, (ten, gia, sl, loai, nhom, dt) in enumerate(DONG_DLBC, 1):
+    for k, (ten, gia, sl, loai, nhom, nhom_bhyt, dt) in enumerate(DONG_DLBC, 1):
         o = {
             "NGAYTHU": "01/08/2026 08:00", "QUYENSO": "1", "SOBIENLAI": k,
             "TENCHIDINH": ten, "DVT": "Lần", "DONGIA": gia, "SOLUONG": sl,
-            "SOTIENCT": gia * sl, "TENLOAIVP": loai, "TENNHOMBHYT": nhom,
+            "SOTIENCT": gia * sl, "BNTRACT": (gia * sl if dt != 1 else 0),
+            "TENLOAIVP": loai, "TENNHOM": nhom, "TENNHOMBHYT": nhom_bhyt,
             "MABN": f"BN{k:04d}", "HOTEN": f"NGUOI BENH {k}", "NAMSINH": 1980,
             "MADOITUONG": dt, "TENKP": "Khoa Thu Nghiem",
         }

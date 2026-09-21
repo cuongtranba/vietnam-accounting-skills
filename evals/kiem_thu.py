@@ -239,6 +239,24 @@ else:
     kiem("báo lỗi nêu rõ cột nào lệch", "DONGIA" in kq.stderr and "SOLUONG" in kq.stderr, True)
     kiem("không để lại file kết quả khi đã từ chối", (ra.parent / "x.xlsx").exists(), False)
 
+    # Khoa chưa có báo cáo riêng thì mượn bố cục khoa khác, nhưng danh mục phải sinh từ
+    # dữ liệu: chép nguyên danh mục khoa khác sang là tiền của hạng mục không có dòng
+    # rơi ra ngoài TỔNG CỘNG mà không ai thấy.
+    ra2 = ra.parent / "khoa_moi.xlsx"
+    d = chay(str(SCRIPTS / "bao_cao_khoa.py"), "dung", "--mau-bcct", str(bck / "mau_ky_truoc.xlsx"),
+             "--nguon", str(bck / "nguon_ky_moi.xlsx"), "--chi-bcct", "--dung-lai-danh-muc",
+             "--ra", str(ra2))
+    import openpyxl
+
+    ws = openpyxl.load_workbook(ra2)["BÁO CÁO CHI TIẾT"]
+    nhan = [ws.cell(r, 2).value for r in range(1, d["dong_tong_cong"] + 1)]
+    kiem("dựng lại danh mục: hạng mục mẫu KHÔNG có vẫn được một dòng riêng",
+         "Ure mau" in nhan, True)
+    kiem("dòng TỔNG CỘNG nằm cuối, cộng đúng 6 nhóm",
+         ws.cell(d["dong_tong_cong"], 2).value, "TỔNG CỘNG")
+    kiem("chỉ dựng BCCT thì không sinh sheet Chi tiền công",
+         "Chi tiền công THEO REPORT" in openpyxl.load_workbook(ra2).sheetnames, False)
+
 print("\nBộ nhớ — hạn dùng và bản lưu trữ")
 bn = str(SCRIPTS / "bo_nho.py")
 import os  # noqa: E402

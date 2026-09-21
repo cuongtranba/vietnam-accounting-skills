@@ -90,7 +90,7 @@ def doc_dlbc(duong_dan: Path, sheet: str):
     return tieu_de, chi_muc, dong
 
 
-def kiem_cot(tieu_de_mau: list, tieu_de_moi: list) -> None:
+def kiem_cot(tieu_de_mau: list, tieu_de_moi: list, den_cot: int) -> None:
     """Chặn nếu thứ tự cột DLBC kỳ mới khác mẫu.
 
     Công thức nhân bản từ mẫu trỏ cột theo chữ cái, nên lệch một cột là cộng sai cột mà
@@ -98,19 +98,50 @@ def kiem_cot(tieu_de_mau: list, tieu_de_moi: list) -> None:
     """
     a = [("" if h is None else str(h)) for h in tieu_de_mau]
     b = [("" if h is None else str(h)) for h in tieu_de_moi]
-    n = min(len(a), len(b))
+    # Chỉ soát tới cột cuối cùng mà công thức thật sự trỏ tới. Các cột sau đó là cột nháp
+    # kế toán tự thêm ("dò tính thuế", "CHỐT ĐT", đôi khi chỉ là một cột tên "a") — khác
+    # nhau giữa các file là chuyện bình thường, chặn ở đó chỉ tạo báo động giả.
+    n = min(len(a), len(b), den_cot)
     lech = [(i, a[i], b[i]) for i in range(n) if a[i] != b[i]]
-    if lech or len(a) != len(b):
+    thieu = den_cot - min(len(a), len(b))
+    if lech or thieu > 0:
         from openpyxl.utils import get_column_letter
 
         chi_tiet = [f"cột {get_column_letter(i + 1)}: mẫu={x!r} nguồn={y!r}" for i, x, y in lech[:10]]
-        if len(a) != len(b):
-            chi_tiet.append(f"số cột: mẫu={len(a)} nguồn={len(b)}")
+        if thieu > 0:
+            chi_tiet.append(
+                f"nguồn chỉ có {len(b)} cột, công thức cần tới cột "
+                f"{get_column_letter(den_cot)}"
+            )
         raise SystemExit(
             "Thứ tự cột DLBC của file nguồn KHÁC file mẫu, dừng để tránh cộng sai cột:\n  "
             + "\n  ".join(chi_tiet)
             + "\nCách xử lý: xuất lại DLBC theo đúng thứ tự cột của file mẫu."
         )
+
+
+def cot_cuoi_cong_thuc(*ws_list) -> int:
+    """Cột DLBC xa nhất mà công thức trong các sheet mẫu trỏ tới.
+
+    Dùng làm biên cho kiem_cot: lệch ở cột nằm ngoài biên này thì không ảnh hưởng số liệu.
+    """
+    import re
+
+    from openpyxl.utils import column_index_from_string
+
+    xa = 0
+    for ws in ws_list:
+        if ws is None:
+            continue
+        for hang in ws.iter_rows():
+            for o in hang:
+                v = o.value
+                if not (isinstance(v, str) and v.startswith("=")):
+                    continue
+                for cot in re.findall(r"\$([A-Z]{1,3})\$?\d*:\$([A-Z]{1,3})", v):
+                    for c in cot:
+                        xa = max(xa, column_index_from_string(c))
+    return xa
 
 
 def sao_chep_o(nguon, dich) -> None:
@@ -147,11 +178,118 @@ def nhan_ban_sheet(ws_mau, ws_moi, dong_cuoi: int, cot_cuoi: int) -> None:
         ws_moi.sheet_format.defaultRowHeight = ws_mau.sheet_format.defaultRowHeight
 
 
+# Sáu nhóm của BÁO CÁO CHI TIẾT: (nhãn nhóm, giá trị TENNHOMBHYT, cột gom dòng chi tiết).
+# Nhóm 1/3/4 gom theo chính TENNHOMBHYT nên chỉ có một dòng chi tiết; nhóm 2/5/6 liệt kê
+# từng hạng mục nên số dòng thay đổi theo khoa — đó là lý do phải dựng lại thay vì nhân bản.
+NHOM_DUNG_LAI = [
+    ("Công khám", "Công khám", "TENNHOMBHYT"),
+    ("Giường bệnh", "Tiền giường", "TENNHOM"),
+    ("Thuốc", "Thuốc", "TENNHOMBHYT"),
+    ("Vật tư tiêu hao", "Vật tư tiêu hao", "TENNHOMBHYT"),
+    ("Dịch vụ kĩ thuật thông thường", "Dịch vụ kĩ thuật thông thường", "TENLOAIVP"),
+    ("Xét nghiệm", "Xét nghiệm", "TENCHIDINH"),
+]
+
+
+def dung_lai_bcct(ws_mau, ws, chi_muc, dong, sheet_nguon: str) -> dict:
+    """Dựng BÁO CÁO CHI TIẾT với danh mục lấy từ chính dữ liệu của khoa.
+
+    Dùng khi khoa chưa có báo cáo kỳ trước của riêng mình: mượn bố cục, công thức và định
+    dạng của khoa khác, nhưng các dòng liệt kê hạng mục (giường, dịch vụ kĩ thuật, xét
+    nghiệm) phải sinh từ dữ liệu — khoa khác thì danh mục khác, chép nguyên sang là tiền
+    của hạng mục không có dòng sẽ rơi ra ngoài TỔNG CỘNG.
+
+    Mẫu cho mượn ba kiểu dòng: dòng 4 (tiêu đề nhóm), dòng 5 (chi tiết), dòng 24 (tổng cộng).
+    """
+    from openpyxl.utils import get_column_letter
+
+    def cot(ten):
+        return get_column_letter(chi_muc[ten] + 1)
+
+    sl, tien, bnct = cot("SOLUONG"), cot("SOTIENCT"), cot("BNTRACT")
+    dt = cot("MADOITUONG")
+    dv = "+".join(str(m) for m in MA_DICH_VU)
+
+    def sumifs(cot_do, cot_khoa, o_nhan, ma):
+        return (f"SUMIFS('{sheet_nguon}'!${cot_do}:${cot_do},"
+                f"'{sheet_nguon}'!${cot_khoa}:${cot_khoa},${o_nhan},"
+                f"'{sheet_nguon}'!${dt}:${dt},{ma})")
+
+    for r in range(1, 4):          # ba dòng tiêu đề
+        for c in range(1, COT_CUOI_BCCT + 1):
+            sao_chep_o(ws_mau.cell(r, c), ws.cell(r, c))
+
+    r = 4
+    moc_nhom = []
+    for stt, (nhan, nhom_bhyt, khoa) in enumerate(NHOM_DUNG_LAI, 1):
+        trong_nhom = [d for d in dong
+                      if str(d[chi_muc["TENNHOMBHYT"]]).strip() == nhom_bhyt]
+        tong_muc: dict = {}
+        for d in trong_nhom:
+            k = d[chi_muc[khoa]]
+            tong_muc[k] = tong_muc.get(k, 0) + (d[chi_muc["SOTIENCT"]] or 0)
+        muc = [k for k, v in sorted(tong_muc.items(), key=lambda x: -x[1]) if v]
+        if not muc:                 # nhóm không phát sinh: vẫn giữ một dòng 0 cho đủ khuôn
+            muc = [nhom_bhyt]
+
+        r_nhom = r
+        for c in range(1, COT_CUOI_BCCT + 1):
+            sao_chep_o(ws_mau.cell(4, c), ws.cell(r_nhom, c))
+        ws.cell(r_nhom, 1).value = stt
+        ws.cell(r_nhom, 2).value = f"{nhan} ({khoa})"
+        moc_nhom.append(r_nhom)
+
+        r += 1
+        dau_ct = r
+        for ten_muc in muc:
+            for c in range(1, COT_CUOI_BCCT + 1):
+                sao_chep_o(ws_mau.cell(5, c), ws.cell(r, c))
+            ws.cell(r, 1).value = None
+            ws.cell(r, 2).value = ten_muc
+            kc = cot(khoa)
+            ws.cell(r, 3).value = f"={sumifs(sl, kc, f'B{r}', 1)}"
+            ws.cell(r, 4).value = f"={sumifs(tien, kc, f'B{r}', 1)}"
+            ws.cell(r, 5).value = f"={sumifs(bnct, kc, f'B{r}', 1)}"
+            ws.cell(r, 6).value = f"={sumifs(sl, kc, f'B{r}', 2)}"
+            ws.cell(r, 7).value = f"={sumifs(tien, kc, f'B{r}', 2)}"
+            ws.cell(r, 8).value = "=" + "+".join(
+                sumifs(sl, kc, f"B{r}", m) for m in MA_DICH_VU)
+            ws.cell(r, 9).value = "=" + "+".join(
+                sumifs(tien, kc, f"B{r}", m) for m in MA_DICH_VU)
+            ws.cell(r, 10).value = None
+            r += 1
+        cuoi_ct = r - 1
+
+        for c in range(3, 10):
+            cl = get_column_letter(c)
+            ws.cell(r_nhom, c).value = f"=SUM({cl}{dau_ct}:{cl}{cuoi_ct})"
+        ws.cell(r_nhom, 10).value = f"=D{r_nhom}+G{r_nhom}+I{r_nhom}"
+
+    r_tong = r
+    for c in range(1, COT_CUOI_BCCT + 1):
+        sao_chep_o(ws_mau.cell(24, c), ws.cell(r_tong, c))
+    ws.cell(r_tong, 1).value = None
+    ws.cell(r_tong, 2).value = "TỔNG CỘNG"
+    for c in range(3, 10):
+        cl = get_column_letter(c)
+        ws.cell(r_tong, c).value = "=" + "+".join(f"{cl}{m}" for m in moc_nhom)
+    ws.cell(r_tong, 10).value = f"=D{r_tong}+G{r_tong}+I{r_tong}"
+
+    for k, v in ws_mau.column_dimensions.items():
+        d = ws.column_dimensions[k]
+        d.width, d.hidden, d.bestFit = v.width, v.hidden, v.bestFit
+    for m in ws_mau.merged_cells.ranges:
+        if m.max_row <= 3 and m.max_col <= COT_CUOI_BCCT:
+            ws.merge_cells(str(m))
+    ws.sheet_view.showGridLines = ws_mau.sheet_view.showGridLines
+    return {"dong_tong": r_tong, "so_dong_chi_tiet": r_tong - 4 - len(moc_nhom)}
+
+
 def nhan_o(ws, dau: int, cuoi: int, cot: int = 2) -> set:
     return {ws.cell(r, cot).value for r in range(dau, cuoi + 1)}
 
 
-def soat_danh_muc(chi_muc, dong, ws_bcct, ws_ctc, moc) -> list[str]:
+def soat_danh_muc(chi_muc, dong, ws_bcct, ws_ctc, moc, chi_bcct: bool = False) -> list[str]:
     """Tìm hạng mục có tiền trong kỳ mới nhưng KHÔNG có dòng tương ứng trong mẫu.
 
     Thiếu một dòng nghĩa là tiền của hạng mục đó rơi ra ngoài TỔNG CỘNG mà không ai thấy.
@@ -182,11 +320,13 @@ def soat_danh_muc(chi_muc, dong, ws_bcct, ws_ctc, moc) -> list[str]:
     if co - NHOM_BCCT:
         canh.append(f"TENNHOMBHYT lạ ngoài khuôn báo cáo: {sorted(co - NHOM_BCCT)}")
 
-    co = {r[chi_muc["TENCHIDINH"]] for r in dong
-          if nhom(r) == "Tiền giường" and r[chi_muc["MADOITUONG"]] in MA_DICH_VU and co_tien(r)}
-    thieu = co - nhan_o(ws_ctc, *moc["giuong"])
-    if thieu:
-        canh.append(f"Chi tiền công khối giường thiếu dòng: {sorted(thieu)}")
+    if not chi_bcct:
+        co = {r[chi_muc["TENCHIDINH"]] for r in dong
+              if nhom(r) == "Tiền giường" and r[chi_muc["MADOITUONG"]] in MA_DICH_VU
+              and co_tien(r)}
+        thieu = co - nhan_o(ws_ctc, *moc["giuong"])
+        if thieu:
+            canh.append(f"Chi tiền công khối giường thiếu dòng: {sorted(thieu)}")
     return canh
 
 
@@ -226,24 +366,34 @@ def dung(a) -> int:
     can_thu_vien("openpyxl")
     import openpyxl
 
-    mau_bcct, mau_ctc = Path(a.mau_bcct), Path(a.mau_ctc)
+    from openpyxl.utils import get_column_letter
+
+    mau_bcct = Path(a.mau_bcct)
+    chi_bcct = a.chi_bcct or not a.mau_ctc
+    mau_ctc = None if chi_bcct else Path(a.mau_ctc)
     nguon = mau_bcct if a.kiem_chung else Path(a.nguon)
     thang = a.thang or ""
 
     tieu_de_mau, _, _ = doc_dlbc(mau_bcct, a.sheet_nguon)
     tieu_de, chi_muc, dong = doc_dlbc(nguon, a.sheet_nguon)
-    if nguon != mau_bcct:
-        kiem_cot(tieu_de_mau, tieu_de)
-    for can in ("SOTIENCT", "SOLUONG", "TENNHOMBHYT", "TENCHIDINH", "MADOITUONG", "TENLOAIVP"):
+    for can in ("SOTIENCT", "SOLUONG", "BNTRACT", "TENNHOM", "TENNHOMBHYT",
+                "TENCHIDINH", "MADOITUONG", "TENLOAIVP"):
         if can not in chi_muc:
             raise SystemExit(f"Sheet {a.sheet_nguon} thiếu cột bắt buộc {can!r}")
 
     wb_b = openpyxl.load_workbook(mau_bcct, data_only=False)
-    wb_c = openpyxl.load_workbook(mau_ctc, data_only=False)
-    ws_b_mau, ws_c_mau = wb_b[a.sheet_bcct], wb_c[a.sheet_ctc]
+    ws_b_mau = wb_b[a.sheet_bcct]
+    wb_c = None if chi_bcct else openpyxl.load_workbook(mau_ctc, data_only=False)
+    ws_c_mau = None if chi_bcct else wb_c[a.sheet_ctc]
+
+    # Chế độ dựng lại sinh công thức mới theo tên cột nên không phụ thuộc thứ tự cột;
+    # chỉ chế độ nhân bản mới cần chặn.
+    if nguon != mau_bcct and not a.dung_lai_danh_muc:
+        kiem_cot(tieu_de_mau, tieu_de, cot_cuoi_cong_thuc(ws_b_mau, ws_c_mau))
 
     moc = {"dvkt": a.dong_dvkt, "xet_nghiem": a.dong_xet_nghiem, "giuong": a.dong_giuong}
-    canh = soat_danh_muc(chi_muc, dong, ws_b_mau, ws_c_mau, moc)
+    canh = [] if a.dung_lai_danh_muc else soat_danh_muc(
+        chi_muc, dong, ws_b_mau, ws_c_mau, moc, chi_bcct)
     for c in canh:
         canh_bao(c)
 
@@ -256,40 +406,45 @@ def dung(a) -> int:
         ws_dl.append(list(r))
     ws_dl.freeze_panes = "A2"
 
-    n_ckdv = sinh_ck_dv(wb.create_sheet("CK-DV"), chi_muc, dong)
+    n_ckdv = None if chi_bcct else sinh_ck_dv(wb.create_sheet("CK-DV"), chi_muc, dong)
 
     # BÁO CÁO CHI TIẾT: chỉ tới dòng TỔNG CỘNG. Các dòng sau trong mẫu là đối chiếu với
     # workbook NGOÀI (liên kết ngoài cache = 0 nên báo lệch bằng đúng cả doanh thu) và
     # GETPIVOTDATA vào một pivot không mang sang. Thay bằng đối chiếu tự thân.
     ws_b = wb.create_sheet(a.sheet_bcct)
-    nhan_ban_sheet(ws_b_mau, ws_b, a.dong_cuoi_bcct, a.cot_cuoi_bcct)
-    from openpyxl.utils import get_column_letter
+    if a.dung_lai_danh_muc:
+        kq = dung_lai_bcct(ws_b_mau, ws_b, chi_muc, dong, a.sheet_nguon)
+        dong_tong = kq["dong_tong"]
+    else:
+        nhan_ban_sheet(ws_b_mau, ws_b, a.dong_cuoi_bcct, a.cot_cuoi_bcct)
+        dong_tong = a.dong_cuoi_bcct
 
     ct = get_column_letter(a.cot_cuoi_bcct)
     # Cột SOTIENCT tra theo TÊN, không hardcode chữ cái: bố cục đổi thì ô đối chiếu
     # phải đi theo, nếu không nó lặng lẽ cộng nhầm cột và luôn báo "khớp".
     c_tien = get_column_letter(chi_muc["SOTIENCT"] + 1)
-    r1, r2 = a.dong_cuoi_bcct + 2, a.dong_cuoi_bcct + 3
+    r1, r2 = dong_tong + 2, dong_tong + 3
     ws_b.cell(r1, 2).value = "KIỂM TRA: tổng SOTIENCT trực tiếp trên " + a.sheet_nguon
     ws_b[f"{ct}{r1}"] = f"=SUM('{a.sheet_nguon}'!${c_tien}:${c_tien})"
     ws_b.cell(r2, 2).value = "CHÊNH LỆCH (phải bằng 0)"
-    ws_b[f"{ct}{r2}"] = f"={ct}{a.dong_cuoi_bcct}-{ct}{r1}"
+    ws_b[f"{ct}{r2}"] = f"={ct}{dong_tong}-{ct}{r1}"
     for r in (r1, r2):
         ws_b.cell(r, a.cot_cuoi_bcct).number_format = "#,##0"
 
-    ws_c = wb.create_sheet(a.sheet_ctc)
-    nhan_ban_sheet(ws_c_mau, ws_c, a.dong_cuoi_ctc, a.cot_cuoi_ctc)
-    if thang:
-        ws_c[a.o_thang] = f"BẢNG CHIA TIỀN CÔNG {thang}"
-    sua_vung_ck_dv(ws_c, n_ckdv, 1, a.dong_cuoi_ctc)
-    if not a.ck_cg:
-        # Khối khám chuyên gia lấy từ sheet CK-CG — danh sách nhập tay, đơn giá của nó
-        # không tồn tại dòng nào trong DLBC nên KHÔNG suy ra được. Để 0 kèm ghi chú
-        # nhìn thấy được, không im lặng bỏ qua. Cũng tránh để lại tham chiếu treo
-        # sang sheet CK-CG không mang theo (Excel sẽ hiện #REF!).
-        o = ws_c[a.o_ck_cg]
-        o.value = 0
-        ws_c.cell(o.row, 10).value = "CHƯA CÓ DỮ LIỆU CK-CG KỲ NÀY — cần điền tay"
+    if not chi_bcct:
+        ws_c = wb.create_sheet(a.sheet_ctc)
+        nhan_ban_sheet(ws_c_mau, ws_c, a.dong_cuoi_ctc, a.cot_cuoi_ctc)
+        if thang:
+            ws_c[a.o_thang] = f"BẢNG CHIA TIỀN CÔNG {thang}"
+        sua_vung_ck_dv(ws_c, n_ckdv, 1, a.dong_cuoi_ctc)
+        if not a.ck_cg:
+            # Khối khám chuyên gia lấy từ sheet CK-CG — danh sách nhập tay, đơn giá của nó
+            # không tồn tại dòng nào trong DLBC nên KHÔNG suy ra được. Để 0 kèm ghi chú
+            # nhìn thấy được, không im lặng bỏ qua. Cũng tránh để lại tham chiếu treo
+            # sang sheet CK-CG không mang theo (Excel sẽ hiện #REF!).
+            o = ws_c[a.o_ck_cg]
+            o.value = 0
+            ws_c.cell(o.row, 10).value = "CHƯA CÓ DỮ LIỆU CK-CG KỲ NÀY — cần điền tay"
 
     wb.calculation.fullCalcOnLoad = True
     ra = Path(a.ra)
@@ -299,6 +454,9 @@ def dung(a) -> int:
         "nguon": str(nguon),
         "so_dong_dlbc": len(dong),
         "so_dong_ck_dv": n_ckdv,
+        "dong_tong_cong": dong_tong,
+        "dung_lai_danh_muc": bool(a.dung_lai_danh_muc),
+        "chi_bcct": chi_bcct,
         "thang": thang or None,
         "canh_bao": canh,
         "buoc_tiep": "Chạy recalc.py của skill xlsx để Excel/LibreOffice tính công thức, "
@@ -373,7 +531,7 @@ def main() -> int:
 
     def chung(s):
         s.add_argument("--mau-bcct", required=True, help="File mẫu chứa sheet BÁO CÁO CHI TIẾT")
-        s.add_argument("--mau-ctc", required=True, help="File mẫu chứa sheet Chi tiền công")
+        s.add_argument("--mau-ctc", help="File mẫu chứa sheet Chi tiền công; bỏ qua nếu chỉ cần BCCT")
         s.add_argument("--sheet-bcct", default=SHEET_BCCT)
         s.add_argument("--sheet-ctc", default=SHEET_CTC)
         s.add_argument("--sheet-nguon", default=SHEET_NGUON)
@@ -394,6 +552,12 @@ def main() -> int:
     s.add_argument("--dong-xet-nghiem", type=khoang, default=DONG_XET_NGHIEM)
     s.add_argument("--ck-cg", action="store_true",
                    help="Đã có dữ liệu CK-DV/CK-CG kỳ này, đừng ghi đè khối khám chuyên gia")
+    s.add_argument("--chi-bcct", action="store_true",
+                   help="Chỉ dựng sheet BÁO CÁO CHI TIẾT, bỏ Chi tiền công và CK-DV")
+    s.add_argument("--dung-lai-danh-muc", action="store_true",
+                   help="Sinh lại các dòng liệt kê hạng mục từ dữ liệu thay vì nhân bản. "
+                        "Dùng khi khoa chưa có báo cáo kỳ trước của riêng mình — khoa khác "
+                        "thì danh mục giường/dịch vụ kĩ thuật/xét nghiệm khác nhau.")
     s.add_argument("--kiem-chung", action="store_true",
                    help="Dựng lại chính kỳ của mẫu để đối chiếu, thay vì dựng kỳ mới")
     s.set_defaults(ham=dung)
@@ -406,6 +570,8 @@ def main() -> int:
     a = p.parse_args()
     if a.lenh == "dung" and not a.kiem_chung and not a.nguon:
         p.error("cần --nguon (hoặc --kiem-chung)")
+    if a.lenh == "doi-chieu" and not a.mau_ctc:
+        p.error("doi-chieu cần cả --mau-ctc")
     return a.ham(a)
 
 
