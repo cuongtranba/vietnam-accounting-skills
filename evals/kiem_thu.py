@@ -209,6 +209,36 @@ kiem("có cảnh báo giải thích vì sao NT Rot chưa được xếp hạng",
 kiem("thiếu số lượng thì KHÔNG công bố giá đề nghị trúng thầu dự kiến (thà để trống còn hơn sai)",
      g["NT Rot"]["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"], None)
 
+print("\nDựng báo cáo kỳ mới từ mẫu kỳ trước")
+bck = FIX / "bao-cao-khoa"
+if not (bck / "mau_ky_truoc.xlsx").exists():
+    print("  ⚠️  Chưa có fixture bao-cao-khoa (thiếu openpyxl?) — bỏ qua")
+else:
+    import tempfile
+
+    mau = ["--mau-bcct", str(bck / "mau_ky_truoc.xlsx"),
+           "--mau-ctc", str(bck / "mau_ky_truoc.xlsx")]
+    ra = Path(tempfile.mkdtemp()) / "ky_moi.xlsx"
+
+    d = chay(str(SCRIPTS / "bao_cao_khoa.py"), "dung", *mau,
+             "--nguon", str(bck / "nguon_ky_moi.xlsx"), "--thang", "T8.2026", "--ra", str(ra))
+    kiem("CK-DV chỉ lấy công khám luồng dịch vụ (ĐT 8/11/12), không lấy ĐT 1",
+         d["so_dong_ck_dv"], 2)
+    canh = " ".join(d["canh_bao"])
+    kiem("cảnh báo hạng mục mới chưa có dòng trong mẫu, nêu đúng tên", "Ure mau" in canh, True)
+    kiem("không cảnh báo nhầm hạng mục đã có dòng", "Duong mau mao mach" in canh, False)
+    kiem("có sinh ra file kết quả", ra.exists(), True)
+
+    # Lệch thứ tự cột là loại lỗi tệ nhất: công thức vẫn chạy, chỉ là cộng sai cột.
+    # Thà dừng còn hơn giao một báo cáo sai mà không ai nhận ra.
+    kq = subprocess.run(
+        [PY, str(SCRIPTS / "bao_cao_khoa.py"), "dung", *mau,
+         "--nguon", str(bck / "nguon_lech_cot.xlsx"), "--ra", str(ra.parent / "x.xlsx")],
+        capture_output=True, text=True)
+    kiem("nguồn đổi thứ tự cột thì DỪNG, không sinh file sai", kq.returncode != 0, True)
+    kiem("báo lỗi nêu rõ cột nào lệch", "DONGIA" in kq.stderr and "SOLUONG" in kq.stderr, True)
+    kiem("không để lại file kết quả khi đã từ chối", (ra.parent / "x.xlsx").exists(), False)
+
 print("\nBộ nhớ — hạn dùng và bản lưu trữ")
 bn = str(SCRIPTS / "bo_nho.py")
 import os  # noqa: E402

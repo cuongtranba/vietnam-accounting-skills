@@ -78,6 +78,48 @@ tài khoản cấp 2, 3 — nên tài khoản lạ trong sổ của người dù
 Theo mẫu tại **TT 80/2025/TT-BTC**. Xem `references/dau-thau.md` — và nhớ nguyên tắc: skill chuẩn bị
 số liệu và bảng so sánh, tổ chuyên gia viết kết luận và ký.
 
+## Báo cáo định kỳ dựng từ mẫu kỳ trước
+
+Việc hay gặp nhất trong kế toán quản trị: mỗi tháng lập lại đúng một bộ báo cáo, chỉ thay dữ liệu.
+Đừng dựng lại từ mô tả — **nhân bản nguyên sheet của kỳ trước** (giữ cả công thức lẫn định dạng)
+rồi đặt dữ liệu kỳ mới vào cùng workbook. Người dùng đã có lý do cho từng ô; xem nguyên tắc 4
+trong `SKILL.md`. Script `bao_cao_khoa.py` làm việc này cho bộ báo cáo doanh thu/chia tiền công
+theo khoa của bệnh viện; cách làm bên dưới áp dụng chung.
+
+**Kiểm chứng bằng cách tái tạo kỳ trước.** Trước khi tin số kỳ mới, chạy đúng quy trình đó trên
+dữ liệu của *kỳ mẫu* rồi so từng ô với file gốc. Khớp hết thì mới tin. Đây là phép thử duy nhất
+phát hiện được lỗi ánh xạ cột — loại lỗi vẫn ra số trông hợp lý nên đọc bằng mắt không thấy.
+
+Năm cái bẫy đã gặp thật khi làm việc này:
+
+1. **Công thức nhân bản trỏ cột theo chữ cái.** `SUMIFS(DLBC!$AE:$AE; DLBC!$AP:$AP; ...)` sẽ cộng
+   sai cột nếu bản kết xuất kỳ mới đổi thứ tự cột, mà vẫn ra một con số hợp lý. **So thứ tự tiêu đề
+   cột của kỳ mới với kỳ mẫu và dừng nếu lệch.** Đừng cố tự ánh xạ lại.
+
+2. **Dòng liệt kê danh mục sẽ thiếu khi kỳ mới phát sinh mục mới.** Báo cáo thường có nhóm liệt kê
+   từng hạng mục (từng loại xét nghiệm, từng dịch vụ). Kỳ mới có hạng mục mà mẫu chưa có dòng thì
+   tiền của nó **rơi ra ngoài dòng TỔNG CỘNG mà không ai thấy**. Luôn đối chiếu tập hạng mục có phát
+   sinh với tập nhãn trong mẫu, và cảnh báo phần thiếu.
+
+3. **Liên kết ngoài trong mẫu thường đã hỏng.** Ô kiểu `=D24-[2]BHYT!AA1` giữ giá trị cache của
+   workbook khác; mở mà không có file đó bên cạnh thì cache thường bằng 0, nên dòng "chênh lệch"
+   báo lệch bằng đúng cả doanh thu thay vì 0. `GETPIVOTDATA` trỏ vào pivot không mang sang cũng vậy.
+   Bỏ các dòng đó và thay bằng **đối chiếu tự thân trong cùng file** (`=SUM(<sheet dữ liệu>!$AF:$AF)`
+   so với dòng tổng), rồi nói rõ đã thay gì.
+
+4. **Có khối không suy ra được từ dữ liệu.** Một số phần lấy từ sheet nhập tay (danh sách do bộ phận
+   khác lập). Kiểm bằng cách thử tìm đơn giá của khối đó trong dữ liệu gốc: không có dòng nào khớp
+   thì đúng là nhập tay. Khi đó **để trống hoặc 0 kèm ghi chú nhìn thấy được ngay cạnh ô** — đừng
+   chép số kỳ trước sang, và đừng im lặng. Xem nguyên tắc 2 trong `SKILL.md`.
+
+5. **Sheet trung gian có thể suy lại được — nhưng phải chứng minh.** Nhiều sheet phụ chỉ là một bộ
+   lọc của dữ liệu gốc, sinh lại được để khỏi phải xin thêm file. Trước khi dựa vào đó, **đối chiếu
+   bản sinh với bản người dùng tự lọc của kỳ mẫu**: khớp cả số dòng lẫn từng cặp khoá thì mới dùng.
+
+Cuối cùng: mẫu kỳ trước có thể chứa lỗi sẵn (thiếu công thức ở một vài dòng, sót một hạng mục).
+**Giữ nguyên công thức của mẫu, báo lỗi ra cho người dùng, đừng tự sửa** — nguyên tắc 4. Nhưng phải
+nói, vì kỳ sau họ sẽ lại nhân bản đúng cái lỗi đó.
+
 ## Báo cáo quản trị
 
 Không có mẫu bắt buộc — làm theo yêu cầu của người dùng. Vài điều thường được đánh giá cao:

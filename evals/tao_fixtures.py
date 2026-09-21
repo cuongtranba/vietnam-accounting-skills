@@ -580,6 +580,93 @@ def sinh_dau_thau():
     print(f"  ✅ goi-thau: HSMT + {n} bộ HSDT, danh mục {len(DANH_MUC)} mặt hàng")
 
 
+# --- Eval 5: dựng báo cáo kỳ mới từ mẫu kỳ trước -----------------------------
+# Ba file: một mẫu kỳ trước, một nguồn kỳ mới "sạch", một nguồn đổi thứ tự cột.
+# Bẫy cài sẵn:
+#   - nguồn sạch có xét nghiệm "Ure mau" mà mẫu chưa có dòng -> tiền rơi ra ngoài
+#     TỔNG CỘNG nếu không ai cảnh báo
+#   - nguồn lệch cột đảo DONGIA với SOLUONG -> công thức trỏ theo chữ cái sẽ cộng
+#     sai cột mà vẫn ra số trông hợp lý, script phải DỪNG
+
+COT_DLBC = ["NGAYTHU", "QUYENSO", "SOBIENLAI", "TENCHIDINH", "DVT", "DONGIA", "SOLUONG",
+            "SOTIENCT", "TENLOAIVP", "TENNHOMBHYT", "MABN", "HOTEN", "NAMSINH",
+            "MADOITUONG", "TENKP"]
+
+# (TENCHIDINH, DONGIA, SOLUONG, TENLOAIVP, TENNHOMBHYT, MADOITUONG)
+DONG_DLBC = [
+    ("Kham noi tong quat", 50600, 2, "Kham benh", "Công khám", 1),
+    ("Kham noi tong quat [yeu cau]", 99400, 3, "Kham benh", "Công khám", 8),
+    ("Kham noi tong quat [yeu cau]", 150000, 1, "Kham benh", "Công khám", 11),
+    ("Duong mau mao mach", 16000, 4, "Xet nghiem", "Xét nghiệm ", 1),
+    ("Ure mau", 21000, 2, "Xet nghiem", "Xét nghiệm ", 2),   # mẫu KHÔNG có dòng này
+    ("Cong Thu Thuat", 30000, 1, "Công Thủ Thuật", "Dịch vụ kĩ thuật thông thường", 8),
+    ("H001 Giuong noi khoa", 214500, 2, "Giuong", "Tiền giường", 8),
+]
+
+NHAN_XET_NGHIEM = ["Duong mau mao mach"]           # thiếu "Ure mau" là cố ý
+NHAN_DVKT = ["Công Thủ Thuật", "Ngoại Khoa"]
+NHAN_GIUONG = ["H001 Giuong noi khoa"]
+
+
+def _sinh_dlbc(ws, dao_cot: bool) -> None:
+    cot = list(COT_DLBC)
+    if dao_cot:
+        i, j = cot.index("DONGIA"), cot.index("SOLUONG")
+        cot[i], cot[j] = cot[j], cot[i]
+    ws.append(cot)
+    for k, (ten, gia, sl, loai, nhom, dt) in enumerate(DONG_DLBC, 1):
+        o = {
+            "NGAYTHU": "01/08/2026 08:00", "QUYENSO": "1", "SOBIENLAI": k,
+            "TENCHIDINH": ten, "DVT": "Lần", "DONGIA": gia, "SOLUONG": sl,
+            "SOTIENCT": gia * sl, "TENLOAIVP": loai, "TENNHOMBHYT": nhom,
+            "MABN": f"BN{k:04d}", "HOTEN": f"NGUOI BENH {k}", "NAMSINH": 1980,
+            "MADOITUONG": dt, "TENKP": "Khoa Thu Nghiem",
+        }
+        ws.append([o[c] for c in cot])
+
+
+def sinh_bao_cao_khoa():
+    try:
+        import openpyxl
+    except ImportError:
+        print("  ⚠️  Chưa cài openpyxl — bỏ qua fixture bao-cao-khoa")
+        return
+
+    goc = GOC / "bao-cao-khoa"
+    goc.mkdir(parents=True, exist_ok=True)
+
+    # Mẫu kỳ trước: DLBC + hai sheet báo cáo với các dòng nhãn mà script đối chiếu.
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
+    _sinh_dlbc(wb.create_sheet("DLBC"), dao_cot=False)
+
+    ws = wb.create_sheet("BÁO CÁO CHI TIẾT")
+    ws["B2"] = "NỘI DUNG"
+    for i, nhan in enumerate(NHAN_DVKT):
+        ws.cell(13 + i, 2).value = nhan
+    for i, nhan in enumerate(NHAN_XET_NGHIEM):
+        ws.cell(18 + i, 2).value = nhan
+    ws["B24"] = "TỔNG CỘNG"
+    ws["J24"] = "=SUM(J4:J23)"
+
+    ws = wb.create_sheet("Chi tiền công THEO REPORT")
+    ws["A1"] = "BẢNG CHIA TIỀN CÔNG T7.2026"
+    ws["B16"] = "Kham noi tong quat [yeu cau]"
+    ws["C16"] = "=SUMIF('CK-DV'!$E$2:$E$2998,B16,'CK-DV'!$H$2:$H$2998)"
+    for i, nhan in enumerate(NHAN_GIUONG):
+        ws.cell(45 + i, 2).value = nhan
+    ws["H40"] = "='CK-CG'!N39"
+    wb.save(goc / "mau_ky_truoc.xlsx")
+
+    for ten, dao in (("nguon_ky_moi.xlsx", False), ("nguon_lech_cot.xlsx", True)):
+        wb = openpyxl.Workbook()
+        wb.remove(wb.active)
+        _sinh_dlbc(wb.create_sheet("DLBC"), dao_cot=dao)
+        wb.save(goc / ten)
+
+    print("  ✅ bao-cao-khoa: mẫu kỳ trước + nguồn kỳ mới + nguồn lệch thứ tự cột")
+
+
 def main():
     print("Sinh dữ liệu mẫu...")
 
@@ -597,6 +684,7 @@ def main():
 
     sinh_doi_chieu()
     sinh_dau_thau()
+    sinh_bao_cao_khoa()
     print(f"\nXong. Dữ liệu ở: {GOC}")
 
 
