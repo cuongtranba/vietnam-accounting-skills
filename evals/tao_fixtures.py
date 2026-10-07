@@ -580,6 +580,200 @@ def sinh_dau_thau():
     print(f"  ✅ goi-thau: HSMT + {n} bộ HSDT, danh mục {len(DANH_MUC)} mặt hàng")
 
 
+# --- Eval 5: quy trình định kỳ (tach / loc / doi-chieu) ---------------------
+# Dữ liệu tổng hợp, không lấy từ đơn vị nào. Bẫy cài sẵn:
+#   - sheet tên " 2026 " có dấu cách hai đầu; giá trị khoa viết "K. Mắt " lệch hoa/thường
+#   - cột "Mã ghép" ghép STT vào mã: đánh lại STT không được làm đổi mã
+#   - cột cuối không có tiêu đề nhưng có ghi chú: phải mang theo
+#   - dòng 2 có SUBTOTAL cả cột: dòng tổng không được làm nó cộng trùng
+#   - bản kết xuất doanh thu: quy tắc có ngoại lệ, biến thể theo tên file, số âm
+#   - đối chiếu: hai lượt cùng khoá phía A chỉ có một dòng phía B; mã có số 0 đầu
+QT_DANH_MUC = """
+[khoa.MAT]
+tai_san = "K. MẮT"
+[khoa.NT]
+tai_san = "K. NỘI TIẾT"
+[khoa.VS]
+tai_san = ["K. VI SINH", "K. VI SINH - HIV"]
+[khoa.NGOAI]
+tai_san = "K. NGOẠI TK"
+"""
+
+QT_TACH = """
+loai = "tach"
+mo_ta = "Tách sổ tài sản theo khoa"
+[nguon]
+sheet = "2026"
+dong_tieu_de = 3
+cot_khoa = "KHOA/PHÒNG"
+cot_stt = "STT"
+cot_tong = ["Tháng {thang}/{nam}"]
+[ten_goi]
+bang = "khoa"
+nguon = "tai_san"
+[ket_qua]
+ra = "TACH-{ky}.xlsx"
+[[nhom]]
+ma = ["MAT"]
+[[nhom]]
+ma = ["NT"]
+[[nhom]]
+ten = "VI SINH"
+ma = ["VS"]
+[[nhom]]
+ma = ["NGOAI"]
+"""
+
+QT_LOC = """
+loai = "loc"
+theo_doi = ["NHOM", "MADT"]
+[nguon]
+cot_tien = "SOTIEN"
+[ket_qua]
+ra = "LOC-{ten_file}.xlsx"
+[[quy_tac]]
+ma = "1"
+khi = { QUYENSO = { bat_dau = ["HDDT_X"] } }
+[[quy_tac]]
+ma = "2"
+khi = { NHOM = { bang = ["Xét nghiệm", "Máu"] } }
+tru = [ { TENDV = { bat_dau = ["Đường máu mao mạch"] } } ]
+[[quy_tac]]
+ma = "3"
+khi = { LOAI = { bang = ["Y học cổ truyền"] } }
+[[quy_tac]]
+ma = "4"
+mo_ta = "SOTIEN âm"
+khi = { SOTIEN = { am = true } }
+[[bien_the]]
+ten = "YHCT"
+ap_khi_ten_file = ["YHCT*"]
+them_tru = { "3" = [ { LOAI = { bang = ["Y học cổ truyền"] } } ] }
+"""
+
+QT_GOP = """
+loai = "doi-chieu"
+[a]
+nhan = "VP"
+khoa = ["TENVP"]
+chi_tiet = ["MABN"]
+gia_tri = "SL"
+[[a.loai_tru]]
+ma = "1"
+mo_ta = "đối tượng 8"
+khi = { MADT = { bang = [8] } }
+[b]
+nhan = "KHO"
+khoa = ["TENVP"]
+chi_tiet = ["PID"]
+gia_tri = "SỐ LƯỢNG"
+[ket_qua]
+che_do = "gop"
+ra = "DC-GOP.xlsx"
+thu_tu = ["Hồng cầu 350 ml", "Tiểu cầu 250 ml", "Tủa lạnh 50 ml"]
+"""
+
+QT_TUNG_DONG = """
+loai = "doi-chieu"
+[a]
+khoa = ["MABN"]
+chi_tiet = ["TENDV"]
+gia_tri = "SOTIEN"
+[b]
+khoa = ["MABN"]
+chi_tiet = ["TENDV"]
+gia_tri = "SOTIEN"
+[ket_qua]
+che_do = "tung_dong"
+ra = "DC-DONG.xlsx"
+"""
+
+
+def _luu_bang(ra: Path, tieu_de, dong):
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    ws = wb.worksheets[0]
+    for r in [tieu_de] + dong:
+        ws.append(r)
+    wb.save(ra)
+
+
+def sinh_quy_trinh():
+    try:
+        import openpyxl  # noqa: F401
+        import xlsxwriter  # noqa: F401
+    except ImportError:
+        print("  ⚠️  Chưa cài openpyxl/XlsxWriter — bỏ qua quy trình định kỳ")
+        return
+    goc = GOC / "quy-trinh"
+    (goc / "home" / "quy-trinh").mkdir(parents=True, exist_ok=True)
+    (goc / "home" / "danh-muc.toml").write_text(QT_DANH_MUC, encoding="utf-8")
+    for ten, nd in (("tach-tai-san", QT_TACH), ("loc-doanh-thu", QT_LOC),
+                    ("doi-chieu-gop", QT_GOP), ("doi-chieu-tung-dong", QT_TUNG_DONG)):
+        (goc / "home" / "quy-trinh" / f"{ten}.toml").write_text(nd, encoding="utf-8")
+
+    # Sổ tài sản: 3 dòng đầu (tiêu đề gộp ô, SUBTOTAL, tiêu đề cột), dữ liệu từ dòng 4.
+    # Viết bằng XlsxWriter vì nó lưu được giá trị đã tính của công thức như Excel thật;
+    # openpyxl chỉ ghi công thức suông và động cơ sẽ đọc ra ô trống.
+    import xlsxwriter
+
+    tai_san = [  # (mã, khoa, nguyên giá, ghi chú ở cột G không có tiêu đề)
+        ("TS01", "Kho", 1_200_000, None),
+        ("TS02", "K. MẮT", 2_400_000, None),
+        ("TS03", "K. Mắt ", 3_600_000, "điều chuyển từ kho"),
+        ("TS04", "K. NỘI TIẾT", 1_200_000, None),
+        ("TS05", "K. VI SINH - HIV", 4_800_000, None),
+        ("TS06", "K. VI SINH", 1_200_000, None),
+        ("TS07", "K. MẮT", 6_000_000, None),
+    ]
+    wb = xlsxwriter.Workbook(str(goc / "so-tai-san.xlsx"))
+    ws = wb.add_worksheet(" 2026 ")
+    ws.merge_range("A1:F1", "SỔ THEO DÕI TÀI SẢN 2026")
+    ws.write_formula("F2", "=SUBTOTAL(9,F4:F100)", None, sum(t[2] for t in tai_san) / 12)
+    ws.write_row("A3", ["STT", "MÃ", "KHOA/PHÒNG", "Nguyên giá", "Mã ghép", "Tháng 9/2026"])
+    for i, (ma, khoa, ng, ghi) in enumerate(tai_san):
+        r = 4 + i
+        ws.write_row(f"A{r}", [i + 1, ma, khoa, ng])
+        ws.write_formula(f"E{r}", f'=A{r}&"-"&B{r}', None, f"{i + 1}-{ma}")
+        ws.write_formula(f"F{r}", f"=D{r}/12", None, ng / 12)
+        if ghi:
+            ws.write(f"G{r}", ghi)
+    wb.close()
+
+    # Bản kết xuất doanh thu (lọc): cùng một bố cục cho file thường và file YHCT.
+    tieu_de = ["QUYENSO", "NHOM", "LOAI", "TENDV", "MADT", "SOTIEN"]
+    dong = [
+        ["HD_A", "Thuốc", "Thuốc", "Paracetamol", 1, 100_000],
+        ["HDDT_X_01", "Thuốc", "Thuốc", "Vitamin C", 1, 50_000],
+        ["HD_A", "Xét nghiệm ", "XN", "Đường máu mao mạch [Ngoại trú]", 2, 30_000],
+        ["HD_A", "Xét nghiệm", "XN", "Định lượng Glucose", 2, 40_000],
+        ["HD_A", "Khám", "Y học cổ truyền", "Châm cứu", 1, 70_000],
+        ["HD_A", "Thuốc", "Thuốc", "Hoàn trả", 8, -20_000],
+    ]
+    _luu_bang(goc / "DT-09.xlsx", tieu_de, dong)
+    _luu_bang(goc / "YHCT-09.xlsx", tieu_de, dong)
+    _luu_bang(goc / "DT-10.xlsx", tieu_de, dong + [["HD_A", "Khám", "Khám", "Khám bệnh", 17, 35_000]])
+    _luu_bang(goc / "DT-11.xlsx", tieu_de + ["GHICHU"], [r + [None] for r in dong])
+
+    # Đối chiếu gộp: phía A có dòng đối tượng 8 (loại) và một TENVP chưa có trong thứ tự mẫu.
+    _luu_bang(goc / "vien-phi.xlsx", ["TENVP", "MABN", "SL", "MADT"], [
+        ["Hồng cầu 350 ml", 101, 2, 1], ["Hồng cầu 350 ml", 102, 1, 1],
+        ["Hồng cầu 350 ml", 101, 1, 8], ["Tủa lạnh 50 ml", 103, 10, 1],
+        ["Huyết tương 200 ml", 104, 3, 1]])
+    _luu_bang(goc / "xuat-kho.xlsx", ["TENVP", "PID", "SỐ LƯỢNG"], [
+        ["Hồng cầu 350 ml", 101, 2], ["Hồng cầu 350 ml", 102, 2],
+        ["Tủa lạnh 50 ml", 103, 10], ["Huyết tương 200 ml", 104, 3]])
+
+    # Đối chiếu từng dòng: BN "007" hai lượt cùng dịch vụ ở A, một lượt ở B; "7" là BN khác.
+    tieu_de = ["MABN", "TENDV", "SOTIEN"]
+    _luu_bang(goc / "ban-may.xlsx", tieu_de, [
+        ["007", "Khám", 35_000], ["007", "Khám", 35_000], ["008", "Siêu âm", 200_000]])
+    _luu_bang(goc / "ban-tay.xlsx", tieu_de, [
+        ["007", "Khám", 35_000], ["7", "Khám", 35_000], ["008", "Siêu âm", 180_000]])
+    print("  ✅ quy-trinh: 4 quy trình mẫu + dữ liệu tổng hợp")
+
+
 def main():
     print("Sinh dữ liệu mẫu...")
 
@@ -597,6 +791,7 @@ def main():
 
     sinh_doi_chieu()
     sinh_dau_thau()
+    sinh_quy_trinh()
     print(f"\nXong. Dữ liệu ở: {GOC}")
 
 

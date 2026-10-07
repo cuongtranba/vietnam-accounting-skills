@@ -21,6 +21,7 @@ cơ học nhanh và chính xác, chỉ ra chỗ đáng ngờ, rồi để họ q
 | Đối chiếu, tìm chênh lệch | `references/doi-chieu.md` | `doi_chieu.py` |
 | Làm sạch / gộp / chuẩn hoá Excel | `references/excel-vn.md` | `chuan_hoa.py` |
 | Lập bảng kê, tờ khai, báo cáo | `references/bao-cao.md` | — |
+| Việc lặp lại hằng tháng: tách theo khoa, lọc bản kết xuất, đối chiếu hai nguồn — và mọi câu "ghi nhớ", "làm tương tự", "như tháng trước" | `references/quy-trinh.md` | `quy_trinh.py` |
 | Chấm thầu, so sánh HSDT | `references/dau-thau.md` | `doc_hsdt.py`, `cham_ky_thuat.py`, `so_sanh_thau.py` |
 | Câu hỏi về luật, thuế, tài khoản | `references/phap-ly.md` | `bo_nho.py` |
 | Cách bộ nhớ hoạt động | `references/bo-nho.md` | `bo_nho.py` |
@@ -159,6 +160,10 @@ Kế toán thường đưa một thư mục file và một câu yêu cầu ngắ
 1. **Nhìn dữ liệu trước khi hứa gì.** Liệt kê file, mở thử một hai cái. Định dạng hóa đơn của mỗi
    nhà cung cấp phần mềm mỗi khác; đừng giả định.
 2. **Tra bộ nhớ** nếu việc có dính tới quy định, hoặc để lấy quy ước cũ của người dùng.
+   Người dùng nói "làm tương tự", "như đã ghi nhớ", hoặc gửi file mà không kèm lời nào: chạy
+   `quy_trinh.py danh-sach` **trước tiên** — rất có thể đây là việc định kỳ đã có quy trình.
+   Khi họ nói "ghi nhớ", thứ cần lưu là một quy trình (`references/quy-trinh.md`), không phải
+   một script mới.
 3. **Nói rõ mình sắp làm gì** bằng một hai câu, nhất là khi phải suy luận (ví dụ: "file này không có
    XML nên tôi sẽ đọc từ PDF, cột thuế suất cần được kiểm lại").
 4. **Làm**, ưu tiên script có sẵn.
