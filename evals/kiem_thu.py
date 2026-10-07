@@ -225,6 +225,88 @@ kiem("tra cứu chỉ trả bản hiện hành, bỏ qua bản lưu trữ .cu-",
 kiem("nội dung là bản mới", "1 tỷ" in d["ghi_chu"][0]["noi_dung"], True)
 kiem("ghi chú còn hạn thì không cần tra web", d["can_tra_web"], False)
 
+print("\nQuy trình định kỳ — tách theo khoa")
+import shutil  # noqa: E402
+
+QT = FIX / "quy-trinh"
+qt_home = tmp / "quy-trinh-home"
+shutil.rmtree(qt_home, ignore_errors=True)
+shutil.copytree(QT / "home", qt_home)
+qt_ra = tmp / "quy-trinh-ra"
+shutil.rmtree(qt_ra, ignore_errors=True)
+quy_trinh = str(SCRIPTS / "quy_trinh.py")
+
+
+def chay_qt(*lenh: str) -> tuple[int, dict]:
+    """Chạy quy_trinh.py; khác chay(): mã thoát khác 0 là một kết quả cần kiểm, không phải lỗi."""
+    kq = subprocess.run([PY, quy_trinh, "--home", str(qt_home), *lenh],
+                        capture_output=True, text=True)
+    try:
+        return kq.returncode, json.loads(kq.stdout)
+    except json.JSONDecodeError:
+        raise SystemExit(f"quy_trinh.py không trả JSON: {' '.join(lenh)}\n{kq.stderr[-2000:]}")
+
+
+ma, d = chay_qt("chay", "tach-tai-san", str(QT / "so-tai-san.xlsx"), "--ky", "T09.2026",
+                "--ra-thu-muc", str(qt_ra))
+t = {n["sheet"]: (n["so_dong"], n["tong"]["Tháng 9/2026"]) for n in d["ket_qua"][0]["nhom"]}
+kiem("gom đúng dòng theo khoa: khớp bỏ qua hoa/thường, dấu cách; một khoa nhiều tên gọi",
+     t, {"K. MẮT": (3, 1_000_000), "K. NỘI TIẾT": (1, 100_000), "VI SINH": (2, 500_000),
+         "K. NGOẠI TK": (0, 0)})
+kiem("khoa trong quy trình mà kỳ này không có dòng nào thì được báo ra",
+     d["ket_qua"][0]["gia_tri_khong_co_trong_du_lieu"], ["K. NGOẠI TK"])
+ws = openpyxl.load_workbook(qt_ra / "TACH-T09.2026.xlsx")["K. MẮT"]
+kiem("đánh lại STT nhưng mã ghép từ STT cũ giữ nguyên", (ws["A4"].value, ws["E4"].value),
+     (1, "2-TS02"))
+kiem("công thức trong dòng được dời theo dòng mới", ws["F6"].value, "=D6/12")
+kiem("cột ghi chú không có tiêu đề vẫn được mang theo", ws["G5"].value, "điều chuyển từ kho")
+kiem("dòng tổng dùng SUBTOTAL để SUBTOTAL cả cột ở phần đầu không cộng trùng",
+     str(ws["F7"].value).startswith("=SUBTOTAL(9,"), True)
+ma, d = chay_qt("chay", "tach-tai-san", str(QT / "so-tai-san.xlsx"), "--ra-thu-muc", str(qt_ra))
+kiem("tên cột theo tháng mà thiếu --ky thì dừng, không đoán tháng",
+     (ma, "--ky" in d.get("thong_diep", "")), (1, True))
+
+print("\nQuy trình định kỳ — lọc bản kết xuất")
+ma, d = chay_qt("chay", "loc-doanh-thu", str(QT / "DT-09.xlsx"), str(QT / "YHCT-09.xlsx"),
+                "--ra-thu-muc", str(qt_ra))
+kq = {Path(k["nguon"]).name: k for k in d["ket_qua"]}
+k = kq["DT-09.xlsx"]
+kiem("mỗi quy tắc loại đúng dòng của nó, ngoại lệ được giữ",
+     (k["so_dong_giu"], k["tong_tien_giu"], k["ly_do_bo"]),
+     (2, 130_000, {"Quy tắc 1": 1, "Quy tắc 2": 1, "Quy tắc 3": 1, "Quy tắc 4": 1}))
+k = kq["YHCT-09.xlsx"]
+kiem("biến thể theo tên file: YHCT giữ dòng Y học cổ truyền",
+     (k["bien_the"], k["so_dong_giu"], k["tong_tien_giu"]), ("YHCT", 3, 200_000))
+ma, d = chay_qt("chay", "loc-doanh-thu", str(QT / "DT-10.xlsx"), "--ra-thu-muc", str(qt_ra))
+kiem("giá trị chưa từng gặp (MADT 17) thì dừng để hỏi, không ghi file nào",
+     (ma, d.get("gia_tri_moi"), (qt_ra / "LOC-DT-10.xlsx").exists()), (2, {"MADT": ["17"]}, False))
+ma, d = chay_qt("chay", "loc-doanh-thu", str(QT / "DT-10.xlsx"), "--ra-thu-muc", str(qt_ra),
+                "--chap-nhan-gia-tri-moi")
+kiem("kế toán xác nhận giá trị mới thì chạy tiếp", (ma, d["ket_qua"][0]["so_dong_giu"]), (0, 3))
+ma, d = chay_qt("chay", "loc-doanh-thu", str(QT / "DT-11.xlsx"), "--ra-thu-muc", str(qt_ra))
+kiem("bố cục cột khác lần chạy trước thì cảnh báo", d["bo_cuc_thay_doi"][0]["them"], ["GHICHU"])
+sai = tmp / "sai-chinh-ta.toml"
+sai.write_text('loai = "loc"\n[[quy_tac]]\nma = "1"\nkhii = { A = { bang = ["x"] } }\n',
+               encoding="utf-8")
+ma, d = chay_qt("kiem", str(sai))
+kiem("gõ sai tên khoá trong quy trình bị từ chối thay vì lặng lẽ không chạy", ma, 1)
+
+print("\nQuy trình định kỳ — đối chiếu hai nguồn")
+ma, d = chay_qt("chay", "doi-chieu-gop", "--a", str(QT / "vien-phi.xlsx"),
+                "--b", str(QT / "xuat-kho.xlsx"), "--ra-thu-muc", str(qt_ra))
+k = d["ket_qua"][0]
+kiem("cộng theo khoá sau khi loại dòng, chỉ ra cặp chi tiết lệch",
+     (k["tong_a"], k["tong_b"], k["lech"][0]["khoa"], k["lech"][0]["cap_lech"]),
+     (16, 17, "Hồng cầu 350 ml", [{"chi_tiet": "102", "a": 1, "b": 2}]))
+ws = openpyxl.load_workbook(qt_ra / "DC-GOP.xlsx").worksheets[0]
+kiem("giữ thứ tự dòng của mẫu, khoá mới nối ở cuối và được báo",
+     ([ws.cell(r, 1).value for r in range(2, 6)], "Huyết tương 200 ml" in d["canh_bao"][0]),
+     (["Hồng cầu 350 ml", "Tiểu cầu 250 ml", "Tủa lạnh 50 ml", "Huyết tương 200 ml"], True))
+ma, d = chay_qt("chay", "doi-chieu-tung-dong", "--a", str(QT / "ban-may.xlsx"),
+                "--b", str(QT / "ban-tay.xlsx"), "--ra-thu-muc", str(qt_ra))
+kiem("mỗi dòng B chỉ ghép một lần; '007' và '7' là hai bệnh nhân khác nhau",
+     d["ket_qua"][0]["theo_ket_qua"], {"KHỚP": 1, "CHỈ CÓ A": 1, "LỆCH": 1, "CHỈ CÓ B": 1})
+
 print()
 if loi:
     print(f"❌ {len(loi)} phép kiểm thất bại: {', '.join(loi)}")

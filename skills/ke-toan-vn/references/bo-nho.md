@@ -8,6 +8,8 @@ cập nhật hay cài lại skill sẽ không xoá mất kiến thức đã tíc
 ├── INDEX.md          # mục lục tự sinh: chủ đề | ngày tra | hết hạn | tình trạng
 ├── phap-ly/          # cache quy định — CÓ hạn dùng
 ├── quy-uoc/          # quy ước riêng của người dùng — KHÔNG hết hạn
+├── quy-trinh/        # việc định kỳ đã ghi nhớ (*.toml) + lich-su/ — xem quy-trinh.md
+├── danh-muc.toml     # tên gọi khoa/phòng theo từng nguồn, các tập mã dùng chung
 └── nhat-ky.md        # nhật ký việc đã làm, mới nhất lên đầu
 ```
 
@@ -23,6 +25,7 @@ Skill này dùng chung cho nhiều người, nên phải phân biệt rõ hai lo
 |---|---|---|
 | `phap-ly/` | **Được** | Văn bản pháp luật áp dụng cho mọi người dùng, lại có hạn dùng nên không thể âm thầm cũ đi |
 | `quy-uoc/` | **KHÔNG** | Là quy ước của một đơn vị cụ thể. Giao kèm sang nơi khác là đưa thông tin sai |
+| `quy-trinh/`, `danh-muc.toml` | **KHÔNG** | Như `quy-uoc/`: quy tắc lọc, danh sách khoa, mã đối tượng là của một đơn vị |
 
 Ví dụ vì sao điều thứ hai quan trọng: nếu `quy-uoc/` đi kèm một ghi chú kiểu "đơn vị của người dùng
 có MST X", thì với đơn vị khác, skill sẽ báo động ở **mọi** hóa đơn vì MST bên mua không khớp — và

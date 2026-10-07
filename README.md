@@ -67,6 +67,8 @@ Skill giữ bộ nhớ cục bộ ở `.ke-toan-vn/` — file markdown thuần, 
 ├── INDEX.md      mục lục tự sinh
 ├── phap-ly/      quy định đã tra — CÓ hạn dùng, hết hạn thì tự tra lại
 ├── quy-uoc/      quy ước riêng của đơn vị — KHÔNG hết hạn
+├── quy-trinh/    việc định kỳ đã ghi nhớ: tách theo khoa, lọc kết xuất, đối chiếu (*.toml)
+├── danh-muc.toml tên gọi khoa/phòng theo từng nguồn, các tập mã dùng chung
 └── nhat-ky.md    nhật ký việc đã làm
 ```
 
@@ -80,8 +82,8 @@ Hạn dùng đặt theo mức độ biến động: **đấu thầu 45 ngày**, 
 Ngoài `het_han`, mỗi ghi chú còn có `thay_the_boi` — vì công cụ tìm kiếm thường đẩy văn bản đã hết
 hiệu lực lên đầu (tra "chấm thầu" vẫn ra NĐ 63/2014 và NĐ 24/2024, cả hai đã bị thay).
 
-**`quy-uoc/` không đóng gói theo repo.** Nó chứa quy ước của một đơn vị cụ thể; phát tán sang nơi
-khác là đưa thông tin sai. `phap-ly/` thì có bản mẫu ở `skills/ke-toan-vn/assets/bo-nho-mau/`,
+**`quy-uoc/`, `quy-trinh/`, `danh-muc.toml` không đóng gói theo repo.** Chúng chứa quy ước và quy
+tắc của một đơn vị cụ thể; phát tán sang nơi khác là đưa thông tin sai. `phap-ly/` thì có bản mẫu ở `skills/ke-toan-vn/assets/bo-nho-mau/`,
 bootstrap sẽ **hỏi** trước khi chép — bộ nhớ âm thầm có sẵn nội dung là bộ nhớ không tin được.
 
 ## Chấm thầu — quy trình hai pha
@@ -123,6 +125,7 @@ skills/ke-toan-vn/
 │   ├── bao-cao.md        bảng kê, tờ khai, bảng cân đối
 │   ├── dau-thau.md       quy trình chấm thầu theo NĐ 214/2025
 │   ├── phap-ly.md        bản đồ văn bản + cách tra
+│   ├── quy-trinh.md      ghi nhớ việc định kỳ và chạy lại tháng sau
 │   └── bo-nho.md         giao thức bộ nhớ
 └── scripts/
     ├── bootstrap.sh      cài môi trường
@@ -131,6 +134,7 @@ skills/ke-toan-vn/
     ├── chuan_hoa.py      chuẩn hoá số/ngày/MST/Unicode
     ├── kiem_tra_mst.py   kiểm mã số thuế
     ├── bo_nho.py         bộ nhớ
+    ├── quy_trinh.py      chạy việc định kỳ đã ghi nhớ (tách / lọc / đối chiếu)
     ├── doc_hsdt.py       bóc tách HSDT, kèm số trang nguồn
     ├── cham_ky_thuat.py  phiếu đối chiếu kỹ thuật HSMT ↔ HSDT
     └── so_sanh_thau.py   bảng so sánh giá đánh giá
@@ -142,7 +146,7 @@ skills/ke-toan-vn/
 
 | Thành phần | Bắt buộc? | Dùng để |
 |---|---|---|
-| Python 3.10+ | có | script nghiệp vụ; bản 3.9 của macOS quá cũ cho `recalc.py` của skill `xlsx` |
+| Python 3.11+ | có | script nghiệp vụ (`quy_trinh.py` đọc TOML bằng `tomllib`); bản 3.9 của macOS quá cũ |
 | `poppler`, `qpdf` | có | đọc và sửa PDF |
 | `tesseract` + **`tesseract-lang`** | có | OCR hóa đơn scan — thiếu gói `vie` thì kết quả ra rác |
 | LibreOffice | tuỳ chọn | tính lại công thức Excel trước khi giao; bootstrap hỏi trước (~700MB) |
@@ -151,7 +155,7 @@ skills/ke-toan-vn/
 
 ```bash
 python evals/tao_fixtures.py     # sinh dữ liệu mẫu (có cài sẵn lỗi để bắt)
-python evals/kiem_thu.py         # 33 phép kiểm hồi quy
+python evals/kiem_thu.py         # 65 phép kiểm hồi quy
 ```
 
 Mỗi phép kiểm gắn với một cái bẫy cố ý trong dữ liệu mẫu, nên khi đỏ thì biết ngay nghiệp vụ nào
