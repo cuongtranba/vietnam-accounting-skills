@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.2.1...v0.3.0) (2026-10-07)
+
+
+### Tính năng mới
+
+* quy trình định kỳ — động cơ chung tách/lọc/đối chiếu, quy tắc riêng của đơn vị nằm ở cấu hình ([#7](https://github.com/cuongtranba/vietnam-accounting-skills/issues/7)) ([2000ce4](https://github.com/cuongtranba/vietnam-accounting-skills/commit/2000ce414f90aa0f5337418756d6e48aafaaa564))
+
 ## [0.2.1](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.2.0...v0.2.1) (2026-09-13)
 
 
