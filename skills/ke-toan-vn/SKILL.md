@@ -21,6 +21,7 @@ cơ học nhanh và chính xác, chỉ ra chỗ đáng ngờ, rồi để họ q
 | Đối chiếu, tìm chênh lệch | `references/doi-chieu.md` | `doi_chieu.py` |
 | Làm sạch / gộp / chuẩn hoá Excel | `references/excel-vn.md` | `chuan_hoa.py` |
 | Lập bảng kê, tờ khai, báo cáo | `references/bao-cao.md` | — |
+| Lọc bản kết xuất doanh thu khoa thành DLBC | `references/bao-cao.md` | `loc_dlbc.py` |
 | Dựng lại báo cáo định kỳ từ mẫu kỳ trước | `references/bao-cao.md` | `bao_cao_khoa.py` |
 | Chấm thầu, so sánh HSDT | `references/dau-thau.md` | `doc_hsdt.py`, `cham_ky_thuat.py`, `so_sanh_thau.py` |
 | Câu hỏi về luật, thuế, tài khoản | `references/phap-ly.md` | `bo_nho.py` |

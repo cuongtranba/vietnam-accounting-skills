@@ -116,6 +116,14 @@ Năm cái bẫy đã gặp thật khi làm việc này:
    lọc của dữ liệu gốc, sinh lại được để khỏi phải xin thêm file. Trước khi dựa vào đó, **đối chiếu
    bản sinh với bản người dùng tự lọc của kỳ mẫu**: khớp cả số dòng lẫn từng cặp khoá thì mới dùng.
 
+**Bước trước đó: lọc bản kết xuất thành DLBC.** Bản kết xuất doanh thu của khoa chứa cả những
+dòng không tính cho khoa (xét nghiệm, CĐHA, hóa đơn quyển HDDTSOFTDREAM, dòng hoàn trả âm...).
+`loc_dlbc.py` áp bộ quy tắc kế toán đã chốt và ghi `DLBC-Khoa-<tên file>.xlsx` gồm sheet `DLBC`
+(dòng giữ, nguyên thứ tự cột — chính là đầu vào của `bao_cao_khoa.py`), sheet `LOẠI BỎ` (mỗi dòng
+ghi quy tắc đã loại nó) và sheet `TÓM TẮT` đối chiếu bằng công thức: gốc = giữ + loại, cả số dòng
+lẫn tổng SOTIENCT. Bộ quy tắc nằm ở đầu script; quy tắc đổi thì sửa ở đó và ở fixture eval.
+Khoa YHCT (tên file bắt đầu bằng `YHCT`) có ngoại lệ riêng — xem docstring của script.
+
 Cuối cùng: mẫu kỳ trước có thể chứa lỗi sẵn (thiếu công thức ở một vài dòng, sót một hạng mục).
 **Giữ nguyên công thức của mẫu, báo lỗi ra cho người dùng, đừng tự sửa** — nguyên tắc 4. Nhưng phải
 nói, vì kỳ sau họ sẽ lại nhân bản đúng cái lỗi đó.

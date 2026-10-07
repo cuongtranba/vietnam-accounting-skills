@@ -257,6 +257,35 @@ else:
     kiem("chỉ dựng BCCT thì không sinh sheet Chi tiền công",
          "Chi tiền công THEO REPORT" in openpyxl.load_workbook(ra2).sheetnames, False)
 
+print("\nLọc bản kết xuất thành DLBC")
+loc = FIX / "loc-dlbc"
+if not (loc / "KHOA-09.xlsx").exists():
+    print("  ⚠️  Chưa có fixture loc-dlbc (thiếu openpyxl?) — bỏ qua")
+else:
+    import tempfile
+
+    import openpyxl
+
+    ra_loc = Path(tempfile.mkdtemp())
+    d = chay(str(SCRIPTS / "loc_dlbc.py"), str(loc / "KHOA-09.xlsx"), str(loc / "YHCT-09.xlsx"),
+             "--ra-thu-muc", str(ra_loc))
+    mong_doi = json.loads((loc / "mong_doi.json").read_text(encoding="utf-8"))
+    for kq in d:
+        ten = Path(kq["nguon"]).stem
+        wb = openpyxl.load_workbook(kq["ra"])
+        giu = [r[3] for r in wb["DLBC"].iter_rows(min_row=2, values_only=True)]
+        bo = list(wb["LOẠI BỎ"].iter_rows(min_row=2, values_only=True))
+        # Một tập kỳ vọng mã hoá cả bốn quy tắc lẫn các ngoại lệ: lọt hay sót dòng nào
+        # là tiền của dòng đó vào sai báo cáo.
+        kiem(f"{ten}: giữ đúng tập dòng theo quy tắc", giu, mong_doi[ten])
+        kiem(f"{ten}: mọi dòng bị loại đều ghi quy tắc đã loại nó",
+             all(str(r[-1]).startswith("Quy tắc") for r in bo), True)
+        kiem(f"{ten}: không mất dòng nào (gốc = giữ + loại)",
+             len(giu) + len(bo), kq["so_dong_goc"])
+    kiem("DLBC giữ nguyên thứ tự cột của bản kết xuất (bao_cao_khoa.py trỏ cột theo chữ cái)",
+         [c.value for c in openpyxl.load_workbook(d[0]["ra"])["DLBC"][1]],
+         [c.value for c in openpyxl.load_workbook(loc / "KHOA-09.xlsx").active[1]])
+
 print("\nBộ nhớ — hạn dùng và bản lưu trữ")
 bn = str(SCRIPTS / "bo_nho.py")
 import os  # noqa: E402

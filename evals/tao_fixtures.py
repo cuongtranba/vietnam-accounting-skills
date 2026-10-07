@@ -670,6 +670,59 @@ def sinh_bao_cao_khoa():
     print("  ✅ bao-cao-khoa: mẫu kỳ trước + nguồn kỳ mới + nguồn lệch thứ tự cột")
 
 
+# --- Eval 6: lọc bản kết xuất thành DLBC -------------------------------------
+# Cùng một bộ dòng ghi thành hai file: KHOA-09 (khoa thường) và YHCT-09. Bẫy cài sẵn:
+#   - "Xét nghiệm " có dấu cách cuối như bản kết xuất thật -> so khớp chính xác sẽ sót
+#   - chỉ định được giữ có hậu tố ([Ngoại trú], [của túi máu...]) -> phải so theo tiền tố,
+#     trong khi "Định nhóm máu hệ ABO" cùng nhóm vẫn phải bị loại
+#   - Điện châm / tia hồng ngoại: loại ở khoa thường, GIỮ ở YHCT
+# (TENQUYENSO, TENNHOMBHYT, TENLOAIVP, TENCHIDINH, SOTIENCT, giữ ở khoa thường, giữ ở YHCT)
+DONG_LOC = [
+    ("HDDTTP_VN_CT", "Thuốc", "Kháng sinh", "Cefazolin 2g", 24850, True, True),
+    ("HDDTSOFTDREAM_NHSON", "Thuốc", "Kháng sinh", "Cefazolin 2g [softdream]", 24850, False, False),
+    ("HDDTTP_VN_CT", "Xét nghiệm ", "Xét Nghiệm Sinh hoá", "Đường máu mao mạch [Ngoại trú]",
+     16000, True, True),
+    ("HDDTTP_VN_CT", "Xét nghiệm ", "Xét Nghiệm Huyết học",
+     "Định nhóm máu tại giường [của túi máu toàn phần/khối hồng cầu/khối bạch cầu]", 40000,
+     True, True),
+    ("HDDTTP_VN_CT", "Xét nghiệm ", "Xét Nghiệm Huyết học", "Định nhóm máu hệ ABO (Kỹ thuật phiến đá)",
+     40000, False, False),
+    ("HDDTTP_VN_CT", "CDHA, TDCN", "XQUANG KTS", "Chụp Xquang ngực thẳng", 65000, False, False),
+    ("HDDTTP_VN_CT", "Dịch vụ kĩ thuật thông thường", "Y học cổ truyền", "Điện châm", 75000,
+     False, True),
+    ("HDDTTP_VN_CT", "Dịch vụ kĩ thuật thông thường", "Vật lý trị liệu - Phục hồi chức năng",
+     "Điều trị bằng tia hồng ngoại", 36000, False, True),
+    ("HDDTTP_VN_CT", "Dịch vụ kĩ thuật thông thường", "Vật lý trị liệu - Phục hồi chức năng",
+     "Điều trị bằng siêu âm", 50000, False, False),
+    ("HDDTTP_VN_CT", "Thuốc", "Thuốc khác", "Cammic [hoàn trả]", -12000, False, False),
+]
+COT_LOC = ["NGAYTHU", "TENQUYENSO", "SOBIENLAI", "TENCHIDINH", "SOTIENCT", "TENLOAIVP",
+           "TENNHOMBHYT", "MABN"]
+
+
+def sinh_loc_dlbc():
+    try:
+        import openpyxl
+    except ImportError:
+        print("  ⚠️  Chưa cài openpyxl — bỏ qua fixture loc-dlbc")
+        return
+
+    goc = GOC / "loc-dlbc"
+    goc.mkdir(parents=True, exist_ok=True)
+    for ten in ("KHOA-09.xlsx", "YHCT-09.xlsx"):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Sheet"
+        ws.append(COT_LOC)
+        for k, (qs, nhom, loai, cd, tien, _, _) in enumerate(DONG_LOC, 1):
+            ws.append(["01/09/2026 08:00", qs, k, cd, tien, loai, nhom, f"BN{k:04d}"])
+        wb.save(goc / ten)
+    with open(goc / "mong_doi.json", "w", encoding="utf-8") as f:
+        json.dump({"KHOA-09": [d[3] for d in DONG_LOC if d[5]],
+                   "YHCT-09": [d[3] for d in DONG_LOC if d[6]]}, f, ensure_ascii=False)
+    print("  ✅ loc-dlbc: một bản kết xuất khoa thường + một bản YHCT")
+
+
 def main():
     print("Sinh dữ liệu mẫu...")
 
@@ -688,6 +741,7 @@ def main():
     sinh_doi_chieu()
     sinh_dau_thau()
     sinh_bao_cao_khoa()
+    sinh_loc_dlbc()
     print(f"\nXong. Dữ liệu ở: {GOC}")
 
 
