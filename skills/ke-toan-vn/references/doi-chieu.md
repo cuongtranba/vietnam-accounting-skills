@@ -55,6 +55,30 @@ Python đọc `1.234.567` là lỗi, và đọc `1.234` thành 1.234 (một ph�
 Ngoài ra: khoảng trắng thừa, chữ hoa/thường trong tên, và MST có thể là số hoặc chuỗi tuỳ cách
 Excel lưu (MST bắt đầu bằng `0` mà lưu dạng số thì mất số 0 đầu — **luôn đọc MST dạng chuỗi**).
 
+## Dò theo tên (đơn giá thuốc, vật tư, dịch vụ)
+
+Khi không có mã chung, ví dụ điền đơn giá vào bảng định mức từ các báo cáo nhập hàng, khóa là
+**tên hàng**. Tên gõ tay lệch nhau đủ kiểu, nên chia kết quả thành bậc và nói rõ từng bậc. Đừng gộp
+tất cả thành "khớp".
+
+| Bậc | Điều kiện | Làm gì |
+|---|---|---|
+| Đúng tên | Giống nhau sau NFC, bỏ hoa/thường, gộp khoảng trắng | Điền; ghi chú nguồn (file, dòng) |
+| Khác dấu | Giống nhau sau khi bỏ dấu tiếng Việt, dấu câu và ký hiệu (chữ số giữ nguyên) | Điền; ghi chú "(khác dấu)" để người dùng soát |
+| Gần giống | Chỉ giống một phần | **Không điền.** Liệt kê sang sheet riêng để người dùng chọn |
+| Không thấy | — | Để trống, không điền 0 |
+
+Thêm hai quy tắc người dùng hay đòi:
+
+- **Nhiều dòng cùng khớp** thì xét bậc cao nhất trước: đã có dòng đúng tên thì bỏ qua các dòng
+  khác dấu. Trong cùng một bậc, lấy dòng có **ngày hóa đơn mới nhất**, không lấy theo thư mục hay
+  thứ tự file. Chỉ dùng thứ tự thư mục để phá hòa khi trùng ngày.
+- **Mã hàng và đơn vị đi kèm phải lấy ở chính dòng đã lấy giá.** Nếu không, giá của nhà cung cấp
+  này sẽ đứng cạnh mã của nhà cung cấp khác. Mặc định ghi mã nguồn vào ghi chú cạnh giá. Chỉ ghi đè
+  cột mã của người dùng khi họ yêu cầu.
+
+Luôn kèm một sheet tóm tắt gồm ba phần: đã điền, gần giống, không thấy.
+
 ## Báo cáo kết quả
 
 Người dùng cần biết ba điều, theo thứ tự:

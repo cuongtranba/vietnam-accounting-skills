@@ -1,6 +1,6 @@
 ---
 name: ke-toan-vn
-description: "Vietnamese accounting and bid-evaluation assistant. Use for any task involving Vietnamese invoices, tax declarations, bookkeeping, or tender evaluation — including e-invoice XML/PDF extraction (hóa đơn điện tử), building bảng kê mua vào/bán ra for HTKK or MISA import, reconciling ledgers (đối chiếu sổ sách, công nợ), cleaning Vietnamese-formatted spreadsheets, validating tax codes (MST), answering questions about Vietnamese tax rules (thuế GTGT, TNDN, TNCN, Thông tư 200/133, hóa đơn điện tử), and evaluating bids as bên mời thầu (chấm thầu, so sánh HSDT, giá đánh giá, sửa lỗi, hiệu chỉnh sai lệch). Trigger on Vietnamese accounting vocabulary even in casual phrasing: hóa đơn, bảng kê, tờ khai, quyết toán, sổ cái, công nợ, MST, GTGT, HTKK, MISA, chấm thầu, HSDT, HSMT, nhà thầu, gói thầu. Also trigger when a spreadsheet or PDF is clearly Vietnamese accounting or tender data, even if the user does not name the domain. Do NOT use for generic spreadsheet or PDF work with no Vietnamese accounting or tender context — plain xlsx/pdf skills handle that better."
+description: "Vietnamese accounting and bid-evaluation assistant. Use for Vietnamese invoices, tax, bookkeeping, recurring monthly reports and tender evaluation: e-invoice XML/PDF extraction (hóa đơn điện tử), bảng kê mua vào/bán ra for HTKK or MISA, reconciliation (đối chiếu sổ sách, công nợ, xuất nhập tồn), cleaning Vietnamese spreadsheets, MST validation, tax-rule questions (GTGT, TNDN, TNCN, TT 200/133), monthly reports from software exports (tách/lọc dữ liệu theo khoa/phòng, doanh thu theo khoa, doanh thu tính thuế, chia tiền công, hao phí, dò đơn giá), and evaluating bids as bên mời thầu (chấm thầu, so sánh HSDT, giá đánh giá, hiệu chỉnh sai lệch). Trigger on accounting vocabulary even in casual phrasing (hóa đơn, bảng kê, tờ khai, quyết toán, sổ cái, công nợ, HTKK, MISA, HSDT, HSMT, gói thầu, khoa/phòng, đơn giá, 'làm tương tự tháng trước') and whenever a spreadsheet or PDF is clearly Vietnamese accounting or tender data. Do NOT use for generic spreadsheet/PDF work without that context."
 ---
 
 # Kế toán & chấm thầu Việt Nam
@@ -69,8 +69,10 @@ cho tới lúc quyết toán.
 ### 3. Không trả lời quy định từ trí nhớ
 
 Luật thuế Việt Nam đổi rất nhanh. Riêng ngưỡng doanh thu không chịu thuế GTGT của hộ kinh doanh
-đã đổi hai lần trong 18 tháng: 100 triệu → 200 triệu (Luật 48/2024/QH15) → 500 triệu
-(Luật 149/2025/QH15, hiệu lực 01/01/2026). Trí nhớ của mô hình gần như chắc chắn đang giữ con số cũ.
+đã đổi ba lần trong khoảng hai năm: 100 triệu → 200 triệu (Luật 48/2024/QH15) → 500 triệu
+(Luật 149/2025/QH15) → 1 tỷ (NĐ 141/2026/NĐ-CP ngày 29/4/2026, hồi tố từ 01/01/2026). Chính bản
+trước của câu này cũng từng ghi 500 triệu là mức hiện hành. Trí nhớ của mô hình gần như chắc chắn
+đang giữ con số cũ.
 
 Vì vậy: mọi phát biểu về **thuế suất, ngưỡng, hạn nộp, mẫu biểu, số hiệu tài khoản, quy trình
 pháp lý** phải dựa trên một trong hai nguồn:
@@ -174,3 +176,31 @@ Kế toán thường đưa một thư mục file và một câu yêu cầu ngắ
 
 Khi phát hiện điều bất thường trong số liệu (hóa đơn trùng, MST sai, ngày ngoài kỳ, số âm lạ),
 **báo ngay** kể cả khi người dùng không hỏi. Đó chính là thứ họ cần nhất.
+
+### Những lỗi người dùng phải nhắc đi nhắc lại
+
+Các điều dưới đây rút từ phiên làm việc thật. Mỗi cái từng làm người dùng phải sửa lại nhiều lần.
+
+- **Đúng file được gọi tên.** Người dùng nói "dò với file X sheet Y" thì dùng đúng X, đúng Y.
+  Không thay bằng một bản sao cũ hay một file trông giống. Không tìm thấy thì hỏi. Lý do: hai file
+  cùng tên khác kỳ, hay bản đã sửa với bản gốc, cho ra số khác nhau, và người dùng không có cách
+  nào biết mình đang nhìn số của file nào.
+- **Tên có dấu lấy từ kết quả liệt kê, đừng gõ lại.** `HAO PHÍ.xlsx` gõ thành `HAO PHI.xlsx` sẽ
+  báo "không tìm thấy" và dễ bị hiểu nhầm thành lỗi quyền truy cập. Copy tên từ output của lệnh
+  liệt kê; nếu file đến từ máy khác thì nhớ chuyện NFC/NFD ở `references/doi-chieu.md`.
+- **Sửa lại là ghi đè, không đẻ phiên bản.** Khi người dùng yêu cầu chỉnh một kết quả đã giao, sửa
+  chính file kết quả đó và chính script đã tạo ra nó. Đừng sinh `_v2`, `out2/`, hay script thứ hai:
+  vài vòng sau người dùng không còn biết file nào là bản đúng. Trước khi ghi, liệt kê thư mục đích
+  để dùng lại đúng tên cũ. File **đầu vào** gốc thì không bao giờ ghi đè, trừ khi người dùng bảo
+  điền thẳng vào chính file đó; khi ấy để một bản sao `_ban-truoc-YYYYMMDD-HHMM` bên cạnh trước.
+- **Làm đúng phạm vi.** "Chỉ cần thêm cột A" nghĩa là chỉ cột A. Thấy chỗ khác đáng sửa thì nói
+  ra ở phần báo cáo, đừng tự làm — file kế toán thường đã được nộp hoặc đối chiếu với nơi khác.
+- **Quy tắc đổi thì chạy lại mọi thứ đã làm theo quy tắc cũ.** Người dùng thêm một điều kiện lọc
+  giữa chừng thì các file đã xuất trước đó cũng sai theo. Chạy lại tất cả, rồi nói rõ file nào đổi
+  và đổi bao nhiêu dòng.
+- **File mẫu đã điền sẵn là đặc tả.** Người dùng đưa một file mẫu "làm tương tự" thì cấu trúc,
+  tên cột, cách ghi chú, và cả những ô họ *để trống* trong mẫu đều là yêu cầu. Dùng đúng file mẫu
+  họ chỉ, không phải một mẫu khác mình thấy hợp hơn.
+- **Hỏi một câu ngắn.** Một câu hỏi nhiều ý dài dòng thường bị bỏ qua. Hỏi điều chặn việc, phần
+  còn lại thì nêu giả định và làm tiếp.
+- **Dung lượng ghi bằng KB/MB**, không ghi số byte trần.
