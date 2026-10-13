@@ -75,6 +75,28 @@ Trình tự nên theo:
 Bước 5 quan trọng: nếu tổng không khớp, nghĩa là đã bỏ sót hoặc nhân đôi dòng nào đó. Báo cho
 người dùng thay vì lặng lẽ giao file sai.
 
+## Bẫy khi sửa một workbook có sẵn của người dùng
+
+Workbook báo cáo thật thường có pivot, hình, biểu đồ, công thức trỏ sang file khác. Những thứ này
+hỏng âm thầm khi đi qua thư viện, và người dùng chỉ phát hiện khi mở file ra dùng.
+
+- **openpyxl mở rồi lưu lại có thể làm mất hình ảnh, biểu đồ, và làm hỏng pivot.** Nếu chỉ cần
+  thay dữ liệu một sheet trong workbook có những thứ đó, sửa thẳng XML của sheet ấy bên trong gói
+  `.xlsx` (giải nén, thay `xl/worksheets/sheetN.xml`, nén lại), hoặc ghi dữ liệu ra workbook mới
+  để người dùng dán vào. Sau khi lưu, so số hình / biểu đồ / pivot với file gốc.
+- **Pivot phải được nới vùng nguồn** khi thêm dòng, và đặt làm mới khi mở file
+  (`refreshOnLoad`). Nếu không, pivot vẫn hiện số cũ dù dữ liệu đã đổi.
+- **Công thức liên kết ngoài** (`[1]DLBC!A2`, trỏ sang file khác) ra `#VALUE!` hoặc `#REF!` sau
+  khi recalc bằng LibreOffice, vì file kia không nằm cạnh. Nhúng sheet nguồn vào chính workbook
+  rồi trỏ công thức về sheet đó, thay vì giữ liên kết ngoài.
+- **`recalc.py` báo lỗi giả** khi một ô *văn bản* chứa chuỗi `#VALUE!` hay `#N/A` (ví dụ một ô ghi
+  chú giải thích lỗi). Đừng viết các chuỗi đó vào ghi chú; diễn đạt bằng lời.
+- **File kết xuất rất lớn** (hàng trăm MB): đọc theo luồng
+  (`openpyxl.load_workbook(read_only=True)` hoặc `python-calamine`) và lọc ngay khi đọc, đừng nạp
+  cả file vào bộ nhớ trên máy ít RAM.
+- **File đang mở trong Excel thì không đổi tên hay ghi đè được.** Hỏi người dùng đóng file trước
+  khi ghi vào đúng đường dẫn đó.
+
 ## Lệnh
 
 ```bash
