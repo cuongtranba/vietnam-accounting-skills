@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.3.0...v0.4.0) (2026-10-13)
+
+
+### Tính năng mới
+
+* bài học từ phiên làm việc thật — đúng file, ghi đè thay vì v2, dò đơn giá theo bậc, bẫy workbook có sẵn ([#9](https://github.com/cuongtranba/vietnam-accounting-skills/issues/9)) ([d0c1d05](https://github.com/cuongtranba/vietnam-accounting-skills/commit/d0c1d0508e3b1c6d7e2472d8e31e80af318b1a54))
+
 ## [0.3.0](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.2.1...v0.3.0) (2026-10-07)
 
 
