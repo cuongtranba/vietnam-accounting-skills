@@ -12,7 +12,8 @@
 | Tái hiện trước khi sửa | `evals/kiem_soat.py` phần P0: 38 hỏng / 4 đạt ([01-red](evidence/01-red-p0-truoc-khi-sua.txt)) |
 | Commit P0 | `91d8c3a` |
 | Commit P1 | `632ffc3` |
-| Commit P2 + tài liệu | xem `git log` của PR (commit cuối cùng của nhánh) |
+| Commit P2 + tài liệu | `64ca2ec` |
+| PR | https://github.com/cuongtranba/vietnam-accounting-skills/pull/11 (không tự merge) |
 | Sau khi sửa | `kiem_thu.py` **65/65** ([02](evidence/02-green-kiem-thu.txt)) · `kiem_soat.py` **82/82** khi có signxml ([03](evidence/03-green-kiem-soat.txt)) · **79/79** khi không có signxml, chạy nhánh dự phòng ([04](evidence/04-kiem-soat-khong-signxml.txt)) |
 | Tương thích | Cả 5 quy trình thật đang dùng (`.ke-toan-vn/quy-trinh/*.toml`) đều qua `quy_trinh.py kiem` với mã mới. Lệnh chỉ kiểm cú pháp, không đọc dữ liệu. |
 
