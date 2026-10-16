@@ -211,7 +211,9 @@ def chay(spec: dict, tep: dict, tuy_chon: dict) -> dict:
     ra_dir = tuy_chon.get("ra_thu_muc")
     ra = (Path(ra_dir) if ra_dir else tep["a"].parent) / ten_ra(k["ra"], tep["a"],
                                                                 tuy_chon.get("ky"))
-    canh_bao = []
+    canh_bao = [f"Khoá [{t}] {c!r} là cột số thứ tự — STT không ổn định giữa hai nguồn, đối "
+                f"chiếu theo nó dễ ghép nhầm dòng" for t in ("a", "b") for c in spec[t]["khoa"]
+                if chuan(c) in ("stt", "tt", "so tt", "số tt")]
     if k["che_do"] == "gop":
         dong, ngoai_mau = _gop(spec, A, B)
         _ghi_gop(spec, dong, ra, tuy_chon.get("bo_ghi"))

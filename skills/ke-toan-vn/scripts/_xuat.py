@@ -16,10 +16,20 @@ def sheet_du_lieu(wb, ten: str, tieu_de: list, dong: list):
         c.font = Font(bold=True)
     for r in dong:
         ws.append(r)
+        giu_chu(ws[ws.max_row])
     ws.freeze_panes = "A2"
     if tieu_de:
         ws.auto_filter.ref = f"A1:{get_column_letter(len(tieu_de))}{len(dong) + 1}"
     return ws
+
+
+def giu_chu(o_list) -> None:
+    """Ô chữ mở đầu bằng '=' (vd "=HYPERLINK(...)" trong bản kết xuất) phải ở lại là CHỮ.
+    openpyxl coi mọi chuỗi bắt đầu bằng '=' là công thức — chép nguyên dữ liệu bên ngoài sang
+    là biến nó thành công thức chạy được khi kế toán mở file."""
+    for o in o_list:
+        if isinstance(o.value, str) and o.value.startswith("="):
+            o.data_type = "s"
 
 
 def dam_dong(ws, *so_dong: int) -> None:

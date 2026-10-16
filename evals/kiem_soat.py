@@ -515,6 +515,352 @@ kiem("ghi một lô: file thứ hai lỗi thì file thứ nhất cũng không đ
      (ma != 0, (ra_lo / "LOC-A.xlsx").exists(), sorted(p.name for p in ra_lo.iterdir())),
      (True, False, ["LOC-B.xlsx"]))
 
+# --- G06 / G07 / G08 -----------------------------------------------------------------------
+print("\n[G06/G07/G08] Hồ sơ lần chạy, phát lại, phê duyệt gắn nội dung, sửa sau khi duyệt")
+import hashlib  # noqa: E402
+import re  # noqa: E402
+
+HS = str(SCRIPTS / "ho_so_kiem_toan.py")
+au = TMP / "au-home"
+(au / "quy-trinh").mkdir(parents=True, exist_ok=True)
+QT_AU = (qt_home / "quy-trinh" / "loc-lo.toml").read_text(encoding="utf-8")
+(au / "quy-trinh" / "loc-au.toml").write_text(QT_AU, encoding="utf-8")
+src_au = luu_bang(TMP / "au-du-lieu" / "DT.xlsx", TD, DONG)
+ra_au = TMP / "au-ra"
+
+
+def qt_au(*a: str, home: Path = au) -> tuple[int, dict]:
+    return chay(QT, "--home", str(home), *a)
+
+
+def hs(*a: str, home: Path = au) -> tuple[int, dict]:
+    return chay(HS, "--home", str(home), *a)
+
+
+def sha(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+ma, d1 = qt_au("chay", "loc-au", str(src_au), "--ra-thu-muc", str(ra_au),
+               "--nguoi-lap", "Nguyen Van A")
+ma, d2 = qt_au("chay", "loc-au", str(src_au), "--ra-thu-muc", str(ra_au),
+               "--nguoi-lap", "Nguyen Van A")
+r1, r2 = d1.get("run_id"), d2.get("run_id")
+_, m1 = hs("xem", str(r1))
+_, m2 = hs("xem", str(r2))
+kiem("[AUD] mỗi lần chạy có hồ sơ: SHA-256 đầy đủ của nguồn, quy tắc, kết quả; giờ có múi giờ; "
+     "mã đơn vị",
+     (len((m1.get("dau_vao") or [{}])[0].get("sha256", "")),
+      len((m1.get("quy_tac") or {}).get("sha256", "")),
+      len((m1.get("dau_ra") or [{}])[0].get("sha256", "")),
+      bool(re.search(r"[+-]\d\d:\d\d$", m1.get("thoi_gian", ""))), m1.get("don_vi")),
+     (64, 64, 64, True, "mac-dinh"))
+kiem("[AUD] chạy lại cùng dữ liệu, cùng quy tắc → run_id khác nhau, ket_qua_sha256 như nhau",
+     (r1 != r2 and r1 is not None, m1.get("ket_qua_sha256") == m2.get("ket_qua_sha256")
+      and m1.get("ket_qua_sha256") is not None), (True, True))
+ma, v = hs("kiem", str(r2))
+kiem("[AUD] kiểm hồ sơ vừa tạo: nguồn, quy tắc, kết quả còn nguyên; sổ cái nối chuỗi hợp lệ",
+     (ma, v.get("toan_ven"), v.get("so_cai_hop_le")), (0, True, True))
+ma, p = hs("phat-lai", str(r2))
+kiem("[AUD] phát lại từ hồ sơ (cùng nguồn + cùng quy tắc) ra đúng kết quả nghiệp vụ",
+     (ma, p.get("ket_qua_khop")), (0, True))
+
+ma, a = hs("duyet", str(r2), "--vai-tro", "nguoi-phe-duyet", "--quyet-dinh", "dong-y",
+           "--nguoi", "Tran Thi B")
+kiem("[G07] phê duyệt khi không có danh tính được xác thực → UNVERIFIED_HUMAN_REVIEW, KHÔNG "
+     "bao giờ thành 'approved'",
+     (ma, a.get("xac_thuc"), a.get("trang_thai_duyet")),
+     (0, "UNVERIFIED_HUMAN_REVIEW", "da_xem_chua_xac_thuc"))
+env_gia = {**MOI_TRUONG, "KE_TOAN_VN_NGUOI_DUYET": "Tran Thi B", "USER": "tranthib"}
+ma, a = chay(HS, "--home", str(au), "duyet", str(r2), "--vai-tro", "nguoi-kiem-tra",
+             "--quyet-dinh", "dong-y", "--nguoi", "Tran Thi B", env=env_gia)
+kiem("[G07] khai tên qua biến môi trường / tài khoản máy không phải là xác thực", a.get("xac_thuc"),
+     "UNVERIFIED_HUMAN_REVIEW")
+
+ra_file = ra_au / "LOC-DT.xlsx"
+truoc = sha(ra_file)
+ma, d = qt_au("chay", "loc-au", str(src_au), "--ra-thu-muc", str(ra_au))
+kiem("[G08] chạy lại ghi đè lên kết quả ĐÃ DUYỆT → dừng hỏi, file đã duyệt giữ nguyên từng byte",
+     (ma, d.get("trang_thai"), sha(ra_file) == truoc), (2, "can_hoi", True))
+ma, d = qt_au("chay", "loc-au", str(src_au), "--ra-thu-muc", str(ra_au), "--ban-sua-doi")
+_, m3 = hs("xem", str(d.get("run_id")))
+kiem("[G08] --ban-sua-doi → ghi bản mới -SUA1 trỏ về lần chạy đã duyệt; bản đã duyệt không đổi",
+     ((ra_au / "LOC-DT-SUA1.xlsx").exists(), m3.get("sua_doi_cho"), sha(ra_file) == truoc),
+     (True, r2, True))
+
+with ra_file.open("ab") as f:
+    f.write(b"\0")
+ma, v = hs("kiem", str(r2))
+kiem("[AUD-001] kết quả đã duyệt bị đổi 1 byte → phát hiện, phê duyệt mất hiệu lực",
+     (ma != 0, v.get("toan_ven"), [x.get("nhan") for x in v.get("thay_doi", [])],
+      v.get("trang_thai_duyet")),
+     (True, False, ["LOC-DT.xlsx"], "vo_hieu"))
+
+qt_au_tep = au / "quy-trinh" / "loc-au.toml"
+qt_au_tep.write_text(QT_AU.replace('bang = ["Máu"]', 'bang = ["Máu", "Khám"]'), encoding="utf-8")
+ma, p = hs("phat-lai", str(r1))
+ma_k, v1 = hs("kiem", str(r1))
+kiem("[AUD-002] quy tắc đổi sau lần chạy → phát lại báo quy tắc đã đổi và kết quả lệch; hồ sơ cũ "
+     "vẫn nguyên (sổ cái hợp lệ)",
+     (ma, p.get("quy_tac_da_doi"), p.get("ket_qua_khop"), v1.get("so_cai_hop_le"),
+      v1.get("ho_so_khop_so_cai")),
+     (2, True, False, True, True))
+qt_au_tep.write_text(QT_AU, encoding="utf-8")
+
+xuat_dir = TMP / "goi-kiem-toan"
+ma, x = hs("xuat", str(r1), "--ra", str(xuat_dir))
+goi = (xuat_dir / f"{r1}.json").read_text(encoding="utf-8") if (xuat_dir / f"{r1}.json").exists() \
+    else ""
+kiem("[AUD] gói kiểm toán: có JSON + Markdown, không lộ đường dẫn tuyệt đối hay nội dung dòng dữ "
+     "liệu, có câu miễn trừ không phải chứng nhận",
+     (ma, (xuat_dir / f"{r1}.md").exists(), str(TMP) in goi, "Paracetamol" in goi,
+      "không phải chứng nhận" in goi),
+     (0, True, False, False, True))
+ma, g = chay(HS, "kiem-goi", str(xuat_dir / f"{r1}.json"), "--thu-muc-tep", str(src_au.parent))
+kiem("[AUD] kiểm độc lập gói kiểm toán với file nguồn gốc: hồ sơ khớp mã băm, nguồn khớp",
+     (ma, g.get("ho_so_khop"), g.get("dau_vao_khop")), (0, True, True))
+
+mf = next((au / "ho-so").glob(f"{r1}.json"))
+mf.write_text(mf.read_text(encoding="utf-8").replace('"loc-au"', '"loc-sua"'), encoding="utf-8")
+ma, v = hs("kiem", str(r1))
+kiem("sửa tay file hồ sơ → không còn khớp mã băm đã ghi trong sổ cái", (ma != 0,
+     v.get("ho_so_khop_so_cai")), (True, False))
+
+# Cổng: lần chạy needs_review (chấp nhận giá trị mới) không duyệt được nếu không ghi ngoại lệ
+au2 = TMP / "au2-home"
+(au2 / "quy-trinh").mkdir(parents=True)
+(au2 / "don-vi.toml").write_text("[phan_quyen]\ntach_nhiem = true\n", encoding="utf-8")
+(au2 / "quy-trinh" / "loc-td.toml").write_text(
+    QT_AU.replace('loai = "loc"', 'loai = "loc"\ntheo_doi = ["MADT"]'), encoding="utf-8")
+src_td1 = luu_bang(TMP / "au2-du-lieu" / "M1.xlsx", TD, DONG)
+src_td2 = luu_bang(TMP / "au2-du-lieu" / "M2.xlsx", TD, DONG + [["A", "Khám", "K", "X", 17, 1]])
+qt_au("chay", "loc-td", str(src_td1), "--ra-thu-muc", str(TMP / "au2-ra"), home=au2)
+ma, d = qt_au("chay", "loc-td", str(src_td2), "--ra-thu-muc", str(TMP / "au2-ra"),
+              "--chap-nhan-gia-tri-moi", "--nguoi-lap", "Le Van C", home=au2)
+r_nl = d.get("run_id")
+kiem("[G04/G07] chấp nhận giá trị mới = ngoại lệ do người chạy khai → lần chạy needs_review",
+     (ma, d.get("trang_thai_ket_qua")), (0, "needs_review"))
+ma, a = hs("duyet", str(r_nl), "--vai-tro", "nguoi-phe-duyet", "--quyet-dinh", "dong-y",
+           "--nguoi", "Pham D", home=au2)
+kiem("[G04/G07] duyệt lần chạy needs_review mà không ghi lý do ngoại lệ → bị từ chối", ma, 2)
+ma, a = hs("duyet", str(r_nl), "--vai-tro", "nguoi-phe-duyet", "--quyet-dinh", "dong-y",
+           "--nguoi", "Le Van C", "--ngoai-le", "Đã kiểm MADT 17", home=au2)
+kiem("[G07] tách nhiệm bật: người lập không tự duyệt lần chạy của mình", ma, 2)
+ma, a = hs("duyet", str(r_nl), "--vai-tro", "nguoi-phe-duyet", "--quyet-dinh", "dong-y",
+           "--nguoi", "Pham D", "--ngoai-le", "Đã kiểm MADT 17 là đối tượng hợp lệ", home=au2)
+kiem("[G07] người khác duyệt, có ghi lý do ngoại lệ → ghi nhận (vẫn chưa xác thực danh tính)",
+     (ma, a.get("xac_thuc"), a.get("ngoai_le")),
+     (0, "UNVERIFIED_HUMAN_REVIEW", "Đã kiểm MADT 17 là đối tượng hợp lệ"))
+
+# Hóa đơn: lần đọc needs_review cũng không duyệt được nếu không ghi ngoại lệ
+ma, d = chay(DH, str(d3), "--ghi-ho-so")
+ma2, a = hs("duyet", str(d.get("run_id")), "--vai-tro", "nguoi-phe-duyet", "--quyet-dinh",
+            "dong-y", "--nguoi", "Pham D", home=HOME)
+kiem("[INV-003] lô hóa đơn thiếu số có hồ sơ, nhưng không duyệt được nếu không ghi ngoại lệ",
+     (ma, d.get("run_id") is not None, ma2), (0, True, 2))
+
+# --- G10 -----------------------------------------------------------------------------------
+print("\n[G10] Cô lập đơn vị: danh mục, quy trình, quy ước, hồ sơ không lẫn sang nhau")
+ten = TMP / "ten-home"
+for dv, ten_goi in (("bv-a", "KHS"), ("bv-b", "SINH HÓA")):
+    g = ten / "don-vi" / dv
+    (g / "quy-trinh").mkdir(parents=True)
+    (g / "danh-muc.toml").write_text(f'[khoa.KHS]\nluong = "{ten_goi}"\n', encoding="utf-8")
+    (g / "quy-trinh" / "tach-khoa.toml").write_text("""
+loai = "tach"
+[nguon]
+cot_khoa = "KHOA"
+cot_tong = ["TIEN"]
+[ten_goi]
+bang = "khoa"
+nguon = "luong"
+[ket_qua]
+ra = "TACH-{ten_file}.xlsx"
+[[nhom]]
+ten = "KHS"
+ma = ["KHS"]
+""", encoding="utf-8")
+(ten / "don-vi" / "bv-a" / "quy-trinh" / "chi-cua-a.toml").write_text(
+    (ten / "don-vi" / "bv-a" / "quy-trinh" / "tach-khoa.toml").read_text(), encoding="utf-8")
+src_ten = luu_bang(TMP / "ten-du-lieu" / "luong.xlsx", ["KHOA", "TIEN"],
+                   [["KHS", 100], ["SINH HÓA", 200]])
+kq_dv = {}
+for dv in ("bv-a", "bv-b"):
+    ma, d = chay(QT, "--home", str(ten), "--don-vi", dv, "chay", "tach-khoa", str(src_ten),
+                 "--ra-thu-muc", str(TMP / f"ten-ra-{dv}"))
+    kq_dv[dv] = (d.get("ket_qua") or [{}])[0].get("nhom", [{}])[0].get("tong", {}).get("TIEN")
+kiem("[TEN-001] hai đơn vị dùng cùng mã KHS khác nghĩa → mỗi bên dùng danh mục của chính mình",
+     kq_dv, {"bv-a": 100, "bv-b": 200})
+_, ds = chay(QT, "--home", str(ten), "--don-vi", "bv-b", "danh-sach")
+kiem("[TEN-001] đơn vị B không thấy quy trình riêng của đơn vị A",
+     sorted(x["ten"] for x in ds.get("quy_trinh", [])), ["tach-khoa"])
+ma, d = chay(QT, "--home", str(ten), "--don-vi", "bv-a", "chay", "tach-khoa", str(src_ten),
+             "--ra-thu-muc", str(TMP / "ten-ra-a2"))
+ma2, _ = chay(HS, "--home", str(ten), "--don-vi", "bv-b", "duyet", str(d.get("run_id")),
+              "--vai-tro", "nguoi-phe-duyet", "--quyet-dinh", "dong-y", "--nguoi", "X")
+kiem("[TEN-001] đơn vị B không duyệt được (thậm chí không thấy) lần chạy của đơn vị A",
+     ma2 != 0, True)
+ma, d = chay(QT, "--home", str(ten), "--don-vi", "../bv-a", "danh-sach")
+kiem("mã đơn vị có '../' bị từ chối (không thoát ra ngoài thư mục bộ nhớ)", ma, 1)
+chay(BN, "--don-vi", "bv-a", "ghi", "--loai", "quy-uoc", "--chu-de", "Ten cot luong",
+     "--noi-dung", "Cột KHS là khoa sinh hóa.")
+_, t = chay(BN, "--don-vi", "bv-b", "tra", "ten cot luong")
+_, t2 = chay(BN, "--don-vi", "bv-a", "tra", "ten cot luong")
+kiem("[TEN-001] quy ước riêng của đơn vị A không hiện ra khi tra cho đơn vị B",
+     (t.get("so_ghi_chu"), t2.get("so_ghi_chu")), (0, 1))
+mang = re.compile(r"^\s*(import|from)\s+(urllib\.request|http\.client|requests|socket|ftplib|"
+                  r"smtplib|httpx|aiohttp)\b", re.M)
+co_mang = sorted(p.name for p in SCRIPTS.glob("*.py") if mang.search(p.read_text(encoding="utf-8")))
+kiem("không script nào tự gọi mạng — dữ liệu đơn vị không thể rời máy qua công cụ", co_mang, [])
+
+# --- G11 -----------------------------------------------------------------------------------
+print("\n[G11] Bất biến kế toán — không chỉ so với file mẫu")
+(qt_home / "quy-trinh" / "loc-bb.toml").write_text(QT_AU, encoding="utf-8")
+src_bb = luu_bang(TMP / "bb" / "BB.xlsx", TD, DONG + [["A", "Thuốc", "T", "Hoàn trả", 8, -20_000]])
+ma, d = qt("chay", "loc-bb", str(src_bb), "--ra-thu-muc", str(TMP / "bb-ra"))
+bb = (d.get("ket_qua") or [{}])[0].get("bat_bien", {})
+kiem("bảo toàn: gốc = giữ + loại cả số dòng lẫn tiền (kể cả dòng hoàn trả âm), và đọc lại file "
+     "kết quả khớp đúng số đó",
+     (bb.get("bao_toan_dong"), bb.get("bao_toan_tien"), bb.get("doc_lai_khop"),
+      d.get("trang_thai_ket_qua")), (True, True, True, "draft"))
+src_tong = luu_bang(TMP / "bb" / "TONG.xlsx", TD, DONG + [[None, "Tổng cộng", None, None, None,
+                                                            180_000]])
+ma, d = qt("chay", "loc-bb", str(src_tong), "--ra-thu-muc", str(TMP / "bb-ra"))
+bb = (d.get("ket_qua") or [{}])[0].get("bat_bien", {})
+kiem("dòng 'Tổng cộng' lẫn trong dữ liệu (sẽ cộng trùng) → chỉ ra đúng dòng, needs_review",
+     (bb.get("dong_tong_nghi_ngo"), d.get("trang_thai_ket_qua")), ([5], "needs_review"))
+src_cbc = luu_bang(TMP / "bb" / "CBC.xlsx", TD, DONG + [["A", "Xét nghiệm", "XN",
+                                                         "Tổng phân tích tế bào máu", 1, 40_000]])
+ma, d = qt("chay", "loc-bb", str(src_cbc), "--ra-thu-muc", str(TMP / "bb-ra"))
+kiem("tên dịch vụ bắt đầu bằng 'Tổng ...' (Tổng phân tích tế bào máu) KHÔNG bị nhầm là dòng tổng",
+     (d.get("ket_qua") or [{}])[0].get("bat_bien", {}).get("dong_tong_nghi_ngo"), [])
+
+import xlsxwriter  # noqa: E402
+
+wb = xlsxwriter.Workbook(str(TMP / "bb" / "ts-cong.xlsx"))
+ws = wb.add_worksheet()
+ws.write_row("A1", ["STT", "KHOA", "TIEN"])
+ws.write_row("A2", [1, "K. MẮT", 100])
+ws.write_row("A3", [2, "K. NỘI", 200])
+ws.write_row("A4", [3, "K. MẮT"])
+ws.write_formula("C4", "=SUM(C2:C3)", None, 300)
+wb.close()
+ma, d = qt("chay", "tach-theo-doi", str(TMP / "bb" / "ts-cong.xlsx"), "--ky", "T09.2026",
+           "--ra-thu-muc", str(TMP / "bb-ra"), "--khong-ghi-lich-su")
+bb = (d.get("ket_qua") or [{}])[0].get("bat_bien", {})
+kiem("tach: ô tiền là công thức SUM trong vùng dữ liệu (dòng cộng dồn) → chỉ ra dòng 4, "
+     "needs_review; bảo toàn nguồn = các nhóm + ngoài nhóm",
+     (bb.get("dong_tong_nghi_ngo"), d.get("trang_thai_ket_qua"), bb.get("bao_toan_tien")),
+     ([4], "needs_review", True))
+(qt_home / "quy-trinh" / "tach-stt.toml").write_text(
+    'loai = "tach"\n[nguon]\ncot_khoa = "STT"\ncot_stt = "STT"\n[[nhom]]\ngia_tri = ["1"]\n',
+    encoding="utf-8")
+ma, d = qt("kiem", "tach-stt")
+kiem("dùng cột STT làm khoá tách bị từ chối (STT đánh lại mỗi kỳ, không phải mã ổn định)",
+     ma, 1)
+
+# --- G09 -----------------------------------------------------------------------------------
+print("\n[G09] Chấm thầu: bảng so sánh sơ bộ vs kết luận chính thức")
+SS = str(SCRIPTS / "so_sanh_thau.py")
+tdir = TMP / "thau"
+tdir.mkdir()
+home_thau = TMP / "home-thau"
+env_thau = {**MOI_TRUONG, "KE_TOAN_VN_HOME": str(home_thau)}
+ma, _ = chay(str(SCRIPTS / "doc_hsdt.py"), str(FIX / "goi-thau/hsdt"), "--ra",
+             str(tdir / "h.json"), env=env_thau)
+ma, d = chay(SS, str(tdir / "h.json"), "--danh-muc", str(FIX / "goi-thau/danh_muc_hsmt.csv"),
+             env=env_thau)
+kiem("mặc định (sơ bộ) vẫn chạy và xếp hạng như cũ, nhưng ghi rõ trang_thai = so_bo",
+     (ma, d.get("tom_tat", {}).get("trang_thai"), len(d.get("tom_tat", {}).get("xep_hang_so_bo",
+                                                                               [])) > 0),
+     (0, "so_bo", True))
+ma, d = chay(SS, str(tdir / "h.json"), "--danh-muc", str(FIX / "goi-thau/danh_muc_hsmt.csv"),
+             "--che-do", "chinh-thuc", env=env_thau)
+t = d.get("tom_tat", {})
+kiem("[BID-001] chính thức mà chưa có kết quả kỹ thuật do tổ chuyên gia điền → từ chối xếp hạng, "
+     "mã 2",
+     (ma, t.get("trang_thai"), t.get("xep_hang_so_bo"),
+      t.get("gia_de_nghi_trung_thau_du_kien_khoan_4")),
+     (2, "needs_review", [], None))
+chay(str(SCRIPTS / "cham_ky_thuat.py"), str(FIX / "goi-thau/hsdt"), "--yeu-cau",
+     str(FIX / "goi-thau/yeu_cau_ky_thuat.csv"), "--ra", str(tdir / "phieu.xlsx"), env=env_thau)
+import openpyxl  # noqa: E402
+
+
+def dien_phieu(ket_luan_c: str) -> None:
+    wb = openpyxl.load_workbook(tdir / "phieu.xlsx")
+    ws = wb["Phieu cham ky thuat"]
+    hdr = {str(c.value).strip(): int(c.column or 0) for c in ws[3]}
+    for r in range(4, ws.max_row + 1):
+        nt = str(ws.cell(row=r, column=hdr["nha_thau"]).value or "")
+        ws.cell(row=r, column=hdr["ket_luan"]).value = (
+            ket_luan_c if nt.startswith("Nha thau C") else "Đạt")
+    wb.save(tdir / "phieu.xlsx")
+
+
+dien_phieu("")
+ma, d = chay(SS, str(tdir / "h.json"), "--danh-muc", str(FIX / "goi-thau/danh_muc_hsmt.csv"),
+             "--ket-qua-ky-thuat", str(tdir / "phieu.xlsx"), "--che-do", "chinh-thuc",
+             env=env_thau)
+kiem("[BID-001] chính thức mà còn nhà thầu chưa có kết luận kỹ thuật → needs_review, mã 2",
+     (ma, d.get("tom_tat", {}).get("trang_thai")), (2, "needs_review"))
+dien_phieu("Không đạt")
+ma, d = chay(SS, str(tdir / "h.json"), "--danh-muc", str(FIX / "goi-thau/danh_muc_hsmt.csv"),
+             "--ket-qua-ky-thuat", str(tdir / "phieu.xlsx"), "--che-do", "chinh-thuc",
+             env=env_thau)
+t = d.get("tom_tat", {})
+kiem("[BID-001] đủ kết luận kỹ thuật → bảng để tổ chuyên gia ký (không phải kết luận của máy), "
+     "chỉ nhà thầu vượt kỹ thuật được xếp hạng",
+     (ma, t.get("trang_thai"), [x["nha_thau"].split(" - ")[0] for x in t.get("xep_hang_so_bo", [])]),
+     (0, "cho_to_chuyen_gia_ky", ["Nha thau B", "Nha thau D", "Nha thau A"]))
+kiem("chấm thầu không ghi gì vào bộ nhớ (HSDT không lưu lại, không vào hồ sơ kiểm toán)",
+     sorted(str(p.relative_to(home_thau)) for p in home_thau.rglob("*") if p.is_file())
+     if home_thau.exists() else [], [])
+
+# --- G12 -----------------------------------------------------------------------------------
+print("\n[G12] Đầu vào không tin cậy")
+import time  # noqa: E402
+
+bom = ('<?xml version="1.0"?><!DOCTYPE l [<!ENTITY a "aaaaaaaaaa">'
+       + "".join(f'<!ENTITY {chr(98 + i)} "&{chr(97 + i)};&{chr(97 + i)};&{chr(97 + i)};'
+                 f'&{chr(97 + i)};&{chr(97 + i)};&{chr(97 + i)};&{chr(97 + i)};&{chr(97 + i)};'
+                 f'&{chr(97 + i)};&{chr(97 + i)};">' for i in range(8))
+       + "]><HDon><SHDon>&i;</SHDon></HDon>")
+d_bom = thu_muc("bom", {"bom.xml": bom})
+bat_dau = time.monotonic()
+ma, d = chay(DH, str(d_bom))
+kiem("[SEC-001] XML có ENTITY lồng nhau (billion laughs) bị từ chối ngay, không treo máy",
+     (((d.get("chi_tiet") or [{}])[0]).get("trang_thai_dong"), time.monotonic() - bat_dau < 10),
+     ("loi_doc", True))
+d_lon = TMP / "hd" / "lon"
+d_lon.mkdir(parents=True)
+with (d_lon / "lon.xml").open("wb") as f:
+    f.write(b"<HDon>" + b" " * (21 * 1024 * 1024) + b"</HDon>")
+ma, d = chay(DH, str(d_lon))
+kiem("XML lớn hơn giới hạn 20 MB → không đọc, báo lỗi đọc",
+     ((d.get("chi_tiet") or [{}])[0]).get("trang_thai_dong"), "loi_doc")
+d_ct = thu_muc("cong-thuc", {"a.xml": hdon("00000061").replace(
+    "<Ten>Cong ty mau</Ten>", "<Ten>=HYPERLINK(\"http://x.invalid\",\"bam\")</Ten>")})
+chay(DH, str(d_ct), "--ra", str(TMP / "ct.csv"))
+chay(DH, str(d_ct), "--ra", str(TMP / "ct.xlsx"))
+import csv  # noqa: E402
+
+with (TMP / "ct.csv").open(encoding="utf-8-sig") as f:
+    ten_csv = next(csv.DictReader(f))["ten_ban"]
+o = openpyxl.load_workbook(TMP / "ct.xlsx").worksheets[0]
+cot_ten = [c.value for c in o[1]].index("ten_ban") + 1
+kiem("[SEC-001] tên người bán dạng công thức → ra CSV/Excel là CHỮ, không phải công thức chạy được",
+     (ten_csv.startswith("'="), o.cell(2, cot_ten).data_type), (True, "s"))
+src_ct = luu_bang(TMP / "bb" / "CT.xlsx", TD, [["A", "Thuốc", "T", "x", 1, 1]])
+wb_ct = openpyxl.load_workbook(src_ct)
+wb_ct.worksheets[0]["D2"].value = "=1+1"
+wb_ct.worksheets[0]["D2"].data_type = "s"
+wb_ct.save(src_ct)
+qt("chay", "loc-bb", str(src_ct), "--ra-thu-muc", str(TMP / "ct-ra"), "--khong-ghi-lich-su")
+o = openpyxl.load_workbook(TMP / "ct-ra" / "LOC-CT.xlsx")["GIỮ LẠI"]
+kiem("[SEC-001] ô chữ '=1+1' trong bản kết xuất được chép sang kết quả lọc vẫn là CHỮ",
+     (o["D2"].value, o["D2"].data_type), ("=1+1", "s"))
+
 # --- Kết thúc ------------------------------------------------------------------------------
 print()
 shutil.rmtree(TMP, ignore_errors=True)

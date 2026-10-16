@@ -36,7 +36,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _chung import in_json, tim_home  # noqa: E402
+from _chung import home_don_vi, in_json, tim_home  # noqa: E402
 
 # TTL theo mức độ biến động. Không dùng một hạn chung — các mảng biến động rất khác nhau.
 TTL_NGAY = {
@@ -247,12 +247,12 @@ def _mo_ta(tep: Path, gc: dict, thu_muc: str, diem: int) -> dict:
     }
 
 
-def _quet(home: Path, tu_khoa: str, ca_luu_tru: bool) -> list[dict]:
+def _quet(home: Path, tu_khoa: str, ca_luu_tru: bool, home_dv: Path | None = None) -> list[dict]:
     can = khong_dau(tu_khoa)
     tu = [t for t in can.split() if len(t) > 2]
     tim_thay = []
     for thu_muc in ("phap-ly", "quy-uoc"):
-        goc = home / thu_muc
+        goc = ((home_dv or home) if thu_muc == "quy-uoc" else home) / thu_muc
         if not goc.is_dir():
             continue
         for tep in sorted(goc.glob("*.md")):
@@ -277,14 +277,14 @@ def _moi_truoc(ds: list[dict]) -> list[dict]:
                   reverse=True)
 
 
-def tra_theo_ngay(home: Path, tu_khoa: str, ngay: date) -> dict:
+def tra_theo_ngay(home: Path, tu_khoa: str, ngay: date, home_dv: Path | None = None) -> dict:
     """Quy định áp dụng TẠI MỘT NGÀY, không phải bản mới nhất.
 
     Ghi chú còn hạn chỉ nói "điều mình biết còn mới"; nó không nói quy định đó áp dụng cho giao
     dịch năm ngoái. Chọn trong mọi phiên bản (kể cả bản lưu trữ) bản có hiệu lực tại `ngay`;
     nhiều bản cùng phủ ngày đó (sửa đổi hồi tố) thì bản ghi sau thắng.
     """
-    tim_thay = _quet(home, tu_khoa, ca_luu_tru=True)
+    tim_thay = _quet(home, tu_khoa, ca_luu_tru=True, home_dv=home_dv)
     cao_nhat = tim_thay[0]["diem_khop"] if tim_thay else 0
     theo_chu_de: dict[tuple, list] = {}
     for g in tim_thay:
@@ -321,9 +321,9 @@ def tra_theo_ngay(home: Path, tu_khoa: str, ngay: date) -> dict:
             "ly_do_khong_ap_dung": ly_do if not ap_dung else []}
 
 
-def lenh_lich_su(home: Path, tu_khoa: str) -> dict:
+def lenh_lich_su(home: Path, tu_khoa: str, home_dv: Path | None = None) -> dict:
     """Mọi phiên bản của một chủ đề, từ cũ đến mới — để truy nguồn gốc một con số đã dùng."""
-    tim_thay = _quet(home, tu_khoa, ca_luu_tru=True)
+    tim_thay = _quet(home, tu_khoa, ca_luu_tru=True, home_dv=home_dv)
     if not tim_thay:
         return {"chu_de": None, "phien_ban": []}
     goc = (tim_thay[0]["loai"], goc_chu_de(Path(tim_thay[0]["tep"])))
@@ -331,8 +331,9 @@ def lenh_lich_su(home: Path, tu_khoa: str) -> dict:
     return {"chu_de": tim_thay[0]["chu_de"], "phien_ban": list(reversed(_moi_truoc(ds)))}
 
 
-def lenh_tra(home: Path, tu_khoa: str, ngay: date | None = None) -> dict:
-    tim_thay = _quet(home, tu_khoa, ca_luu_tru=False)
+def lenh_tra(home: Path, tu_khoa: str, ngay: date | None = None,
+             home_dv: Path | None = None) -> dict:
+    tim_thay = _quet(home, tu_khoa, ca_luu_tru=False, home_dv=home_dv)
     dung_duoc = [g for g in tim_thay if g["tinh_trang"] in ("con_han", "khong_han")]
     nhom = doan_nhom(tu_khoa)
 
@@ -354,7 +355,7 @@ def lenh_tra(home: Path, tu_khoa: str, ngay: date | None = None) -> dict:
         "ghi_chu": tim_thay[:5],
     }
     if ngay is not None:
-        theo_ngay = tra_theo_ngay(home, tu_khoa, ngay)
+        theo_ngay = tra_theo_ngay(home, tu_khoa, ngay, home_dv)
         kq.update(theo_ngay)
         if theo_ngay["ap_dung"] is None:
             kq["loi_khuyen"] = (f"Không có ghi chú nào có hiệu lực tại {ngay} (ghi chú còn hạn "
@@ -362,7 +363,7 @@ def lenh_tra(home: Path, tu_khoa: str, ngay: date | None = None) -> dict:
     return kq
 
 
-def lenh_ghi(home: Path, args) -> dict:
+def lenh_ghi(home: Path, args, home_dv: Path | None = None) -> dict:
     noi_dung = args.noi_dung or ""
     if args.tep:
         noi_dung = Path(args.tep).expanduser().read_text(encoding="utf-8")
@@ -370,7 +371,9 @@ def lenh_ghi(home: Path, args) -> dict:
         raise SystemExit("Cần --noi-dung hoặc --tep")
 
     hom_nay = date.today()
-    duong_dan = home / args.loai / f"{slug(args.chu_de)}.md"
+    # Quy ước là của từng đơn vị; ghi chú pháp lý dùng chung.
+    duong_dan = ((home_dv or home) if args.loai == "quy-uoc" else home) / args.loai / \
+        f"{slug(args.chu_de)}.md"
 
     if args.loai == "phap-ly":
         for truong in ("hieu_luc_tu", "hieu_luc_den", "ngay_ban_hanh"):
@@ -437,7 +440,7 @@ def lenh_ghi(home: Path, args) -> dict:
         ghi_ghi_chu(luu, cu["meta"], cu["noi_dung"])
 
     ghi_ghi_chu(duong_dan, meta, noi_dung)
-    lenh_muc_luc(home)
+    lenh_muc_luc(home, home_dv)
 
     return {
         "da_ghi": str(duong_dan),
@@ -481,7 +484,7 @@ def lenh_nhat_ky(home: Path, noi_dung: str) -> dict:
     return {"da_ghi": str(tep)}
 
 
-def lenh_muc_luc(home: Path) -> dict:
+def lenh_muc_luc(home: Path, home_dv: Path | None = None) -> dict:
     dong = ["# Mục lục bộ nhớ", "",
             f"*Tự sinh lúc {datetime.now():%Y-%m-%d %H:%M}. Đừng sửa tay file này.*", ""]
 
@@ -510,7 +513,7 @@ def lenh_muc_luc(home: Path) -> dict:
 
     dong += ["", "## Quy ước riêng (không hết hạn)", "",
              "| Chủ đề | Cập nhật |", "|---|---|"]
-    goc = home / "quy-uoc"
+    goc = (home_dv or home) / "quy-uoc"
     co = False
     if goc.is_dir():
         for tep in sorted(goc.glob("*.md")):
@@ -524,12 +527,15 @@ def lenh_muc_luc(home: Path) -> dict:
         dong.append("| *(chưa có)* | |")
 
     dong.append("")
-    (home / "INDEX.md").write_text("\n".join(dong), encoding="utf-8")
-    return {"da_ghi": str(home / "INDEX.md")}
+    (home_dv or home).mkdir(parents=True, exist_ok=True)
+    (home_dv or home).joinpath("INDEX.md").write_text("\n".join(dong), encoding="utf-8")
+    return {"da_ghi": str((home_dv or home) / "INDEX.md")}
 
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Bộ nhớ cục bộ của skill ke-toan-vn.")
+    p.add_argument("--don-vi", help="Mã đơn vị: quy ước riêng nằm ở <bộ nhớ>/don-vi/<mã>/ "
+                                    "(mặc định KE_TOAN_VN_DON_VI); ghi chú pháp lý dùng chung")
     sub = p.add_subparsers(dest="lenh", required=True)
 
     s = sub.add_parser("tra", help="Tìm ghi chú theo chủ đề (chạy TRƯỚC khi tra web)")
@@ -568,9 +574,13 @@ def main() -> int:
 
     args = p.parse_args()
     home = tim_home()
+    try:
+        home_dv, _ = home_don_vi(home, args.don_vi)
+    except ValueError as e:
+        raise SystemExit(str(e))
     home.mkdir(parents=True, exist_ok=True)
     (home / "phap-ly").mkdir(exist_ok=True)
-    (home / "quy-uoc").mkdir(exist_ok=True)
+    (home_dv / "quy-uoc").mkdir(parents=True, exist_ok=True)
 
     if args.lenh == "tra":
         ngay = None
@@ -578,17 +588,17 @@ def main() -> int:
             ngay = _ngay(args.ngay)
             if ngay is None:
                 raise SystemExit(f"--ngay phải có dạng YYYY-MM-DD: {args.ngay!r}")
-        in_json(lenh_tra(home, args.tu_khoa, ngay))
+        in_json(lenh_tra(home, args.tu_khoa, ngay, home_dv))
     elif args.lenh == "lich-su":
-        in_json(lenh_lich_su(home, args.tu_khoa))
+        in_json(lenh_lich_su(home, args.tu_khoa, home_dv))
     elif args.lenh == "ghi":
-        in_json(lenh_ghi(home, args))
+        in_json(lenh_ghi(home, args, home_dv))
     elif args.lenh == "kiem-han":
         in_json(lenh_kiem_han(home))
     elif args.lenh == "nhat-ky":
         in_json(lenh_nhat_ky(home, args.noi_dung))
     elif args.lenh == "muc-luc":
-        in_json(lenh_muc_luc(home))
+        in_json(lenh_muc_luc(home, home_dv))
     return 0
 
 

@@ -38,7 +38,8 @@ from decimal import Decimal
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _chung import canh_bao, in_json, o_an_toan  # noqa: E402
+import _ho_so as H  # noqa: E402
+from _chung import canh_bao, home_don_vi, in_json, o_an_toan, tim_home  # noqa: E402
 from che_do_ke_toan import che_do_hoa_don  # noqa: E402
 from chuan_hoa import chuan_mst, lam_sach_text, ngay_vn, so_vn  # noqa: E402
 from kiem_tra_mst import kiem_tra as kiem_mst  # noqa: E402
@@ -422,6 +423,40 @@ def _dong_xuat(h: dict) -> dict:
             "trang_thai_cqt": x.get("trang_thai_cqt")}
 
 
+def ghi_ho_so(args, goc: Path, tep: list[Path], tom_tat: dict) -> str:
+    home_dv, don_vi = home_don_vi(tim_home(), args.don_vi)
+    run_id = H.tao_run_id()
+    ma_nguon = Path(__file__).resolve()
+    goc_nhan = goc if goc.is_dir() else goc.parent
+    phat_lai = [str(goc.resolve())]
+    for co, gt in (("--ca-tin-cay", args.ca_tin_cay), ("--xsd", args.xsd)):
+        if gt:
+            phat_lai += [co, str(Path(gt).resolve())]
+    dau_ra = []
+    if args.ra:
+        ra = Path(args.ra).expanduser().resolve()
+        dau_ra = [{"nhan": ra.name, "sha256": H.bam_tep(ra), "_duong_dan": str(ra)}]
+    H.ghi_ho_so(home_dv, {
+        "schema_version": H.SCHEMA, "run_id": run_id, "loai_ban_ghi": "hoa_don",
+        "cong_cu": "doc_hoa_don.py", "quy_trinh": None, "loai": "hoa_don", "don_vi": don_vi,
+        "phap_nhan": None, "ky": None, "skill": H.phien_ban_skill(),
+        # "Quy tắc" của lần đọc là chính bộ đọc: đổi bộ đọc là đổi cách ra số.
+        "quy_tac": {"nhan": f"{ma_nguon.name} v{PHIEN_BAN_BO_DOC}", "sha256": H.bam_tep(ma_nguon),
+                    "_duong_dan": str(ma_nguon)},
+        "danh_muc": None,
+        "tham_so": {"ca_tin_cay": bool(args.ca_tin_cay), "xsd": bool(args.xsd)},
+        "dau_vao": [{"nhan": str(t.resolve().relative_to(goc_nhan.resolve())), "vai": "hoa_don",
+                     "sha256": H.bam_tep(t), "_duong_dan": str(t.resolve())} for t in tep],
+        "dau_ra": dau_ra,
+        "ket_qua_tom_tat": H.bo_duong_dan(tom_tat), "ket_qua_sha256": H.bam_ket_qua(tom_tat),
+        "canh_bao": [], "ngoai_le": [],
+        "trang_thai_ket_qua": tom_tat["trang_thai"], "ly_do_trang_thai": tom_tat["ly_do_trang_thai"],
+        "nguoi_lap": H.nguoi(args.nguoi_lap), "sua_doi_cho": None, "thoi_gian": H.bay_gio(),
+        "_phat_lai": {"script": "doc_hoa_don.py", "truong": "tom_tat", "args": phat_lai},
+    })
+    return run_id
+
+
 def main() -> int:
     p = argparse.ArgumentParser(
         description="Bóc tách hóa đơn điện tử XML/PDF thành bảng chuẩn hoá.")
@@ -432,6 +467,11 @@ def main() -> int:
     p.add_argument("--xsd", help="Lược đồ XSD để kiểm cấu trúc XML (cần lxml)")
     p.add_argument("--yeu-cau-day-du", action="store_true",
                    help="Mã thoát 2 nếu lô needs_review (cho bên gọi chặn bước sau)")
+    p.add_argument("--ghi-ho-so", action="store_true",
+                   help="Ghi hồ sơ lần đọc (mã băm từng file, kết quả, trạng thái) để duyệt/xuất "
+                        "gói kiểm toán bằng ho_so_kiem_toan.py")
+    p.add_argument("--don-vi", help="Mã đơn vị cho hồ sơ (mặc định KE_TOAN_VN_DON_VI)")
+    p.add_argument("--nguoi-lap", help="Tên người chạy (tự khai)")
     args = p.parse_args()
 
     goc = Path(args.nguon).expanduser()
@@ -499,7 +539,8 @@ def main() -> int:
     if tom_tat["hoa_don_trung"]:
         canh_bao(f"Có {len(tom_tat['hoa_don_trung'])} hóa đơn TRÙNG số — kiểm ngay")
 
-    in_json({"tom_tat": tom_tat, "chi_tiet": hang_list})
+    run_id = ghi_ho_so(args, goc, tep + bo_qua, tom_tat) if args.ghi_ho_so else None
+    in_json({"tom_tat": tom_tat, "chi_tiet": hang_list, "run_id": run_id})
     if args.yeu_cau_day_du and tom_tat["trang_thai"] != "draft":
         return 2
     return 0

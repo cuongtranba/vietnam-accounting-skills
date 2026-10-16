@@ -160,6 +160,23 @@ def chuan_quy_tac(qt: dict, danh_muc: dict, vi_tri: str) -> dict:
     }
 
 
+_NHAN_TONG = {"tong", "tong cong", "cong", "tong so", "cong phat sinh", "tong cong phat sinh",
+              "cong cuoi ky", "tong cong cuoi ky"}
+
+
+def la_dong_tong(gia_tri: list) -> bool:
+    """Dòng mang nhãn tổng/cộng (đứng một mình trong ô) — cộng nó cùng các dòng chi tiết là cộng
+    trùng. "Tổng phân tích tế bào máu" là tên dịch vụ, không phải nhãn tổng: chỉ khớp khi cả ô
+    đúng là nhãn (bỏ dấu, bỏ ':' cuối)."""
+    for v in gia_tri:
+        if isinstance(v, str):
+            s = unicodedata.normalize("NFD", chuan(v).rstrip(" :."))
+            s = "".join(c for c in s if unicodedata.category(c) != "Mn").replace("đ", "d")
+            if s in _NHAN_TONG:
+                return True
+    return False
+
+
 def thoa(dk: dict, v) -> bool:
     """Một ô có thoả TẤT CẢ phép so trong điều kiện của cột không."""
     s = chuan(v)

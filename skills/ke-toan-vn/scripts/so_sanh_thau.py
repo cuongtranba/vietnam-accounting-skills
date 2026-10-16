@@ -176,7 +176,8 @@ def doc_ket_qua_ky_thuat(duong_dan, ten_nha_thau: list[str]):
         if not nt:
             continue
         khop = next((t for t in ten_nha_thau if chuan_ten(t) == chuan_ten(nt)), nt)
-        kl = chuan_ten(r[c_kl]) if r[c_kl] is not None else ""
+        # Ô trống đọc qua pandas là NaN (float), không phải None — vẫn là "chưa chấm"
+        kl = chuan_ten(r[c_kl]) if isinstance(r[c_kl], str) else ""
         trang_thai.setdefault(khop, set()).add(
             "dat" if kl == "dat" else "khong dat" if kl.startswith("khong") else "trong")
 
@@ -244,6 +245,10 @@ def main() -> int:
                         "(từ cham_ky_thuat.py). Quyết định nhà thầu nào thuộc nhóm 'vượt bước "
                         "đánh giá về kỹ thuật' — nhóm này mới được lấy đơn giá để hiệu chỉnh.")
     p.add_argument("--ra", help="File Excel kết quả")
+    p.add_argument("--che-do", choices=["so-bo", "chinh-thuc"], default="so-bo",
+                   help="so-bo (mặc định): bảng tính tham khảo. chinh-thuc: chỉ xếp hạng khi "
+                        "MỌI nhà thầu đã có kết luận kỹ thuật do tổ chuyên gia điền; thiếu thì "
+                        "không xếp hạng và mã thoát 2")
     args = p.parse_args()
 
     can_thu_vien("pandas", "openpyxl")
@@ -634,6 +639,30 @@ def main() -> int:
         "canh_bao_chung": canh_bao_chung,
     }
 
+    # Bước kỹ thuật là điều kiện của bước tài chính (điểm c khoản 2 Điều 31 NĐ 214/2025 lấy đơn
+    # giá trong các HSDT ĐÃ VƯỢT kỹ thuật). Bảng sơ bộ được phép tạm coi mọi nhà thầu là vượt và
+    # cảnh báo; bảng chính thức thì không: thiếu kết luận của tổ chuyên gia là không xếp hạng.
+    chan = []
+    if args.che_do == "chinh-thuc":
+        if args.ket_qua_ky_thuat is None:
+            chan.append("Chưa có phiếu kết luận kỹ thuật của tổ chuyên gia (--ket-qua-ky-thuat)")
+        if chua_ro:
+            chan.append(f"Chưa có kết luận kỹ thuật cho: {', '.join(sorted(chua_ro))}")
+    if chan:
+        for r in bang_tong:
+            r["Xếp hạng sơ bộ"] = None
+            r["Giá đề nghị trúng thầu (dự kiến, khoản 4 Điều 31)"] = None
+        tom_tat["xep_hang_so_bo"] = []
+        tom_tat["gia_de_nghi_trung_thau_du_kien_khoan_4"] = None
+    tom_tat["che_do"] = args.che_do
+    tom_tat["trang_thai"] = ("so_bo" if args.che_do == "so-bo" else
+                             "needs_review" if chan else "cho_to_chuyen_gia_ky")
+    tom_tat["ly_do_trang_thai"] = chan
+    if args.che_do == "chinh-thuc" and not chan:
+        tom_tat["luu_y_chinh_thuc"] = (
+            "Bảng tính trên nhóm vượt kỹ thuật do tổ chuyên gia kết luận. Kết quả đánh giá và xếp "
+            "hạng là của tổ chuyên gia ký biên bản, không phải của công cụ.")
+
     if args.ra:
         ra = Path(args.ra).expanduser()
         ra.parent.mkdir(parents=True, exist_ok=True)
@@ -657,7 +686,7 @@ def main() -> int:
     in_json({"tom_tat": tom_tat, "tong_hop": bang_tong,
              "doi_chieu_danh_muc": bang_doi_chieu, "sua_loi": bang_sua_loi,
              "canh_bao": bang_canh_bao})
-    return 0
+    return 2 if chan else 0
 
 
 if __name__ == "__main__":
