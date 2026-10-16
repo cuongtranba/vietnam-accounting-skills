@@ -1,0 +1,90 @@
+Hóa đơn — XML + PDF, thuế suất 8% và KCT, MST sai checksum
+  ✅ đọc đủ 7 hóa đơn (5 XML + 2 PDF)
+  ✅ tổng tiền hàng
+  ✅ tổng tiền thuế
+  ✅ không có hóa đơn trùng số
+  ✅ giữ thuế suất 8%, không ép về 10%
+  ✅ giữ KCT, không quy thành 0%
+  ✅ cảnh báo MST 0100686200 sai chữ số kiểm tra
+
+Mã số thuế
+  ✅ 2 hợp lệ, 1 nghi ngờ
+
+Đối chiếu — thiếu, lệch tiền, ghi trùng
+  ✅ 1 hóa đơn có trong bảng kê mà thiếu ở sổ
+  ✅ không báo giả chiều ngược lại
+  ✅ phát hiện 1 dòng ghi trùng trong sổ
+  ✅ hóa đơn thiếu đúng là 00000205
+  ✅ 00000207 lệch đúng 900.000
+  ✅ chênh lệch tổng giải thích được hết
+
+HSDT — trích xuất và bắt lỗi số học
+  ✅ đọc đủ 4 bộ HSDT
+  ✅ nhà thầu A chào thiếu 1 mặt hàng (7/8)
+  ✅ bắt lỗi số học của nhà thầu B
+  ✅ đọc thư giảm giá của nhà thầu C
+  ✅ đọc hiệu lực bảo đảm dự thầu của D
+  ✅ mọi trường trích được đều có nguồn trang
+
+Chấm kỹ thuật — phân biệt sai lệch khách quan với việc cần người xem
+  ✅ C: RAM 8GB < 16GB bị bắt bằng số học
+  ✅ B: thiếu hẳn tiêu chí bảo hành
+  ✅ D: xuất xứ khác loại → để người xem, không tự loại
+  ✅ không tự điền kết luận cho tiêu chí nào
+
+Giá đánh giá — thứ tự tính và ảnh hưởng của bước kỹ thuật
+  ✅ sửa lỗi của B đúng -650.000
+  ✅ giảm giá của C trừ SAU sửa lỗi và hiệu chỉnh
+  ✅ chưa có kết quả kỹ thuật thì phải cảnh báo
+  ✅ hiệu chỉnh dùng đơn giá CAO NHẤT (của C), không phải thấp nhất
+  ✅ C bị loại khỏi nhóm vượt kỹ thuật
+  ✅ đơn giá hiệu chỉnh tụt xuống mức của D
+  ✅ C không còn trong bảng xếp hạng
+
+Khoản 4 Điều 31 — đơn giá THẤP NHẤT cho nhà thầu xếp hạng nhất (ngược chiều khoản 2)
+  ✅ NT Thang xếp hạng nhất dù chào thiếu
+  ✅ giá đánh giá (G) dùng đơn giá CAO NHẤT (300×10=3000 cộng vào 10000)
+  ✅ giá đề nghị trúng thầu dự kiến dùng đơn giá THẤP NHẤT (200×10=2000 cộng vào 10000)
+  ✅ nhà thầu không xếp hạng nhất thì không có giá đề nghị trúng thầu dự kiến
+  ✅ NT Tu chào 'Muc X' nhưng thiếu đơn giá riêng -> suy từ thành tiền (2500/10=250), có cảnh báo
+  ✅ dòng 'Có chào' của NT Tu hiện đơn giá đã suy ra, không bỏ trống
+  ✅ đơn giá suy ra của NT Tu (250) nằm giữa 200-300 nên không đổi cao/thấp nhất dùng chung
+  ✅ NT Nam có thành tiền nhưng thiếu số lượng -> cảnh báo nêu đúng lý do, không nói chung chung
+  ✅ NT Tam có số lượng là chuỗi '0' -> không chia cho 0, không sập báo cáo (script đã chạy tới đây)
+
+Thiếu số lượng yêu cầu trong HSMT — không bịa = 1, và KHÔNG xếp hạng khi chưa định giá được
+  ✅ dòng CHÀO THIẾU của 'Muc Z' không có Thành tiền vì thiếu số lượng, không bịa = 1
+  ✅ cảnh báo nêu rõ thiếu số lượng, không âm thầm bỏ qua
+  ✅ NT Rot KHÔNG được xếp hạng vì còn hạng mục chào thiếu chưa định giá được
+  ✅ NT Hai2 (không có gì chưa xác định) được xếp hạng nhất thay vào đó
+  ✅ có cảnh báo giải thích vì sao NT Rot chưa được xếp hạng
+  ✅ thiếu số lượng thì KHÔNG công bố giá đề nghị trúng thầu dự kiến (thà để trống còn hơn sai)
+
+Bộ nhớ — hạn dùng và bản lưu trữ
+  ✅ tra cứu chỉ trả bản hiện hành, bỏ qua bản lưu trữ .cu-
+  ✅ nội dung là bản mới
+  ✅ ghi chú còn hạn thì không cần tra web
+
+Quy trình định kỳ — tách theo khoa
+  ✅ gom đúng dòng theo khoa: khớp bỏ qua hoa/thường, dấu cách; một khoa nhiều tên gọi
+  ✅ khoa trong quy trình mà kỳ này không có dòng nào thì được báo ra
+  ✅ đánh lại STT nhưng mã ghép từ STT cũ giữ nguyên
+  ✅ công thức trong dòng được dời theo dòng mới
+  ✅ cột ghi chú không có tiêu đề vẫn được mang theo
+  ✅ dòng tổng dùng SUBTOTAL để SUBTOTAL cả cột ở phần đầu không cộng trùng
+  ✅ tên cột theo tháng mà thiếu --ky thì dừng, không đoán tháng
+
+Quy trình định kỳ — lọc bản kết xuất
+  ✅ mỗi quy tắc loại đúng dòng của nó, ngoại lệ được giữ
+  ✅ biến thể theo tên file: YHCT giữ dòng Y học cổ truyền
+  ✅ giá trị chưa từng gặp (MADT 17) thì dừng để hỏi, không ghi file nào
+  ✅ kế toán xác nhận giá trị mới thì chạy tiếp
+  ✅ bố cục cột khác lần chạy trước thì cảnh báo
+  ✅ gõ sai tên khoá trong quy trình bị từ chối thay vì lặng lẽ không chạy
+
+Quy trình định kỳ — đối chiếu hai nguồn
+  ✅ cộng theo khoá sau khi loại dòng, chỉ ra cặp chi tiết lệch
+  ✅ giữ thứ tự dòng của mẫu, khoá mới nối ở cuối và được báo
+  ✅ mỗi dòng B chỉ ghép một lần; '007' và '7' là hai bệnh nhân khác nhau
+
+✅ Tất cả phép kiểm đều đạt

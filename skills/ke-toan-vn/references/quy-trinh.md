@@ -39,20 +39,38 @@ Q="$SKILL_DIR/scripts/quy_trinh.py"
 "$PY" "$Q" kiem <tên | file.toml>     # kiểm cú pháp, bắt khoá gõ sai
 "$PY" "$Q" chay <tên> <file...> [--ky T09.2026] [--ra-thu-muc DIR]
 "$PY" "$Q" chay <tên> --a <file A> --b <file B> [--ky ...]     # đối chiếu
+"$PY" "$Q" chay <tên> <file...> --xem-truoc     # tính đủ, KHÔNG ghi file/lịch sử/hồ sơ
+"$PY" "$Q" --don-vi <mã> chay <tên> ...          # quy trình + danh mục + hồ sơ của một đơn vị
 ```
+
+Tuỳ chọn khác của `chay`: `--nguoi-lap "..."` (ghi vào hồ sơ, tự khai), `--chap-nhan-bo-cuc`
+(đã kiểm bố cục đổi ở cột quy trình dùng), `--ban-sua-doi` (kết quả cũ đã duyệt → ghi `-SUA<n>`).
 
 Kết quả là JSON có `trang_thai`:
 
 - `xong` — đã ghi file. Báo người dùng: file ở đâu, số dòng/tổng tiền, **mọi `canh_bao`**, và
-  **nhắc lại từng câu trong `cau_hoi_mo`**.
-- `can_hoi` (mã thoát 2) — có giá trị **chưa từng gặp** ở các cột `theo_doi`. Chưa file nào
-  được ghi. Hỏi người dùng từng giá trị: giữ hay loại? Loại → thêm quy tắc vào quy trình. Giữ →
-  chạy lại với `--chap-nhan-gia-tri-moi`. **Không tự quyết thay họ** — đây chính là chỗ một
-  quy tắc cũ lặng lẽ thôi đúng.
-- `loi` (mã thoát 1) — quy trình sai hoặc file không đúng bố cục. Đọc thông điệp, đừng đoán.
+  **nhắc lại từng câu trong `cau_hoi_mo`**. `trang_thai_ket_qua` là `draft` hoặc `needs_review`
+  (có ngoại lệ do người chạy chấp nhận, hoặc có dòng tổng nghi cộng trùng — `ly_do_trang_thai`);
+  `run_id` là mã hồ sơ của lần chạy (`ho_so_kiem_toan.py xem <run_id>`).
+- `xem_truoc` — chạy với `--xem-truoc`: đã tính, không ghi gì.
+- `can_hoi` (mã thoát 2) — chưa file nào được ghi (kết quả ghi vào file tạm, chỉ công bố khi mọi
+  bước kiểm đã qua). Ba lý do:
+  - có giá trị **chưa từng gặp** ở các cột `theo_doi`. Hỏi người dùng từng giá trị: giữ hay loại?
+    Loại → thêm quy tắc. Giữ → chạy lại với `--chap-nhan-gia-tri-moi`. **Không tự quyết thay họ**;
+  - **bố cục đổi ở cột quy trình dùng** (`bo_cuc_thay_doi` có `muc_do: nghiem_trong`): mất cột,
+    trùng tên cột, hay cột dùng theo vị trí (`$F`) giờ mang tên khác. Sửa quy trình, hoặc kế toán
+    kiểm xong thì chạy lại với `--chap-nhan-bo-cuc`;
+  - file kết quả cũ **đã được duyệt** — xem `references/kiem-soat.md` (`--ban-sua-doi`).
+- `loi` (mã thoát 1) — quy trình sai, file không đúng bố cục, hoặc **hỏng bảo toàn** (lỗi công cụ —
+  không file nào được công bố). Đọc thông điệp, đừng đoán.
 
-`bo_cuc_thay_doi` khác rỗng nghĩa là bản kết xuất có cột thêm/bớt/đổi chỗ so với lần chạy
-trước. Kết quả vẫn được ghi (cột được tìm theo tên), nhưng phải báo người dùng.
+`bo_cuc_thay_doi` có mục `muc_do: vo_hai` nghĩa là bản kết xuất có cột thêm/bớt/đổi chỗ ở chỗ quy
+trình không dùng theo vị trí. Kết quả vẫn được ghi (cột được tìm theo tên), nhưng phải báo người
+dùng. Bố cục được kiểm TRƯỚC khi đọc dữ liệu — không còn chuyện ghi file rồi mới cảnh báo.
+
+Mỗi lần chạy (trừ `--xem-truoc`, `--khong-ghi-lich-su`) ghi hồ sơ kiểm toán: mã băm nguồn, quy
+trình, danh mục, kết quả, và `bat_bien` (bảo toàn dòng/tiền, đọc lại file). Xem
+`references/kiem-soat.md`.
 
 ## Nơi lưu
 

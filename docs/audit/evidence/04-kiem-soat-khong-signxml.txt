@@ -1,0 +1,100 @@
+# lệnh: python evals/kiem_soat.py   (venv của skill, KHÔNG có signxml — nhánh dự phòng not_checked)
+[G01] Chế độ kế toán theo loại đơn vị và ngày BẮT ĐẦU năm tài chính
+  ✅ [ACC-001] DN năm dương lịch 2026 → TT 99/2025, dẫn Điều 31 và nguồn Công báo
+  ✅ [ACC-002] năm tài chính 01/10/2025–30/09/2026 giữ TT 200 cả năm, không đổi giữa năm
+  ✅ [ACC-002] suy năm tài chính từ ngày giao dịch + tháng đầu năm (15/3/2026, tháng 10)
+  ✅ [ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; năm bắt đầu 01/4/2026 → giữ TT 132/2018 cả năm, TT 58 từ năm sau (suy theo hỏi đáp Cục QLKT về TT 99 và khoản 3 Điều 4 TT 58), có ghi rõ là suy luận cần người duyệt
+  ✅ [ACC-004] bệnh viện công (ĐVSNCL tự chủ chi thường xuyên) → TT 24/2024; bệnh viện tư (doanh nghiệp) → TT 99/2025; ĐVSNCL chưa rõ mức tự chủ → cần xác nhận
+  ✅ [ACC-004] ĐVSNCL tự bảo đảm chi thường xuyên và chi đầu tư, được phép → chế độ DN (TT 99), kèm nhắc báo cáo quyết toán kinh phí
+  ✅ loại đơn vị khác/không khai → cần xác nhận, KHÔNG rơi về TT 200
+  ✅ năm tài chính 2024 vẫn TT 200 — số liệu lịch sử không bị diễn giải lại theo TT 99
+  ✅ DNNVV chưa khai chế độ đã chọn → cần xác nhận giữa TT 133 và TT 99; đã chọn TT 133 → TT 133
+  ✅ hóa đơn lập 30/6/2026 theo NĐ 123/2020 (căn cứ khoản 2 Điều 24 TT 91/2026); lập 01/7/2026 theo NĐ 254/2026
+
+[G02/G08] Ghi chú pháp lý theo ngày hiệu lực, hồi tố, nhiều phiên bản cùng ngày
+  ✅ [ACC-005] tra theo ngày 01/02/2026: áp dụng NĐ 141/2026 (hồi tố từ 01/01/2026, ban hành 29/4/2026), cảnh báo quyết định lập trước ngày ban hành cần rà soát
+  ✅ [ACC-005] bản NĐ 68/2026 vẫn truy được làm nguồn gốc lịch sử, không phải bản áp dụng
+  ✅ năm thuế cũ lấy bản cũ (đã lưu trữ), năm mới lấy bản mới
+  ✅ ghi chú còn hạn nhưng CHƯA hiệu lực tại ngày tra → không dùng, phải tra lại
+  ✅ ghi chú không có ngày hiệu lực → không coi là áp dụng được cho một ngày cụ thể
+  ✅ [AUD-003] ghi 3 lần cùng một ngày: cả 3 phiên bản còn đọc được, không bản nào bị đè
+  ✅ nguồn không phải URL https bị từ chối
+  ✅ độ tin cậy 'cao' mà không có nguồn .gov.vn bị hạ xuống trung_binh
+
+[G03/G04] Hóa đơn: phân tích ≠ xác thực; cổng đầy đủ trước khi cộng tổng
+  ✅ [INV-005] một thông điệp có 2 hóa đơn → 2 dòng, mỗi dòng đúng số và tiền của nó
+  ✅ thẻ tiền lặp với giá trị khác nhau → không tự chọn thẻ đầu, để trống và cảnh báo
+  ✅ XML có namespace mặc định vẫn đọc đúng
+  ✅ XML hỏng → xml_schema=fail, cả lô needs_review
+  ✅ [INV-003] 3 hóa đơn, 1 thiếu tiền hàng: tổng quan sát 4.000.000 ghi rõ là chưa đủ, tổng đã kiểm để trống, trạng thái needs_review
+  ✅ [INV-003] --yeu-cau-day-du: thiếu dữ liệu thì mã thoát 2 cho bên gọi chặn lại
+  ✅ [INV-004] 2 hóa đơn trùng người bán/ký hiệu/số: báo trùng, tổng chỉ cộng một lần
+  ✅ hóa đơn điều chỉnh giảm (số âm) và hóa đơn 0 đồng không bị coi là thiếu tiền
+  ✅ chế độ hóa đơn theo NGÀY LẬP từng hóa đơn (6/2026 → NĐ 123/2020, 7/2026 → NĐ 254/2026)
+  ✅ trạng thái tra cứu cơ quan thuế luôn not_checked — công cụ không có kết nối được cấp phép
+  ✅ hóa đơn không có chữ ký số → signature=absent
+  ✅ [INV-002] chỉ có PDF: đọc ra bản nháp, không giả vờ đã kiểm XML/chữ ký
+  ✅ XML và PDF cùng tên lệch tổng tiền → cảnh báo, needs_review
+  ✅ thiếu thư viện kiểm chữ ký → signature=not_checked, không bao giờ valid
+
+[G05] Kiểm tra bố cục TRƯỚC khi ghi; ghi nguyên tử; không ghi gì khi phải hỏi
+  ✅ lần chạy mốc (chưa có lần trước) ghi kết quả bình thường
+  ✅ [WF-001] chèn cột làm cột tham chiếu theo vị trí ($F) đổi nghĩa → dừng hỏi, không ghi file, có diff bố cục chỉ rõ cột nghiêm trọng
+  ✅ [WF-001] mất cột NHOM mà quy tắc dùng → dừng, không ghi file
+  ✅ [WF-002] đổi chỗ hai cột không tham chiếu theo vị trí → kết quả như cũ, chỉ cảnh báo vô hại
+  ✅ [WF-002] lần chạy mốc cũng ra đúng 2 dòng giữ / 130.000 (cột tiền theo vị trí $F)
+  ✅ [WF-003] tach gặp giá trị mới ở cột theo dõi → dừng hỏi và KHÔNG có file kết quả nào
+  ✅ --xem-truoc: tính đủ kết quả nhưng không ghi file và không ghi lịch sử
+  ✅ ghi một lô: file thứ hai lỗi thì file thứ nhất cũng không được công bố (không ghi dở dang)
+
+[G06/G07/G08] Hồ sơ lần chạy, phát lại, phê duyệt gắn nội dung, sửa sau khi duyệt
+  ✅ [AUD] mỗi lần chạy có hồ sơ: SHA-256 đầy đủ của nguồn, quy tắc, kết quả; giờ có múi giờ; mã đơn vị
+  ✅ [AUD] chạy lại cùng dữ liệu, cùng quy tắc → run_id khác nhau, ket_qua_sha256 như nhau
+  ✅ [AUD] kiểm hồ sơ vừa tạo: nguồn, quy tắc, kết quả còn nguyên; sổ cái nối chuỗi hợp lệ
+  ✅ [AUD] phát lại từ hồ sơ (cùng nguồn + cùng quy tắc) ra đúng kết quả nghiệp vụ
+  ✅ [G07] phê duyệt khi không có danh tính được xác thực → UNVERIFIED_HUMAN_REVIEW, KHÔNG bao giờ thành 'approved'
+  ✅ [G07] khai tên qua biến môi trường / tài khoản máy không phải là xác thực
+  ✅ [G08] chạy lại ghi đè lên kết quả ĐÃ DUYỆT → dừng hỏi, file đã duyệt giữ nguyên từng byte
+  ✅ [G08] --ban-sua-doi → ghi bản mới -SUA1 trỏ về lần chạy đã duyệt; bản đã duyệt không đổi
+  ✅ [AUD-001] kết quả đã duyệt bị đổi 1 byte → phát hiện, phê duyệt mất hiệu lực
+  ✅ [AUD-002] quy tắc đổi sau lần chạy → phát lại báo quy tắc đã đổi và kết quả lệch; hồ sơ cũ vẫn nguyên (sổ cái hợp lệ)
+  ✅ [AUD] gói kiểm toán: có JSON + Markdown, không lộ đường dẫn tuyệt đối hay nội dung dòng dữ liệu, có câu miễn trừ không phải chứng nhận
+  ✅ [AUD] kiểm độc lập gói kiểm toán với file nguồn gốc: hồ sơ khớp mã băm, nguồn khớp
+  ✅ sửa tay file hồ sơ → không còn khớp mã băm đã ghi trong sổ cái
+  ✅ [G04/G07] chấp nhận giá trị mới = ngoại lệ do người chạy khai → lần chạy needs_review
+  ✅ [G04/G07] duyệt lần chạy needs_review mà không ghi lý do ngoại lệ → bị từ chối
+  ✅ [G07] tách nhiệm bật: người lập không tự duyệt lần chạy của mình
+  ✅ [G07] người khác duyệt, có ghi lý do ngoại lệ → ghi nhận (vẫn chưa xác thực danh tính)
+  ✅ [INV-003] lô hóa đơn thiếu số có hồ sơ, nhưng không duyệt được nếu không ghi ngoại lệ
+
+[G10] Cô lập đơn vị: danh mục, quy trình, quy ước, hồ sơ không lẫn sang nhau
+  ✅ [TEN-001] hai đơn vị dùng cùng mã KHS khác nghĩa → mỗi bên dùng danh mục của chính mình
+  ✅ [TEN-001] đơn vị B không thấy quy trình riêng của đơn vị A
+  ✅ [TEN-001] đơn vị B không duyệt được (thậm chí không thấy) lần chạy của đơn vị A
+  ✅ mã đơn vị có '../' bị từ chối (không thoát ra ngoài thư mục bộ nhớ)
+  ✅ [TEN-001] quy ước riêng của đơn vị A không hiện ra khi tra cho đơn vị B
+  ✅ không script nào tự gọi mạng — dữ liệu đơn vị không thể rời máy qua công cụ
+
+[G11] Bất biến kế toán — không chỉ so với file mẫu
+  ✅ bảo toàn: gốc = giữ + loại cả số dòng lẫn tiền (kể cả dòng hoàn trả âm), và đọc lại file kết quả khớp đúng số đó
+  ✅ dòng 'Tổng cộng' lẫn trong dữ liệu (sẽ cộng trùng) → chỉ ra đúng dòng, needs_review
+  ✅ tên dịch vụ bắt đầu bằng 'Tổng ...' (Tổng phân tích tế bào máu) KHÔNG bị nhầm là dòng tổng
+  ✅ tach: ô tiền là công thức SUM trong vùng dữ liệu (dòng cộng dồn) → chỉ ra dòng 4, needs_review; bảo toàn nguồn = các nhóm + ngoài nhóm
+  ✅ số tiền lẻ (0,005 đồng mỗi phần, như khấu hao chia 12) không làm hỏng bảo toàn GIẢ do làm tròn từng phần (tach và loc vẫn chạy)
+  ✅ dùng cột STT làm khoá tách bị từ chối (STT đánh lại mỗi kỳ, không phải mã ổn định)
+
+[G09] Chấm thầu: bảng so sánh sơ bộ vs kết luận chính thức
+  ✅ mặc định (sơ bộ) vẫn chạy và xếp hạng như cũ, nhưng ghi rõ trang_thai = so_bo
+  ✅ [BID-001] chính thức mà chưa có kết quả kỹ thuật do tổ chuyên gia điền → từ chối xếp hạng, mã 2
+  ✅ [BID-001] chính thức mà còn nhà thầu chưa có kết luận kỹ thuật → needs_review, mã 2
+  ✅ [BID-001] đủ kết luận kỹ thuật → bảng để tổ chuyên gia ký (không phải kết luận của máy), chỉ nhà thầu vượt kỹ thuật được xếp hạng
+  ✅ chấm thầu không ghi gì vào bộ nhớ (HSDT không lưu lại, không vào hồ sơ kiểm toán)
+
+[G12] Đầu vào không tin cậy
+  ✅ [SEC-001] XML có ENTITY lồng nhau (billion laughs) bị từ chối ngay, không treo máy
+  ✅ XML lớn hơn giới hạn 20 MB → không đọc, báo lỗi đọc
+  ✅ [SEC-001] tên người bán dạng công thức → ra CSV/Excel là CHỮ, không phải công thức chạy được
+  ✅ [SEC-001] ô chữ '=1+1' trong bản kết xuất được chép sang kết quả lọc vẫn là CHỮ
+
+✅ Tất cả phép kiểm kiểm soát đều đạt
+exit=0

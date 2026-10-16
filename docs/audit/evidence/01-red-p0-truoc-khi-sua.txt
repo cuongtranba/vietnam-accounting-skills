@@ -1,0 +1,89 @@
+[G01] Chế độ kế toán theo loại đơn vị và ngày BẮT ĐẦU năm tài chính
+  ❌ [ACC-001] DN năm dương lịch 2026 → TT 99/2025, dẫn Điều 31 và nguồn Công báo: được (2, None, None, False), mong đợi (0, 'xac_dinh', 'TT99/2025', True)
+  ❌ [ACC-002] năm tài chính 01/10/2025–30/09/2026 giữ TT 200 cả năm, không đổi giữa năm: được (None, None, False), mong đợi ('TT200/2014', '2026-09-30', True)
+  ❌ [ACC-002] suy năm tài chính từ ngày giao dịch + tháng đầu năm (15/3/2026, tháng 10): được (None, None), mong đợi ('2025-10-01', 'TT200/2014')
+  ❌ [ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; 01/4/2026 → cần xác nhận (TT 132/2018 hết hiệu lực giữa năm, TT 58 chỉ áp cho năm bắt đầu từ 01/7/2026): được (None, 2, None, []), mong đợi ('TT58/2026', 2, 'can_xac_nhan', ['TT132/2018', 'TT58/2026'])
+  ❌ [ACC-004] bệnh viện công (ĐVSNCL tự chủ chi thường xuyên) → TT 24/2024; bệnh viện tư (doanh nghiệp) → TT 99/2025; ĐVSNCL chưa rõ mức tự chủ → cần xác nhận: được (None, None, 2, None), mong đợi ('TT24/2024', 'TT99/2025', 2, 'can_xac_nhan')
+  ❌ [ACC-004] ĐVSNCL tự bảo đảm chi thường xuyên và chi đầu tư, được phép → chế độ DN (TT 99), kèm nhắc báo cáo quyết toán kinh phí: được (None, False), mong đợi ('TT99/2025', True)
+  ✅ loại đơn vị khác/không khai → cần xác nhận, KHÔNG rơi về TT 200
+  ❌ năm tài chính 2024 vẫn TT 200 — số liệu lịch sử không bị diễn giải lại theo TT 99: được None, mong đợi 'TT200/2014'
+  ❌ DNNVV chưa khai chế độ đã chọn → cần xác nhận giữa TT 133 và TT 99; đã chọn TT 133 → TT 133: được (2, [], None), mong đợi (2, ['TT133/2016', 'TT99/2025'], 'TT133/2016')
+  ❌ hóa đơn lập 30/6/2026 theo NĐ 123/2020; lập 01/7/2026 theo NĐ 254/2026: được (None, None), mong đợi ('ND123/2020', 'ND254/2026')
+
+[G02/G08] Ghi chú pháp lý theo ngày hiệu lực, hồi tố, nhiều phiên bản cùng ngày
+  ❌ [ACC-005] tra theo ngày 01/02/2026: áp dụng NĐ 141/2026 (hồi tố từ 01/01/2026, ban hành 29/4/2026), cảnh báo quyết định lập trước ngày ban hành cần rà soát: được (False, None, False), mong đợi (True, True, True)
+  ❌ [ACC-005] bản NĐ 68/2026 vẫn truy được làm nguồn gốc lịch sử, không phải bản áp dụng: được [], mong đợi [['NĐ 68/2026/NĐ-CP']]
+  ❌ năm thuế cũ lấy bản cũ (đã lưu trữ), năm mới lấy bản mới: được (False, None, False), mong đợi (True, True, True)
+  ❌ ghi chú còn hạn nhưng CHƯA hiệu lực tại ngày tra → không dùng, phải tra lại: được (None, None), mong đợi (None, True)
+  ❌ ghi chú không có ngày hiệu lực → không coi là áp dụng được cho một ngày cụ thể: được (None, None), mong đợi (None, True)
+  ❌ [AUD-003] ghi 3 lần cùng một ngày: cả 3 phiên bản còn đọc được, không bản nào bị đè: được [], mong đợi ['Phiên bản 1.', 'Phiên bản 2.', 'Phiên bản 3.']
+  ❌ nguồn không phải URL https bị từ chối: được False, mong đợi True
+  ❌ độ tin cậy 'cao' mà không có nguồn .gov.vn bị hạ xuống trung_binh: được 'cao', mong đợi 'trung_binh'
+
+[G03/G04] Hóa đơn: phân tích ≠ xác thực; cổng đầy đủ trước khi cộng tổng
+  ❌ [INV-005] một thông điệp có 2 hóa đơn → 2 dòng, mỗi dòng đúng số và tiền của nó: được [('00000001', '1000000')], mong đợi [('00000001', '1000000'), ('00000002', '2000000')]
+  ❌ thẻ tiền lặp với giá trị khác nhau → không tự chọn thẻ đầu, để trống và cảnh báo: được ('1000000', False), mong đợi (None, True)
+  ✅ XML có namespace mặc định vẫn đọc đúng
+  ❌ XML hỏng → xml_schema=fail, cả lô needs_review: được (None, None), mong đợi ('fail', 'needs_review')
+  ❌ [INV-003] 3 hóa đơn, 1 thiếu tiền hàng: tổng quan sát 4.000.000 ghi rõ là chưa đủ, tổng đã kiểm để trống, trạng thái needs_review: được ('4000000', None, None, None), mong đợi ('4000000', None, False, 'needs_review')
+  ✅ [INV-003] --yeu-cau-day-du: thiếu dữ liệu thì mã thoát 2 cho bên gọi chặn lại
+  ❌ [INV-004] 2 hóa đơn trùng người bán/ký hiệu/số: báo trùng, tổng chỉ cộng một lần: được (1, '2500000', None), mong đợi (1, '1500000', 'needs_review')
+  ❌ hóa đơn điều chỉnh giảm (số âm) và hóa đơn 0 đồng không bị coi là thiếu tiền: được ('-200000', '0', None), mong đợi ('-200000', '0', 0)
+  ❌ chế độ hóa đơn theo NGÀY LẬP từng hóa đơn (6/2026 → NĐ 123/2020, 7/2026 → NĐ 254/2026): được (None, None), mong đợi ('ND123/2020', 'ND254/2026')
+  ❌ trạng thái tra cứu cơ quan thuế luôn not_checked — công cụ không có kết nối được cấp phép: được {None}, mong đợi {'not_checked'}
+  ❌ hóa đơn không có chữ ký số → signature=absent: được {None}, mong đợi {'absent'}
+  ❌ [INV-002] chỉ có PDF: đọc ra bản nháp, không giả vờ đã kiểm XML/chữ ký: được ('PDF', None, None, None), mong đợi ('PDF', 'unsupported', 'not_checked', 'not_checked')
+  ❌ XML và PDF cùng tên lệch tổng tiền → cảnh báo, needs_review: được (False, None), mong đợi (True, 'needs_review')
+  ❌ chữ ký toàn vẹn nhưng chưa có chuỗi tin cậy → signature=not_checked (không nói valid), lô ở trạng thái draft: được (None, None, None), mong đợi ('not_checked', 'valid', 'draft')
+  ❌ chữ ký toàn vẹn + chứng thư chuỗi về CA tin cậy được cung cấp → signature=valid: được None, mong đợi 'valid'
+  ❌ [INV-001] XML đã ký bị sửa 1 byte → signature=invalid, needs_review: được (None, None), mong đợi ('invalid', 'needs_review')
+  ❌ chứng thư trong chữ ký không khớp khoá đã ký → signature=invalid: được None, mong đợi 'invalid'
+
+[G05] Kiểm tra bố cục TRƯỚC khi ghi; ghi nguyên tử; không ghi gì khi phải hỏi
+  ❌ lần chạy mốc (chưa có lần trước) ghi kết quả bình thường: được (1, False), mong đợi (0, True)
+  ❌ [WF-001] chèn cột làm cột tham chiếu theo vị trí ($F) đổi nghĩa → dừng hỏi, không ghi file, có diff bố cục chỉ rõ cột nghiêm trọng: được (1, None, False, False), mong đợi (2, 'can_hoi', False, True)
+  ✅ [WF-001] mất cột NHOM mà quy tắc dùng → dừng, không ghi file
+  ❌ [WF-002] đổi chỗ hai cột không tham chiếu theo vị trí → kết quả như cũ, chỉ cảnh báo vô hại: được (1, (None, None), []), mong đợi (0, (None, None), ['vo_hai'])
+  ❌ [WF-003] tach gặp giá trị mới ở cột theo dõi → dừng hỏi và KHÔNG có file kết quả nào: được (2, {'KHOA': ['K. MỚI']}, True), mong đợi (2, {'KHOA': ['K. MỚI']}, False)
+  ❌ --xem-truoc: tính đủ kết quả nhưng không ghi file và không ghi lịch sử: được (2, None, False), mong đợi (0, 2, False)
+  ❌ ghi một lô: file thứ hai lỗi thì file thứ nhất cũng không được công bố (không ghi dở dang): được (True, True, ['LOC-A.xlsx', 'LOC-B.xlsx']), mong đợi (True, False, ['LOC-B.xlsx'])
+
+❌ 38 phép kiểm thất bại:
+   - [ACC-001] DN năm dương lịch 2026 → TT 99/2025, dẫn Điều 31 và nguồn Công báo
+   - [ACC-002] năm tài chính 01/10/2025–30/09/2026 giữ TT 200 cả năm, không đổi giữa năm
+   - [ACC-002] suy năm tài chính từ ngày giao dịch + tháng đầu năm (15/3/2026, tháng 10)
+   - [ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; 01/4/2026 → cần xác nhận (TT 132/2018 hết hiệu lực giữa năm, TT 58 chỉ áp cho năm bắt đầu từ 01/7/2026)
+   - [ACC-004] bệnh viện công (ĐVSNCL tự chủ chi thường xuyên) → TT 24/2024; bệnh viện tư (doanh nghiệp) → TT 99/2025; ĐVSNCL chưa rõ mức tự chủ → cần xác nhận
+   - [ACC-004] ĐVSNCL tự bảo đảm chi thường xuyên và chi đầu tư, được phép → chế độ DN (TT 99), kèm nhắc báo cáo quyết toán kinh phí
+   - năm tài chính 2024 vẫn TT 200 — số liệu lịch sử không bị diễn giải lại theo TT 99
+   - DNNVV chưa khai chế độ đã chọn → cần xác nhận giữa TT 133 và TT 99; đã chọn TT 133 → TT 133
+   - hóa đơn lập 30/6/2026 theo NĐ 123/2020; lập 01/7/2026 theo NĐ 254/2026
+   - [ACC-005] tra theo ngày 01/02/2026: áp dụng NĐ 141/2026 (hồi tố từ 01/01/2026, ban hành 29/4/2026), cảnh báo quyết định lập trước ngày ban hành cần rà soát
+   - [ACC-005] bản NĐ 68/2026 vẫn truy được làm nguồn gốc lịch sử, không phải bản áp dụng
+   - năm thuế cũ lấy bản cũ (đã lưu trữ), năm mới lấy bản mới
+   - ghi chú còn hạn nhưng CHƯA hiệu lực tại ngày tra → không dùng, phải tra lại
+   - ghi chú không có ngày hiệu lực → không coi là áp dụng được cho một ngày cụ thể
+   - [AUD-003] ghi 3 lần cùng một ngày: cả 3 phiên bản còn đọc được, không bản nào bị đè
+   - nguồn không phải URL https bị từ chối
+   - độ tin cậy 'cao' mà không có nguồn .gov.vn bị hạ xuống trung_binh
+   - [INV-005] một thông điệp có 2 hóa đơn → 2 dòng, mỗi dòng đúng số và tiền của nó
+   - thẻ tiền lặp với giá trị khác nhau → không tự chọn thẻ đầu, để trống và cảnh báo
+   - XML hỏng → xml_schema=fail, cả lô needs_review
+   - [INV-003] 3 hóa đơn, 1 thiếu tiền hàng: tổng quan sát 4.000.000 ghi rõ là chưa đủ, tổng đã kiểm để trống, trạng thái needs_review
+   - [INV-004] 2 hóa đơn trùng người bán/ký hiệu/số: báo trùng, tổng chỉ cộng một lần
+   - hóa đơn điều chỉnh giảm (số âm) và hóa đơn 0 đồng không bị coi là thiếu tiền
+   - chế độ hóa đơn theo NGÀY LẬP từng hóa đơn (6/2026 → NĐ 123/2020, 7/2026 → NĐ 254/2026)
+   - trạng thái tra cứu cơ quan thuế luôn not_checked — công cụ không có kết nối được cấp phép
+   - hóa đơn không có chữ ký số → signature=absent
+   - [INV-002] chỉ có PDF: đọc ra bản nháp, không giả vờ đã kiểm XML/chữ ký
+   - XML và PDF cùng tên lệch tổng tiền → cảnh báo, needs_review
+   - chữ ký toàn vẹn nhưng chưa có chuỗi tin cậy → signature=not_checked (không nói valid), lô ở trạng thái draft
+   - chữ ký toàn vẹn + chứng thư chuỗi về CA tin cậy được cung cấp → signature=valid
+   - [INV-001] XML đã ký bị sửa 1 byte → signature=invalid, needs_review
+   - chứng thư trong chữ ký không khớp khoá đã ký → signature=invalid
+   - lần chạy mốc (chưa có lần trước) ghi kết quả bình thường
+   - [WF-001] chèn cột làm cột tham chiếu theo vị trí ($F) đổi nghĩa → dừng hỏi, không ghi file, có diff bố cục chỉ rõ cột nghiêm trọng
+   - [WF-002] đổi chỗ hai cột không tham chiếu theo vị trí → kết quả như cũ, chỉ cảnh báo vô hại
+   - [WF-003] tach gặp giá trị mới ở cột theo dõi → dừng hỏi và KHÔNG có file kết quả nào
+   - --xem-truoc: tính đủ kết quả nhưng không ghi file và không ghi lịch sử
+   - ghi một lô: file thứ hai lỗi thì file thứ nhất cũng không được công bố (không ghi dở dang)

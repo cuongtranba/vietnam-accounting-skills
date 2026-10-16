@@ -6,6 +6,8 @@
               --van-ban "Luật 149/2025/QH15" --hieu-luc-tu 2026-01-01 \
               --nguon https://vanban.chinhphu.vn/... --do-tin-cay cao
     bo_nho.py ghi --loai quy-uoc --chu-de "cot-excel" --noi-dung "..."
+    bo_nho.py tra "nguong doanh thu ho kinh doanh" --ngay 2025-12-31   # quy định TẠI ngày đó
+    bo_nho.py lich-su "nguong doanh thu ho kinh doanh"                 # mọi phiên bản
     bo_nho.py kiem-han
     bo_nho.py nhat-ky "Đã lập bảng kê mua vào quý 3"
     bo_nho.py muc-luc
@@ -34,14 +36,14 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _chung import in_json, tim_home  # noqa: E402
+from _chung import home_don_vi, in_json, tim_home  # noqa: E402
 
 # TTL theo mức độ biến động. Không dùng một hạn chung — các mảng biến động rất khác nhau.
 TTL_NGAY = {
     "dau-thau": 45,    # NĐ 214/2025 mới hiệu lực 8/2025 và ĐÃ CÓ dự thảo sửa
     "thue": 60,        # thuế suất/ngưỡng đổi 3 lần trong 18 tháng
     "hoa-don": 90,     # đổi theo nghị định
-    "tai-khoan": 365,  # TT 200/TT 133 ổn định từ 2014
+    "tai-khoan": 180,  # TT 99/2025 thay TT 200 từ năm tài chính 2026, TT 58/2026 thay TT 132
     "khac": 60,
 }
 
@@ -50,8 +52,10 @@ TU_KHOA_CHU_DE = {
                  "sai lech", "gia danh gia", "chi dinh thau"],
     "thue": ["thue", "gtgt", "tndn", "tncn", "to khai", "nguong", "khau tru", "thue suat",
              "quyet toan", "48/2024", "149/2025", "181/2025"],
-    "hoa-don": ["hoa don", "123/2020", "70/2025", "78/2021", "1450", "xml", "chung tu"],
-    "tai-khoan": ["tai khoan", "tt 200", "200/2014", "133/2016", "che do ke toan", "so sach"],
+    "hoa-don": ["hoa don", "123/2020", "70/2025", "78/2021", "254/2026", "91/2026", "1450",
+                "xml", "chung tu"],
+    "tai-khoan": ["tai khoan", "tt 200", "200/2014", "133/2016", "99/2025", "58/2026",
+                  "24/2024", "che do ke toan", "so sach"],
 }
 
 
@@ -149,6 +153,59 @@ def _ngay(gt):
         return None
 
 
+_LUU_TRU = re.compile(r"\.cu-(\d{4}-\d{2}-\d{2})(?:-(\d+))?\.md$")
+
+
+def la_luu_tru(tep: Path) -> bool:
+    return ".cu-" in tep.name
+
+
+def goc_chu_de(tep: Path) -> str:
+    """Tên gốc của chủ đề, bỏ phần đuôi lưu trữ `.cu-...`."""
+    return tep.name.split(".cu-", 1)[0].removesuffix(".md")
+
+
+def thu_tu_luu_tru(tep: Path) -> tuple:
+    m = _LUU_TRU.search(tep.name)
+    return (m.group(1), int(m.group(2) or 0)) if m else ("", 0)
+
+
+def ten_luu_tru(duong_dan: Path, hom_nay: date) -> Path:
+    """Tên bản lưu trữ không bao giờ trùng: `.cu-YYYY-MM-DD-NNN.md`, NNN tăng dần trong ngày.
+
+    Bản cũ chỉ ghi ngày, nên cập nhật hai lần trong một ngày thì bản lưu thứ hai đè mất bản thứ
+    nhất — đúng loại mất dấu vết mà bản lưu trữ sinh ra để chống.
+    """
+    ngay = hom_nay.isoformat()
+    dung = [thu_tu_luu_tru(p)[1] for p in duong_dan.parent.glob(f"{duong_dan.stem}.cu-{ngay}*.md")]
+    return duong_dan.with_name(f"{duong_dan.stem}.cu-{ngay}-{max(dung, default=0) + 1:03d}.md")
+
+
+def kiem_nguon(nguon: list) -> tuple[list, bool]:
+    """(nguồn sai dạng, có nguồn cơ quan nhà nước). Nguồn phải là URL https có tên miền."""
+    from urllib.parse import urlparse
+
+    sai = [n for n in nguon
+           if urlparse(n).scheme != "https" or "." not in (urlparse(n).hostname or "")]
+    may = [(urlparse(n).hostname or "") for n in nguon]
+    co_gov = any(h.endswith(".gov.vn") or h == "chinhphu.vn" or h.endswith(".chinhphu.vn")
+                 for h in may)
+    return sai, co_gov
+
+
+def hieu_luc_tai(meta: dict, ngay: date) -> str:
+    """'ap_dung' | 'chua_hieu_luc' | 'het_hieu_luc' | 'khong_ro_hieu_luc' tại một ngày."""
+    tu = _ngay(meta.get("hieu_luc_tu"))
+    if tu is None:
+        return "khong_ro_hieu_luc"
+    if ngay < tu:
+        return "chua_hieu_luc"
+    den = _ngay(meta.get("hieu_luc_den"))
+    if den is not None and ngay >= den:
+        return "het_hieu_luc"
+    return "ap_dung"
+
+
 def tinh_trang_ghi_chu(meta: dict) -> tuple[str, str]:
     """Trả về (tình trạng, giải thích)."""
     if meta.get("thay_the_boi"):
@@ -164,45 +221,119 @@ def tinh_trang_ghi_chu(meta: dict) -> tuple[str, str]:
 
 # --- Lệnh --------------------------------------------------------------------
 
-def lenh_tra(home: Path, tu_khoa: str) -> dict:
+def _mo_ta(tep: Path, gc: dict, thu_muc: str, diem: int) -> dict:
+    m = gc["meta"]
+    tt, giai_thich = tinh_trang_ghi_chu(m)
+    return {
+        "loai": thu_muc,
+        "tep": str(tep),
+        "chu_de": m.get("chu_de", tep.stem),
+        "tinh_trang": tt,
+        "giai_thich": giai_thich,
+        "van_ban": m.get("van_ban"),
+        "dieu_khoan": m.get("dieu_khoan"),
+        "hieu_luc_tu": m.get("hieu_luc_tu"),
+        "hieu_luc_den": m.get("hieu_luc_den"),
+        "ngay_ban_hanh": m.get("ngay_ban_hanh"),
+        "het_han": m.get("het_han"),
+        "thay_the_boi": m.get("thay_the_boi"),
+        "sua_doi": m.get("sua_doi"),
+        "do_tin_cay": m.get("do_tin_cay"),
+        "can_nguoi_duyet": m.get("can_nguoi_duyet"),
+        "nguon": m.get("nguon"),
+        "ban_luu_tru": la_luu_tru(tep),
+        "diem_khop": diem,
+        "noi_dung": gc["noi_dung"].strip(),
+    }
+
+
+def _quet(home: Path, tu_khoa: str, ca_luu_tru: bool, home_dv: Path | None = None) -> list[dict]:
     can = khong_dau(tu_khoa)
     tu = [t for t in can.split() if len(t) > 2]
     tim_thay = []
-
     for thu_muc in ("phap-ly", "quy-uoc"):
-        goc = home / thu_muc
+        goc = ((home_dv or home) if thu_muc == "quy-uoc" else home) / thu_muc
         if not goc.is_dir():
             continue
         for tep in sorted(goc.glob("*.md")):
-            # Bỏ qua bản lưu trữ .cu-YYYY-MM-DD.md. Chúng giữ lại để đối chiếu lịch sử,
-            # nhưng trả chúng về trong kết quả tra cứu thì người đọc có thể lấy nhầm con số
-            # ĐÃ BỊ THAY — đúng cái sai mà cả bộ nhớ này sinh ra để chống.
-            if ".cu-" in tep.name:
+            # Bản lưu trữ .cu-* chỉ dùng khi tra theo một ngày trong quá khứ (hồi đó quy định
+            # là gì) hoặc khi xem lịch sử. Trả chúng về ở tra cứu hiện hành thì người đọc có thể
+            # lấy nhầm con số ĐÃ BỊ THAY — đúng cái sai mà bộ nhớ này sinh ra để chống.
+            if la_luu_tru(tep) and not ca_luu_tru:
                 continue
             gc = doc_ghi_chu(tep)
             noi_dung_can = khong_dau(
-                f"{gc['meta'].get('chu_de', '')} {tep.stem} {gc['noi_dung'][:2000]}"
-            )
+                f"{gc['meta'].get('chu_de', '')} {goc_chu_de(tep)} {gc['noi_dung'][:2000]}")
             diem = sum(1 for t in tu if t in noi_dung_can)
             if diem:
-                tt, giai_thich = tinh_trang_ghi_chu(gc["meta"])
-                tim_thay.append({
-                    "loai": thu_muc,
-                    "tep": str(tep),
-                    "chu_de": gc["meta"].get("chu_de", tep.stem),
-                    "tinh_trang": tt,
-                    "giai_thich": giai_thich,
-                    "van_ban": gc["meta"].get("van_ban"),
-                    "hieu_luc_tu": gc["meta"].get("hieu_luc_tu"),
-                    "het_han": gc["meta"].get("het_han"),
-                    "thay_the_boi": gc["meta"].get("thay_the_boi"),
-                    "do_tin_cay": gc["meta"].get("do_tin_cay"),
-                    "nguon": gc["meta"].get("nguon"),
-                    "diem_khop": diem,
-                    "noi_dung": gc["noi_dung"].strip(),
-                })
-
+                tim_thay.append(_mo_ta(tep, gc, thu_muc, diem))
     tim_thay.sort(key=lambda g: -g["diem_khop"])
+    return tim_thay
+
+
+def _moi_truoc(ds: list[dict]) -> list[dict]:
+    """Bản hiện hành trước, rồi bản lưu trữ từ mới đến cũ."""
+    return sorted(ds, key=lambda g: (not g["ban_luu_tru"], thu_tu_luu_tru(Path(g["tep"]))),
+                  reverse=True)
+
+
+def tra_theo_ngay(home: Path, tu_khoa: str, ngay: date, home_dv: Path | None = None) -> dict:
+    """Quy định áp dụng TẠI MỘT NGÀY, không phải bản mới nhất.
+
+    Ghi chú còn hạn chỉ nói "điều mình biết còn mới"; nó không nói quy định đó áp dụng cho giao
+    dịch năm ngoái. Chọn trong mọi phiên bản (kể cả bản lưu trữ) bản có hiệu lực tại `ngay`;
+    nhiều bản cùng phủ ngày đó (sửa đổi hồi tố) thì bản ghi sau thắng.
+    """
+    tim_thay = _quet(home, tu_khoa, ca_luu_tru=True, home_dv=home_dv)
+    cao_nhat = tim_thay[0]["diem_khop"] if tim_thay else 0
+    theo_chu_de: dict[tuple, list] = {}
+    for g in tim_thay:
+        if g["diem_khop"] == cao_nhat:
+            theo_chu_de.setdefault((g["loai"], goc_chu_de(Path(g["tep"]))), []).append(g)
+
+    ap_dung, lich_su, ly_do = None, [], []
+    for ds in theo_chu_de.values():
+        ds = _moi_truoc(ds)
+        chon = next((g for g in ds if hieu_luc_tai(g, ngay) == "ap_dung"), None)
+        if chon and ap_dung is None:
+            ap_dung, lich_su = chon, [g for g in ds if g is not chon]
+        else:
+            ly_do += [f"{Path(g['tep']).name}: {hieu_luc_tai(g, ngay)}" for g in ds]
+
+    canh_bao = []
+    if ap_dung:
+        bh, hl = _ngay(ap_dung.get("ngay_ban_hanh")), _ngay(ap_dung.get("hieu_luc_tu"))
+        ap_dung["hoi_to"] = bool(bh and hl and bh > hl)
+        if ap_dung["hoi_to"]:
+            canh_bao.append(
+                f"Văn bản ban hành {bh} nhưng hiệu lực hồi tố từ {hl}: tờ khai, báo cáo, quyết "
+                f"định lập trước {bh} có thể đã dùng quy định cũ — cần rà soát lại.")
+        if ap_dung["ban_luu_tru"]:
+            canh_bao.append("Đang dùng bản lưu trữ (quy định của thời điểm đó). Kiểm lại xem có "
+                            "văn bản sửa đổi hồi tố nào ban hành sau không.")
+        if ap_dung.get("can_nguoi_duyet") == "true":
+            canh_bao.append("Diễn giải chưa được người có chuyên môn duyệt — dùng làm căn cứ tra "
+                            "cứu, không phải kết luận pháp lý.")
+    con_dung = ap_dung is not None and (
+        ap_dung["ban_luu_tru"] or ap_dung["tinh_trang"] in ("con_han", "khong_han"))
+    return {"ngay": ngay.isoformat(), "ap_dung": ap_dung, "lich_su": lich_su,
+            "canh_bao": canh_bao, "can_tra_web": not con_dung,
+            "ly_do_khong_ap_dung": ly_do if not ap_dung else []}
+
+
+def lenh_lich_su(home: Path, tu_khoa: str, home_dv: Path | None = None) -> dict:
+    """Mọi phiên bản của một chủ đề, từ cũ đến mới — để truy nguồn gốc một con số đã dùng."""
+    tim_thay = _quet(home, tu_khoa, ca_luu_tru=True, home_dv=home_dv)
+    if not tim_thay:
+        return {"chu_de": None, "phien_ban": []}
+    goc = (tim_thay[0]["loai"], goc_chu_de(Path(tim_thay[0]["tep"])))
+    ds = [g for g in tim_thay if (g["loai"], goc_chu_de(Path(g["tep"]))) == goc]
+    return {"chu_de": tim_thay[0]["chu_de"], "phien_ban": list(reversed(_moi_truoc(ds)))}
+
+
+def lenh_tra(home: Path, tu_khoa: str, ngay: date | None = None,
+             home_dv: Path | None = None) -> dict:
+    tim_thay = _quet(home, tu_khoa, ca_luu_tru=False, home_dv=home_dv)
     dung_duoc = [g for g in tim_thay if g["tinh_trang"] in ("con_han", "khong_han")]
     nhom = doan_nhom(tu_khoa)
 
@@ -214,7 +345,7 @@ def lenh_tra(home: Path, tu_khoa: str) -> dict:
     else:
         loi_khuyen = "Chưa có ghi chú nào. Tra web rồi ghi lại bằng lệnh 'ghi'."
 
-    return {
+    kq = {
         "tu_khoa": tu_khoa,
         "nhom_chu_de": nhom,
         "ttl_ngay": TTL_NGAY.get(nhom, TTL_NGAY["khac"]),
@@ -223,9 +354,16 @@ def lenh_tra(home: Path, tu_khoa: str) -> dict:
         "so_ghi_chu": len(tim_thay),
         "ghi_chu": tim_thay[:5],
     }
+    if ngay is not None:
+        theo_ngay = tra_theo_ngay(home, tu_khoa, ngay, home_dv)
+        kq.update(theo_ngay)
+        if theo_ngay["ap_dung"] is None:
+            kq["loi_khuyen"] = (f"Không có ghi chú nào có hiệu lực tại {ngay} (ghi chú còn hạn "
+                                "chưa chắc áp dụng cho ngày đó). Tra văn bản áp dụng cho kỳ này.")
+    return kq
 
 
-def lenh_ghi(home: Path, args) -> dict:
+def lenh_ghi(home: Path, args, home_dv: Path | None = None) -> dict:
     noi_dung = args.noi_dung or ""
     if args.tep:
         noi_dung = Path(args.tep).expanduser().read_text(encoding="utf-8")
@@ -233,26 +371,53 @@ def lenh_ghi(home: Path, args) -> dict:
         raise SystemExit("Cần --noi-dung hoặc --tep")
 
     hom_nay = date.today()
-    duong_dan = home / args.loai / f"{slug(args.chu_de)}.md"
+    # Quy ước là của từng đơn vị; ghi chú pháp lý dùng chung.
+    duong_dan = ((home_dv or home) if args.loai == "quy-uoc" else home) / args.loai / \
+        f"{slug(args.chu_de)}.md"
 
     if args.loai == "phap-ly":
+        for truong in ("hieu_luc_tu", "hieu_luc_den", "ngay_ban_hanh"):
+            gt = getattr(args, truong)
+            if gt and _ngay(gt) is None:
+                raise SystemExit(f"--{truong.replace('_', '-')} phải có dạng YYYY-MM-DD: {gt!r}")
+        sai, co_gov = kiem_nguon(args.nguon or [])
+        if sai:
+            raise SystemExit(f"Nguồn phải là URL https đầy đủ: {sai}")
+        do_tin_cay = args.do_tin_cay
+        if do_tin_cay == "cao" and not co_gov:
+            do_tin_cay = "trung_binh"
+            print("⚠️  Độ tin cậy 'cao' cần ít nhất một nguồn cơ quan nhà nước (.gov.vn, "
+                  "chinhphu.vn) — đã hạ xuống trung_binh", file=sys.stderr)
         nhom = args.nhom or doan_nhom(args.chu_de)
         ttl = args.ttl if args.ttl else TTL_NGAY.get(nhom, TTL_NGAY["khac"])
         meta = {
             "chu_de": args.chu_de,
             "nhom": nhom,
             "van_ban": args.van_ban or [],
+            "dieu_khoan": args.dieu_khoan,
+            "ngay_ban_hanh": args.ngay_ban_hanh,
             "hieu_luc_tu": args.hieu_luc_tu,
+            "hieu_luc_den": args.hieu_luc_den,
+            "sua_doi": args.sua_doi or [],
+            "thay_the": args.thay_the or [],
+            "pham_vi_don_vi": args.pham_vi_don_vi,
+            "pham_vi_nam_tai_chinh": args.pham_vi_nam_tai_chinh,
             "tra_cuu_ngay": hom_nay.isoformat(),
             "het_han": (hom_nay + timedelta(days=ttl)).isoformat(),
             "thay_the_boi": args.thay_the_boi,
             "tinh_trang": "het_hieu_luc" if args.thay_the_boi else "con_hieu_luc",
             "nguon": args.nguon or [],
-            "do_tin_cay": args.do_tin_cay,
+            "do_tin_cay": do_tin_cay,
+            # Tra web xong KHÔNG có nghĩa là diễn giải đã được duyệt. Chỉ người có chuyên môn
+            # mới gỡ cờ này, bằng cách sửa tay ghi chú.
+            "can_nguoi_duyet": "true",
         }
         if not args.nguon:
             print("⚠️  Ghi chú pháp lý không có nguồn — nên có ít nhất một link .gov.vn",
                   file=sys.stderr)
+        if not args.hieu_luc_tu:
+            print("⚠️  Không có --hieu-luc-tu: ghi chú này sẽ không được dùng khi tra theo ngày "
+                  "(--ngay)", file=sys.stderr)
     else:
         meta = {
             "chu_de": args.chu_de,
@@ -265,11 +430,17 @@ def lenh_ghi(home: Path, args) -> dict:
     luu = None
     if duong_dan.exists():
         cu = doc_ghi_chu(duong_dan)
-        luu = duong_dan.with_name(f"{duong_dan.stem}.cu-{hom_nay.isoformat()}.md")
+        # Bản mới có hiệu lực muộn hơn thì bản cũ hết áp dụng từ ngày đó. Ghi rõ đây là suy ra
+        # (không phải đọc từ văn bản), để tra theo ngày vẫn lấy đúng bản cũ cho kỳ cũ.
+        tu_cu, tu_moi = _ngay(cu["meta"].get("hieu_luc_tu")), _ngay(meta.get("hieu_luc_tu"))
+        if tu_cu and tu_moi and tu_moi > tu_cu and not cu["meta"].get("hieu_luc_den"):
+            cu["meta"]["hieu_luc_den"] = tu_moi.isoformat()
+            cu["meta"]["hieu_luc_den_suy_ra"] = "true"
+        luu = ten_luu_tru(duong_dan, hom_nay)
         ghi_ghi_chu(luu, cu["meta"], cu["noi_dung"])
 
     ghi_ghi_chu(duong_dan, meta, noi_dung)
-    lenh_muc_luc(home)
+    lenh_muc_luc(home, home_dv)
 
     return {
         "da_ghi": str(duong_dan),
@@ -313,7 +484,7 @@ def lenh_nhat_ky(home: Path, noi_dung: str) -> dict:
     return {"da_ghi": str(tep)}
 
 
-def lenh_muc_luc(home: Path) -> dict:
+def lenh_muc_luc(home: Path, home_dv: Path | None = None) -> dict:
     dong = ["# Mục lục bộ nhớ", "",
             f"*Tự sinh lúc {datetime.now():%Y-%m-%d %H:%M}. Đừng sửa tay file này.*", ""]
 
@@ -342,7 +513,7 @@ def lenh_muc_luc(home: Path) -> dict:
 
     dong += ["", "## Quy ước riêng (không hết hạn)", "",
              "| Chủ đề | Cập nhật |", "|---|---|"]
-    goc = home / "quy-uoc"
+    goc = (home_dv or home) / "quy-uoc"
     co = False
     if goc.is_dir():
         for tep in sorted(goc.glob("*.md")):
@@ -356,15 +527,21 @@ def lenh_muc_luc(home: Path) -> dict:
         dong.append("| *(chưa có)* | |")
 
     dong.append("")
-    (home / "INDEX.md").write_text("\n".join(dong), encoding="utf-8")
-    return {"da_ghi": str(home / "INDEX.md")}
+    (home_dv or home).mkdir(parents=True, exist_ok=True)
+    (home_dv or home).joinpath("INDEX.md").write_text("\n".join(dong), encoding="utf-8")
+    return {"da_ghi": str((home_dv or home) / "INDEX.md")}
 
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Bộ nhớ cục bộ của skill ke-toan-vn.")
+    p.add_argument("--don-vi", help="Mã đơn vị: quy ước riêng nằm ở <bộ nhớ>/don-vi/<mã>/ "
+                                    "(mặc định KE_TOAN_VN_DON_VI); ghi chú pháp lý dùng chung")
     sub = p.add_subparsers(dest="lenh", required=True)
 
     s = sub.add_parser("tra", help="Tìm ghi chú theo chủ đề (chạy TRƯỚC khi tra web)")
+    s.add_argument("tu_khoa")
+    s.add_argument("--ngay", help="Quy định áp dụng TẠI ngày này (YYYY-MM-DD), kể cả bản lưu trữ")
+    s = sub.add_parser("lich-su", help="Mọi phiên bản của một chủ đề, kể cả bản lưu trữ")
     s.add_argument("tu_khoa")
 
     s = sub.add_parser("ghi", help="Ghi ghi chú mới")
@@ -373,7 +550,15 @@ def main() -> int:
     s.add_argument("--noi-dung")
     s.add_argument("--tep", help="Đọc nội dung từ file markdown")
     s.add_argument("--van-ban", action="append", help="Số hiệu văn bản (lặp lại được)")
-    s.add_argument("--hieu-luc-tu", help="YYYY-MM-DD")
+    s.add_argument("--hieu-luc-tu", help="Ngày văn bản bắt đầu có hiệu lực, YYYY-MM-DD")
+    s.add_argument("--hieu-luc-den", help="Ngày hết hiệu lực (nếu đã biết), YYYY-MM-DD")
+    s.add_argument("--ngay-ban-hanh", help="Ngày ban hành — khác ngày hiệu lực khi hồi tố")
+    s.add_argument("--dieu-khoan", help="Điều/khoản nêu quy định, vd \"Điều 31 khoản 1\"")
+    s.add_argument("--sua-doi", action="append", help="Văn bản mà văn bản này sửa đổi")
+    s.add_argument("--thay-the", action="append", help="Văn bản mà văn bản này thay thế")
+    s.add_argument("--pham-vi-don-vi", help="Loại đơn vị áp dụng (vd doanh-nghiep, su-nghiep-cong-lap)")
+    s.add_argument("--pham-vi-nam-tai-chinh",
+                   help="Điều kiện năm tài chính, vd \"bắt đầu từ hoặc sau 2026-01-01\"")
     s.add_argument("--nguon", action="append", help="Link nguồn (lặp lại được)")
     s.add_argument("--do-tin-cay", choices=["cao", "trung_binh"], default="trung_binh",
                    help="cao = đối chiếu được nguồn .gov.vn")
@@ -389,20 +574,31 @@ def main() -> int:
 
     args = p.parse_args()
     home = tim_home()
+    try:
+        home_dv, _ = home_don_vi(home, args.don_vi)
+    except ValueError as e:
+        raise SystemExit(str(e))
     home.mkdir(parents=True, exist_ok=True)
     (home / "phap-ly").mkdir(exist_ok=True)
-    (home / "quy-uoc").mkdir(exist_ok=True)
+    (home_dv / "quy-uoc").mkdir(parents=True, exist_ok=True)
 
     if args.lenh == "tra":
-        in_json(lenh_tra(home, args.tu_khoa))
+        ngay = None
+        if args.ngay:
+            ngay = _ngay(args.ngay)
+            if ngay is None:
+                raise SystemExit(f"--ngay phải có dạng YYYY-MM-DD: {args.ngay!r}")
+        in_json(lenh_tra(home, args.tu_khoa, ngay, home_dv))
+    elif args.lenh == "lich-su":
+        in_json(lenh_lich_su(home, args.tu_khoa, home_dv))
     elif args.lenh == "ghi":
-        in_json(lenh_ghi(home, args))
+        in_json(lenh_ghi(home, args, home_dv))
     elif args.lenh == "kiem-han":
         in_json(lenh_kiem_han(home))
     elif args.lenh == "nhat-ky":
         in_json(lenh_nhat_ky(home, args.noi_dung))
     elif args.lenh == "muc-luc":
-        in_json(lenh_muc_luc(home))
+        in_json(lenh_muc_luc(home, home_dv))
     return 0
 
 

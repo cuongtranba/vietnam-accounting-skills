@@ -31,7 +31,9 @@ bash <thư-mục-skill>/scripts/bootstrap.sh
 | Bóc tách hóa đơn điện tử → bảng kê Excel | *"gộp mấy hóa đơn trong thư mục này thành bảng kê mua vào"* |
 | Đối chiếu sổ sách, tìm chênh lệch | *"đối chiếu bảng kê bán ra với sổ 511 xem lệch chỗ nào"* |
 | Làm sạch, chuẩn hoá file Excel | *"file này số liệu lộn xộn quá, chuẩn hoá lại giúp"* |
-| Tra quy định thuế, kế toán | *"năm nay hộ kinh doanh doanh thu bao nhiêu thì không phải nộp thuế GTGT?"* |
+| Tra quy định thuế, kế toán — theo ngày áp dụng | *"năm nay hộ kinh doanh doanh thu bao nhiêu thì không phải nộp thuế GTGT?"* |
+| Xác định chế độ kế toán áp dụng | *"công ty năm tài chính bắt đầu 01/10/2025 dùng TT 99 hay TT 200?"* |
+| Hồ sơ truy vết một lần chạy | *"số này lấy từ file nào, theo quy tắc nào, ai đã xem?"* |
 | Chấm thầu, so sánh HSDT | *"chấm kỹ thuật rồi lập bảng so sánh giá đánh giá 4 bộ HSDT này"* |
 
 Đọc hóa đơn XML theo chuẩn QĐ 1450/QĐ-TCT và hóa đơn PDF, kể cả bản scan (OCR tiếng Việt).
@@ -39,8 +41,9 @@ bash <thư-mục-skill>/scripts/bootstrap.sh
 ## Vì sao skill này tồn tại
 
 Các skill xử lý file có sẵn (`xlsx`, `pdf`, `docx`) mạnh về **kỹ thuật file** nhưng không biết
-**nghiệp vụ Việt Nam**: cấu trúc hóa đơn điện tử, mẫu bảng kê HTKK, hệ thống tài khoản TT 200,
-quy trình chấm thầu theo NĐ 214/2025. Skill này là lớp nghiệp vụ đặt lên trên chúng — nó **ủy quyền**
+**nghiệp vụ Việt Nam**: cấu trúc hóa đơn điện tử, mẫu bảng kê HTKK, chế độ kế toán theo năm tài
+chính (TT 99/2025 thay TT 200 từ năm tài chính 2026; TT 133, TT 58/2026, TT 24/2024), quy trình
+chấm thầu theo NĐ 214/2025. Skill này là lớp nghiệp vụ đặt lên trên chúng — nó **ủy quyền**
 chứ không viết lại: dựng workbook thì giao cho `xlsx`, OCR thì giao cho `pdf`.
 
 ## Sáu nguyên tắc
@@ -78,7 +81,7 @@ không chịu thuế GTGT của hộ kinh doanh đã đổi **bốn lần trong 
 Một cache luật không hết hạn còn tệ hơn không có cache: nó lặp lại câu trả lời sai một cách tự tin
 qua nhiều tháng.
 
-Hạn dùng đặt theo mức độ biến động: **đấu thầu 45 ngày**, thuế 60, hóa đơn 90, hệ thống tài khoản 365.
+Hạn dùng đặt theo mức độ biến động: **đấu thầu 45 ngày**, thuế 60, hóa đơn 90, hệ thống tài khoản 180 (TT 99/2025 thay TT 200 từ năm tài chính 2026).
 Ngoài `het_han`, mỗi ghi chú còn có `thay_the_boi` — vì công cụ tìm kiếm thường đẩy văn bản đã hết
 hiệu lực lên đầu (tra "chấm thầu" vẫn ra NĐ 63/2014 và NĐ 24/2024, cả hai đã bị thay).
 
@@ -126,10 +129,14 @@ skills/ke-toan-vn/
 │   ├── dau-thau.md       quy trình chấm thầu theo NĐ 214/2025
 │   ├── phap-ly.md        bản đồ văn bản + cách tra
 │   ├── quy-trinh.md      ghi nhớ việc định kỳ và chạy lại tháng sau
+│   ├── kiem-soat.md      trạng thái kết quả, hồ sơ lần chạy, ghi nhận duyệt, nhiều đơn vị
 │   └── bo-nho.md         giao thức bộ nhớ
 └── scripts/
     ├── bootstrap.sh      cài môi trường
-    ├── doc_hoa_don.py    hóa đơn XML/PDF → bảng kê
+    ├── doc_hoa_don.py    hóa đơn XML/PDF → bảng kê (đọc + cổng đầy đủ)
+    ├── xac_thuc_hoa_don.py  trạng thái XSD / chữ ký số / cơ quan thuế, tách khỏi việc đọc
+    ├── che_do_ke_toan.py chế độ kế toán theo loại đơn vị + năm tài chính, chế độ hóa đơn theo ngày lập
+    ├── ho_so_kiem_toan.py   hồ sơ lần chạy: kiểm, phát lại, ghi nhận duyệt, xuất gói
     ├── doi_chieu.py      đối chiếu hai bảng
     ├── chuan_hoa.py      chuẩn hoá số/ngày/MST/Unicode
     ├── kiem_tra_mst.py   kiểm mã số thuế
@@ -155,8 +162,12 @@ skills/ke-toan-vn/
 
 ```bash
 python evals/tao_fixtures.py     # sinh dữ liệu mẫu (có cài sẵn lỗi để bắt)
-python evals/kiem_thu.py         # 65 phép kiểm hồi quy
+python evals/kiem_thu.py         # 65 phép kiểm hồi quy (con số đã biết)
+python evals/kiem_soat.py        # phép kiểm kiểm soát theo mã kịch bản (ACC/INV/WF/AUD/TEN/BID/SEC)
 ```
+
+`docs/audit/` giữ sổ đăng ký khoảng hở, ma trận kiểm soát, ma trận trích dẫn pháp lý và một gói
+kiểm toán mẫu (dữ liệu tổng hợp) kèm cách kiểm độc lập.
 
 Mỗi phép kiểm gắn với một cái bẫy cố ý trong dữ liệu mẫu, nên khi đỏ thì biết ngay nghiệp vụ nào
 vừa vỡ. `evals/evals.json` chứa 4 ca thử đầu-cuối để chạy bằng agent thật.
@@ -168,6 +179,12 @@ vừa vỡ. `evals/evals.json` chứa 4 ca thử đầu-cuối để chạy bằ
 Skill hỗ trợ xử lý dữ liệu, **không phải tư vấn pháp lý hay kế toán**. Mọi kết quả cần người có
 chuyên môn rà soát trước khi dùng để kê khai, quyết toán hay ra quyết định lựa chọn nhà thầu.
 Riêng với chấm thầu, kết quả là bảng tính sơ bộ — tổ chuyên gia chịu trách nhiệm đối chiếu và quyết định.
+
+Công cụ **không** được Kiểm toán Nhà nước, cơ quan thuế hay tổ chức nào chứng nhận. Các kiểm soát
+(hồ sơ lần chạy, sổ cái, ghi nhận duyệt) là bằng chứng kỹ thuật, lấy cảm hứng từ chuẩn mực KTNN
+(TT 04/2026/TT-KTNN — chuẩn mực cho kiểm toán viên nhà nước, không phải chuẩn chứng nhận phần mềm).
+Công cụ không xác thực danh tính người duyệt và không tra trạng thái hóa đơn với cơ quan thuế;
+nó nói rõ điều đó trong từng kết quả (`UNVERIFIED_HUMAN_REVIEW`, `not_checked`).
 
 ## Giấy phép
 

@@ -1,0 +1,30 @@
+# Nguồn pháp lý đã tải để đọc nguyên văn — 2026-10-16. File PDF không commit (văn bản công khai, tải lại theo URL); mã băm để đối chiếu đúng bản đã đọc.
+# Văn bản quét (NĐ 349/2026, VBHN 36/2026) đọc bằng tesseract -l vie; kết quả OCR có nhiễu.
+tt99_1.pdf  sha256=9aa44ed7a5aed27f18001df6e163858332ede3c4280397faf74fba01c1ccc86d
+tt58.pdf  sha256=a5fe49a872454aa8293bd820890db15197aebebe9c504c098558b8997b14c768
+tt24.pdf  sha256=62c6ccdff7180d9e6787beebccb8929ff053a39a70fd3d5b0e889890485b61e3
+nd254.pdf  sha256=9aa30852472c869f55f13e02aff177fcfd4b5bc4c8163f9103635e9c1caf4ba7
+tt91.pdf  sha256=9412ecb46612a0c222b4975c91c3160e062b7132c90291d7bf884f2810db3018
+nd60_1.pdf  sha256=65bc26c815d025e3103f7494708c7515cbfbc81724034eb727ef36c286136f2a
+nd111_1.pdf  sha256=f7a887da17ac5ab5dc1af9e8ab1d911460a1c3288a7530f91a38857f78903eda
+l91_1.pdf  sha256=226dd6da66a6eea348e04db0f8c496d884021b730298991c6f6683720a0dfa2e
+nd356.pdf  sha256=f24747bf3c374b04901e66704423ea1e1a60460376c4d052d649ecc8a2a2f1eb
+l88.pdf  sha256=2fb8f85d890c46efb2de6534ef574994d10fad86e2095f8a1db200ed94e5fe9a
+nd174.pdf  sha256=998af33cdd9e9f332efbd6c60e49387e54da0a9df9def1e5b30fd0e203784e07
+nd214_1.pdf  sha256=06b23a014853d362241e7a9291564e1707a3a308a5052b1d84477a4560980631
+nd349.pdf  sha256=b028a4c9732789ff1acda5f669fce6c8134169c87b3492982d61bf67d1d97cc8
+vbhn36.pdf  sha256=f79004a3e37939f6c5ec946222a25c573307a8298bf82536fd629e972cffd11c
+
+https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/10/46529/59631-1-20251563-156499-2025-tt-btc.pdf
+https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2021/6/33931/36124-1-2021653-65460-2021-nd-cp.pdf
+https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/5/44943/56448-1-2025731-732111-2025-nd-cp.pdf
+https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/6/45578/57730-1-2025971-97291-2025-qh15.pdf
+https://congbaocdn.chinhphu.vn/180507251028987904/2026/1/17/356signed-1768638052103952849513.pdf
+https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2025/8/45774/58101-1-20251063-1064214-2025-nd-cp.pdf
+https://congbaocdn.chinhphu.vn/180507251028987904/2026/7/16/469957-1784171406_v1_1784174327_signed.pdf  (NĐ 254)
+https://congbaocdn.chinhphu.vn/180507251028987904/2026/8/6/470171-1785986965_v1_1786011300_signed.pdf  (TT 91)
+https://congbaocdn.chinhphu.vn/180507251028987904/2026/6/10/469663-1781059095_v1_1781085632_signed.pdf  (TT 58)
+https://congbaocdn.chinhphu.vn/CongBaoCP/VanBan/2024/4/41775/49886-1-2024585-58624-2024-tt-btc.pdf  (TT 24)
+https://datafiles.chinhphu.vn/cpp/files/vbpq/2026/9/349_2026_nd-cp_09092026-signed.signed.pdf  (NĐ 349)
+https://xdcs.cdnchinhphu.vn/446259493575335936/2026/9/25/36-vbhn-btc-signed-1790318157417695015082.pdf  (VBHN 36/2026)
+https://portal.mof.gov.vn/hoidapcstc/home/cthoidap/159102  (hỏi đáp Cục QLKT)

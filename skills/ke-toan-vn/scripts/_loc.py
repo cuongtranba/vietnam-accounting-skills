@@ -16,8 +16,9 @@ from pathlib import Path
 
 from _quy_trinh import (
     KHOA_CHUNG, LoiQuyTrinh, bam, chi_so_cot, chuan, chuan_quy_tac, cot_cua_quy_tac,
-    doc_bang, khop_quy_tac, khop_ten_file, kiem_khoa, la_so, ten_ra, ten_sheet_hop_le,
-    thoa_tat_ca, tra_cot,
+    bang_nhau_tien, doc_bang, khop_quy_tac, khop_ten_file, kiem_khoa, la_dong_tong, la_so,
+    ten_ra,
+    ten_sheet_hop_le, thoa_tat_ca, tra_cot,
 )
 
 KHOA_NGUON = {"sheet", "dong_tieu_de", "cot_bat_buoc", "cot_tien", "dong_du_lieu_khi"}
@@ -69,6 +70,22 @@ def kiem(qt: dict, danh_muc: dict) -> dict:
     }
 
 
+def cot_tham_chieu(spec: dict) -> dict:
+    """Cột mà quy trình dùng — bố cục đổi ở các cột này mới là thay đổi có ý nghĩa tài chính."""
+    n = spec["nguon"]
+    cot = set(n.get("cot_bat_buoc", [])) | set(spec.get("theo_doi", []))
+    for q in spec["quy_tac"]:
+        cot |= cot_cua_quy_tac(q)
+    for b in spec["bien_the"]:
+        for ds in b["them_tru"].values():
+            for t in ds:
+                cot |= set(t)
+    if n.get("cot_tien"):
+        cot.add(n["cot_tien"])
+    cot |= set(spec["_dong_du_lieu_khi"] or {})
+    return {"nguon": {"sheet": n.get("sheet"), "dong_tieu_de": n["dong_tieu_de"], "cot": cot}}
+
+
 def ap_bien_the(spec: dict, ten_file: str, ep: str | None, tat: bool) -> tuple[list, str | None]:
     """Bộ quy tắc áp cho một file, sau khi cộng biến thể (nếu có)."""
     chon = None
@@ -112,16 +129,21 @@ def doc_va_phan_loai(spec: dict, duong_dan: Path, ep_bien_the, tat_bien_the) -> 
         raise LoiQuyTrinh(f"{duong_dan.name}/{ten_sheet}: thiếu cột {thieu}. Bố cục bản kết "
                           f"xuất có thể đã đổi — xem lại dòng tiêu đề {n['dong_tieu_de']}.")
     vi_tri = {c: tra_cot(cm, c, duong_dan.name) for c in can}
+    i_tien = vi_tri[n["cot_tien"]] if n.get("cot_tien") else None
     dl_khi = spec["_dong_du_lieu_khi"]
 
-    giu, bo, khong_phai_dl, dem = [], [], 0, {}
+    giu, bo, khong_phai_dl, dem, dong_tong, tong_goc = [], [], 0, {}, [], 0
     quan_sat = {c: {} for c in spec.get("theo_doi", [])}
-    for _, r in dong:
+    for so, r in dong:
         def lay(c, r=r):
             return r[vi_tri[c]]
         if dl_khi and not thoa_tat_ca(dl_khi, lay):
             khong_phai_dl += 1
             continue
+        if la_dong_tong(r):
+            dong_tong.append(so)
+        if i_tien is not None and la_so(r[i_tien]):
+            tong_goc += r[i_tien]
         for c in quan_sat:
             v = lay(c)
             quan_sat[c].setdefault(chuan(v), "" if v is None else str(v).strip())
@@ -136,10 +158,11 @@ def doc_va_phan_loai(spec: dict, duong_dan: Path, ep_bien_the, tat_bien_the) -> 
     return {"duong_dan": duong_dan, "sheet": ten_sheet, "tieu_de": tieu_de, "cm": cm,
             "giu": giu, "bo": bo, "dem": dem, "bien_the": bien_the,
             "khong_phai_du_lieu": khong_phai_dl, "quan_sat": quan_sat,
-            "quy_tac_ap": [q["ma"] for q in quy_tac]}
+            "quy_tac_ap": [q["ma"] for q in quy_tac], "i_tien": i_tien,
+            "so_dong_doc": len(dong), "dong_tong": dong_tong, "tong_goc": tong_goc}
 
 
-def ghi(spec: dict, kq: dict, ra: Path) -> None:
+def ghi(spec: dict, kq: dict, ra: Path, bo_ghi=None) -> None:
     import openpyxl
     from openpyxl.utils import get_column_letter
 
@@ -166,7 +189,7 @@ def ghi(spec: dict, kq: dict, ra: Path) -> None:
         [],
     ]
     if cot_tien:
-        i = kq["cm"][chuan(cot_tien)]
+        i = kq["i_tien"]
         st = get_column_letter(i + 1)
         tong = sum(r[i] for r in kq["giu"] + kq["bo"] if la_so(r[i]))
         dong += [
@@ -198,7 +221,7 @@ def ghi(spec: dict, kq: dict, ra: Path) -> None:
     ws.column_dimensions["A"].width = 40
     ws.column_dimensions["B"].width = 34
     ws.column_dimensions["C"].width = 20
-    luu(wb, ra)
+    luu(wb, ra, bo_ghi)
 
 
 def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
@@ -221,12 +244,14 @@ def ghi_tat_ca(spec: dict, trung_gian: dict, tuy_chon: dict) -> dict:
         p = k["duong_dan"]
         ra = (Path(ra_dir) if ra_dir else p.parent) / ten_ra(spec["ket_qua"]["ra"], p,
                                                              tuy_chon.get("ky"))
-        ghi(spec, k, ra)
-        i = k["cm"].get(chuan(spec["nguon"].get("cot_tien") or "")) \
-            if spec["nguon"].get("cot_tien") else None
+        bo_ghi = tuy_chon.get("bo_ghi")
+        ghi(spec, k, ra, bo_ghi)
+        i = k["i_tien"]
 
         def tong(ds, i=i):
             return round(sum(r[i] for r in ds if la_so(r[i])), 2) if i is not None else None
+        tam = bo_ghi.tep[-1][0] if bo_ghi is not None and bo_ghi.tep else None
+        bb = bat_bien(spec, k, tam, tong(k["giu"]), tong([r[:-1] for r in k["bo"]]))
         ket_qua.append({
             "nguon": str(p), "ra": str(ra), "sheet": k["sheet"], "bien_the": k["bien_the"],
             "so_dong_goc": len(k["giu"]) + len(k["bo"]),
@@ -234,7 +259,48 @@ def ghi_tat_ca(spec: dict, trung_gian: dict, tuy_chon: dict) -> dict:
             "dong_khong_phai_du_lieu": k["khong_phai_du_lieu"],
             "tong_tien_giu": tong(k["giu"]), "tong_tien_bo": tong([r[:-1] for r in k["bo"]]),
             "ly_do_bo": dict(sorted(k["dem"].items(), key=lambda kv: -kv[1])),
+            "bat_bien": bb,
         })
         dau_vao.append({"tep": str(p), "bam": bam(p), "sheet": k["sheet"],
                         "tieu_de": [str(x) if x is not None else "" for x in k["tieu_de"]]})
     return {"ket_qua": ket_qua, "_dau_vao": dau_vao}
+
+
+def bat_bien(spec: dict, k: dict, tam: Path | None, tong_giu, tong_bo) -> dict:
+    """Bảo toàn số dòng và số tiền, kiểm độc lập với cách đã phân loại.
+
+    - Số dòng: (dòng đọc được − dòng không phải dữ liệu) = giữ + loại.
+    - Tiền: tổng cột tiền cộng thẳng trên dữ liệu gốc = tổng phần giữ + tổng phần loại.
+    - Đọc lại: mở chính file kết quả VỪA GHI (file tạm, trước khi công bố), đếm dòng và cộng
+      tiền ở hai sheet — khớp mới công bố. Đây là chỗ bắt lỗi của bước ghi mà so với file mẫu
+      không bắt được (file mẫu cũ có thể chứa chính lỗi đó).
+    - Dòng mang nhãn tổng/cộng lẫn trong dữ liệu: liệt kê để người xem, không tự bỏ.
+    Hỏng bảo toàn hay đọc lại là lỗi của công cụ: dừng, không công bố gì.
+    """
+    so_goc = k["so_dong_doc"] - k["khong_phai_du_lieu"]
+    bao_toan_dong = so_goc == len(k["giu"]) + len(k["bo"])
+    i = k["i_tien"]
+    bao_toan_tien = None if i is None else bang_nhau_tien(
+        k["tong_goc"], sum(r[i] for r in k["giu"] + k["bo"] if la_so(r[i])))
+    doc_lai = None
+    if tam is not None:
+        import openpyxl
+
+        kq = spec["ket_qua"]
+        wb = openpyxl.load_workbook(tam, read_only=True, data_only=True)
+        try:
+            dem = {}
+            for ten in (ten_sheet_hop_le(kq["sheet_giu"]), ten_sheet_hop_le(kq["sheet_bo"])):
+                dong = [r for r in wb[ten].iter_rows(min_row=2, values_only=True)
+                        if any(v is not None for v in r)]
+                tien = round(sum(r[k["i_tien"]] for r in dong if la_so(r[k["i_tien"]])), 2) \
+                    if k["i_tien"] is not None else None
+                dem[ten] = (len(dong), tien)
+        finally:
+            wb.close()
+        doc_lai = list(dem.values()) == [(len(k["giu"]), tong_giu), (len(k["bo"]), tong_bo)]
+    if not bao_toan_dong or bao_toan_tien is False or doc_lai is False:
+        raise LoiQuyTrinh(f"{k['duong_dan'].name}: hỏng bảo toàn (dòng {bao_toan_dong}, tiền "
+                          f"{bao_toan_tien}, đọc lại {doc_lai}) — lỗi công cụ, chưa ghi gì")
+    return {"bao_toan_dong": bao_toan_dong, "bao_toan_tien": bao_toan_tien,
+            "doc_lai_khop": doc_lai, "dong_tong_nghi_ngo": k["dong_tong"]}

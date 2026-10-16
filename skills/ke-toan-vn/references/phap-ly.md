@@ -1,6 +1,6 @@
 # Tra cứu văn bản pháp luật
 
-> **Bản đồ này lập ngày 2026-09-10.** Nó chỉ dùng để biết *nên tra cái gì* và *văn bản nào từng
+> **Bản đồ này lập ngày 2026-09-10, phần chế độ kế toán và hóa đơn cập nhật 2026-10-16.** Nó chỉ dùng để biết *nên tra cái gì* và *văn bản nào từng
 > thay văn bản nào* — **không** dùng làm căn cứ trả lời. Trước khi nói bất kỳ con số nào cho
 > người dùng, kiểm qua `bo_nho.py tra <chủ đề>`, và tra web nếu ghi chú đã hết hạn.
 
@@ -48,21 +48,44 @@ dùng là cần kiểm tra lại** trước khi dùng cho việc quan trọng.
 
 ## Bản đồ văn bản (tình trạng ngày 2026-09-10)
 
-### Chế độ kế toán
+### Chế độ kế toán — chọn theo LOẠI ĐƠN VỊ và ngày BẮT ĐẦU năm tài chính
+
+Đừng mặc định TT 200. Chạy `che_do_ke_toan.py` — nó chọn theo bảng dưới, kèm trích dẫn, và trả
+`can_xac_nhan` (mã thoát 2) khi thiếu thông tin hoặc văn bản để ngỏ; khi đó HỎI người dùng.
+
+| Văn bản | Đối tượng | Áp dụng | Căn cứ (đã đọc Công báo 2026-10-16) |
+|---|---|---|---|
+| **TT 99/2025/TT-BTC** | Doanh nghiệp mọi lĩnh vực, thành phần (trừ TCTD — theo NHNN) | Năm tài chính **bắt đầu từ hoặc sau 01/01/2026** | Điều 31 khoản 1; thay TT 200, 75/2015, 53/2016, 195/2012. Khoản 2: phần cổ phần hóa DNNN của TT 200 vẫn dùng. Khoản 3: DNNVV, cơ sở ngoài công lập được CHỌN TT 99 |
+| TT 200/2014/TT-BTC | Doanh nghiệp | Năm tài chính bắt đầu **trước** 01/01/2026 — dùng cho CẢ năm đó (năm 01/10/2025–30/09/2026 vẫn TT 200) | Suy từ Điều 31 TT 99 |
+| TT 133/2016/TT-BTC | DN nhỏ và vừa — được chọn TT 133 hoặc TT 99 | — | Không có trong danh sách TT 99 thay; TT 58 Điều 4 khoản 3 vẫn dẫn chiếu (chưa đọc văn bản gốc) |
+| **TT 58/2026/TT-BTC** | DN siêu nhỏ; hộ/cá nhân kinh doanh được chọn | Năm tài chính **bắt đầu từ hoặc sau 01/7/2026** | Điều 12 khoản 1; khoản 2: TT 132/2018 hết hiệu lực từ 01/7/2026 |
+| TT 132/2018/TT-BTC | DN siêu nhỏ | Năm tài chính kết thúc trước 01/7/2026 | — |
+| **TT 24/2024/TT-BTC** | Cơ quan nhà nước, **đơn vị sự nghiệp công lập** (bệnh viện công) | Từ năm tài chính 2025 | Điều 2 khoản 1 điểm b: ĐVSNCL tự bảo đảm chi thường xuyên VÀ chi đầu tư **được cơ quan có thẩm quyền cho phép** thì dùng chế độ DN (vẫn lập báo cáo quyết toán kinh phí theo Phụ lục III nếu có NSNN, viện trợ, vay nợ, phí được để lại). Điều kiện cụ thể ở khoản 1 Điều 34 NĐ 60/2021 (sửa bởi NĐ 111/2025, từ 07/7/2025): đơn vị nhóm 1 có **đề án quản lý, kế toán theo mô hình doanh nghiệp được phê duyệt**, hoặc **đang áp dụng cơ chế tài chính như doanh nghiệp** (không cần đề án). Điều 13: thay TT 107/2017 |
+
+Ba bẫy:
+
+- **"Bệnh viện" không nói lên chế độ.** Bệnh viện công là ĐVSNCL (TT 24/2024, trừ ngoại lệ trên);
+  bệnh viện tư là doanh nghiệp (TT 99/2025 hoặc TT 133). Hỏi loại đơn vị, mức tự chủ, và đề án được
+  duyệt / cơ chế tài chính đang áp dụng — đừng suy từ tên.
+- **DN siêu nhỏ có năm tài chính vắt qua 01/7/2026** (vd năm dương lịch 2026): TT 132 hết hiệu lực
+  giữa năm mà TT 58 chỉ áp cho năm bắt đầu từ 01/7/2026. TT 58 không nói thẳng; `che_do_ke_toan.py`
+  chọn **giữ TT 132 cả năm, TT 58 từ năm sau** — suy theo trả lời của Cục Quản lý kế toán cho TT 99
+  (năm 01/10/2025–30/09/2026 "chưa áp dụng" TT 99) và khoản 3 Điều 4 TT 58 (chỉ đổi chế độ tại
+  ngày bắt đầu kỳ kế toán năm). Kết quả mang `co_so: suy_luan_tuong_tu` — nói rõ với người dùng
+  đây là suy luận.
+- **Số liệu năm cũ không đổi theo luật mới.** Báo cáo năm 2025 theo TT 200 vẫn là TT 200.
+
+TT 99 (như TT 200) cho phép doanh nghiệp **tự mở tài khoản chi tiết** và tự thiết kế mẫu sổ — nên
+đừng ngạc nhiên khi sổ của người dùng không giống mẫu chuẩn. Xem `quy-uoc/` trong bộ nhớ. Với năm
+áp dụng TT 99, tra hệ thống tài khoản ở Phụ lục II của TT 99 — đừng dùng danh mục tài khoản TT 200
+từ trí nhớ (bảng này chưa đối chiếu hai danh mục).
+
+Với các năm áp dụng TT 200: tài khoản đã bỏ so với QĐ 15 cũ gồm 129, 139, 142, 144, 159, 311, 315,
+342, 351, 415, 431, 512, 531, 532; gộp 142+242 → **242**, 521+531+532 → **521**; thêm mới 171, 353.
 
 | Văn bản | Nội dung | Ghi chú |
 |---|---|---|
-| TT 200/2014/TT-BTC | Chế độ kế toán doanh nghiệp, hệ thống tài khoản | Hiệu lực 01/01/2015, thay QĐ 15/2006. Đã được sửa bởi TT 75/2015, TT 53/2016 — nên tra **bản hợp nhất** |
-| TT 133/2016/TT-BTC | Chế độ kế toán doanh nghiệp nhỏ và vừa | Lựa chọn thay cho TT 200 với DNNVV |
-| Luật Kế toán 88/2015/QH13 | Khung gốc | |
-
-TT 200 cho phép doanh nghiệp **tự mở tài khoản cấp 2, cấp 3** không cần xin phép, và **tự thiết kế
-mẫu sổ** — nên đừng ngạc nhiên khi sổ của người dùng không giống mẫu chuẩn. Xem `quy-uoc/` trong
-bộ nhớ để biết họ mở những tài khoản chi tiết nào.
-
-Tài khoản đã bỏ so với QĐ 15 cũ: 129, 139, 142, 144, 159, 311, 315, 342, 351, 415, 431, 512, 531, 532.
-Gộp đáng chú ý: 142+242 → **242** (chi phí trả trước); 521+531+532 → **521** (các khoản giảm trừ
-doanh thu). Thêm mới: 171, 353.
+| Luật Kế toán 88/2015/QH13 | Khung gốc | Sửa đổi bởi Luật ngày 29/11/2024 (dẫn trong căn cứ của TT 99) |
 
 ### Thuế GTGT
 
@@ -117,9 +140,31 @@ trong NĐ 254/2026. **Kiểm lại điều khoản tương ứng trước khi d�
 - Nội dung hóa đơn có thêm **số định danh cá nhân** của người mua (thay cho MST với cá nhân).
 - Mở rộng ủy nhiệm lập hóa đơn cho cả **hộ kinh doanh, cá nhân kinh doanh**.
 
-Pháp lý quan trọng khi làm việc với file: **bản XML mới là bản gốc có giá trị pháp lý; PDF chỉ là
-"bản thể hiện"**. Bản giấy chuyển đổi chỉ có giá trị lưu giữ ghi sổ, không có hiệu lực giao dịch
-(Điều 7 NĐ 123/2020). ⇒ Khi có cả XML và PDF, **luôn ưu tiên đọc XML**.
+Pháp lý quan trọng khi làm việc với file: **hóa đơn điện tử là thông điệp dữ liệu (XML); PDF chỉ là
+"bản thể hiện"**. Bản giấy chuyển đổi chỉ phục vụ ghi sổ, không có hiệu lực giao dịch (Điều 7
+NĐ 123/2020; khoản 2 và điểm b.2 khoản 4 Điều 5 NĐ 254/2026). ⇒ Khi có cả XML và PDF, **luôn ưu
+tiên đọc XML**.
+
+**Văn bản nào áp cho hóa đơn nào — theo NGÀY LẬP.** Lập từ 01/7/2026: NĐ 254/2026 + TT 91/2026.
+Lập trước đó: NĐ 123/2020 (đã sửa bởi NĐ 41/2022, NĐ 70/2025). Điều 44 NĐ 254 không có chuyển tiếp
+chung cho hóa đơn đã lập — xét theo văn bản có hiệu lực tại ngày lập (cách hiểu về hiệu lực theo
+thời gian; `doc_hoa_don.py` ghi cột `che_do_hoa_don` cho từng dòng).
+
+**Chữ ký số.** NĐ 254 (Phụ lục, mục 6) yêu cầu chữ ký số người bán; có ngoại lệ — hóa đơn khởi tạo
+từ máy tính tiền không bắt buộc chữ ký số (Điều 8 khoản 9 điểm b), tem/vé/thẻ... Người mua không
+nhất thiết ký (Điều 10). Nên "không có chữ ký" là việc cần xem, không tự loại.
+
+### Dữ liệu cá nhân và lưu trữ tài liệu kế toán (đã đọc Công báo 2026-10-16)
+
+| Văn bản | Điểm dùng được ngay |
+|---|---|
+| Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 (hiệu lực 01/01/2026, Điều 38) | Điều 19: xử lý không cần đồng ý khi "phục vụ hoạt động của cơ quan nhà nước…", "trường hợp khác theo quy định của pháp luật" (vd nghĩa vụ kế toán, thuế) — nhưng phải có cơ chế giám sát (khoản 2). Điều 20 khoản 1 điểm c: dùng nền tảng ở nước ngoài để xử lý dữ liệu thu thập tại Việt Nam là chuyển dữ liệu xuyên biên giới → hồ sơ đánh giá tác động gửi cơ quan chuyên trách trong 60 ngày. Điều 26: thông tin sức khỏe. Điều 2 khoản 1: dữ liệu đã **khử nhận dạng** không còn là dữ liệu cá nhân |
+| NĐ 356/2025/NĐ-CP (hiệu lực 01/01/2026, thay NĐ 13/2023) | Điều 4 khoản 1: danh mục dữ liệu nhạy cảm — gồm **tình trạng sức khỏe** (điểm d), thông tin tài khoản/giao dịch ngân hàng (điểm k) |
+| Luật Kế toán 88/2015/QH13 | Khoản 7 Điều 26: được ghi sổ bằng phương tiện điện tử; lưu trên phương tiện điện tử phải an toàn, bảo mật, tra cứu được trong thời hạn lưu trữ. Khoản 5 Điều 41: lưu ít nhất 5 năm / 10 năm / vĩnh viễn |
+| NĐ 174/2016/NĐ-CP | **Điều 13 khoản 1: bảng kê, bảng tổng hợp chi tiết, sổ chi tiết, sổ tổng hợp, BCTC, báo cáo quyết toán… lưu tối thiểu 10 năm**; Điều 12: tài liệu dùng cho quản lý, không trực tiếp ghi sổ — tối thiểu 5 năm; Điều 14: vĩnh viễn. (Chưa kiểm văn bản sửa đổi NĐ 174.) |
+
+⇒ Kết quả công cụ dùng để ghi sổ (bảng kê, bảng tổng hợp theo khoa...) là tài liệu kế toán lưu
+**ít nhất 10 năm** — đừng xoá nó, cũng đừng xoá hồ sơ kiểm toán đi kèm, trước thời hạn đó.
 
 ### Mã số thuế
 
@@ -145,7 +190,7 @@ với cá nhân — nên công cụ kiểm tra phải chấp nhận cả dạng 
 | Luật An ninh mạng 116/2025/QH15 | Sửa vài điều liên quan an ninh mạng | 01/07/2026 | |
 | Luật Công nghệ cao 133/2025/QH15 | Sửa vài điều, thêm nhóm doanh nghiệp công nghệ cao | 01/07/2026 | |
 | **Văn bản hợp nhất 74/VBHN-VPQH (2026)** | Hợp nhất đủ 5 lần sửa trên | | **dùng bản này để tra số điều**, đừng tự cộng dồn |
-| **NĐ 214/2025/NĐ-CP** | Chi tiết Luật Đấu thầu, **lựa chọn nhà thầu** | **04/08/2025** | **văn bản đang áp dụng** |
+| **NĐ 214/2025/NĐ-CP** | Chi tiết Luật Đấu thầu, **lựa chọn nhà thầu** | **04/08/2025** | **văn bản đang áp dụng**; sửa bởi NĐ 165/2026, NĐ 170/2026 (01/7/2026), **NĐ 349/2026** (09/9/2026); hợp nhất: **36/2026/VBHN-NĐ-BTC** (23/9/2026). Điều 31 không đổi (kiểm 2026-10-16) |
 | TT 79/2025/TT-BTC | Mẫu HSMT, đăng tải thông tin lên Hệ thống mạng đấu thầu quốc gia | | |
 | TT 80/2025/TT-BTC | Mẫu HSYC, **báo cáo đánh giá**, báo cáo thẩm định | | |
 | ~~NĐ 63/2014/NĐ-CP~~ | | | ❌ **hết hiệu lực** |
@@ -160,12 +205,17 @@ nhớ cho mảng đấu thầu đặt ngắn nhất — **45 ngày**. Nếu ghi 
 
 ## Cách tra một quy định
 
-1. `bo_nho.py tra "<chủ đề>"` — nếu có ghi chú còn hạn thì dùng luôn, xong.
+1. `bo_nho.py tra "<chủ đề>"` — nếu có ghi chú còn hạn thì dùng luôn, xong. Câu hỏi về MỘT KỲ CỤ
+   THỂ (giao dịch năm ngoái, tờ khai quý trước) thì thêm `--ngay <ngày giao dịch>`: nó chọn bản có
+   hiệu lực tại ngày đó (kể cả bản lưu trữ) và cảnh báo văn bản hồi tố.
 2. Nếu không có hoặc quá hạn: tra web. Câu truy vấn nên gồm **số hiệu văn bản + năm + từ khoá
    nội dung**, ví dụ `"Nghị định 214/2025 hiệu chỉnh sai lệch mua sắm hàng hóa"`.
    Thêm một truy vấn riêng dạng `"<số hiệu> còn hiệu lực không thay thế bởi"` để bắt bẫy 2.
 3. Đối chiếu ít nhất một nguồn `.gov.vn` hoặc bản hợp nhất trên thuvienphapluat.
-4. `bo_nho.py ghi` với đầy đủ `hieu_luc_tu`, `nguon`, `do_tin_cay`, và `thay_the_boi` nếu có.
+4. `bo_nho.py ghi` với đầy đủ `--hieu-luc-tu`, `--ngay-ban-hanh` (khác ngày hiệu lực khi hồi tố),
+   `--dieu-khoan`, `--nguon` (URL https), `--do-tin-cay`, và `--sua-doi` / `--thay-the` /
+   `--thay-the-boi` nếu có. Ghi chú mới luôn mang `can_nguoi_duyet: true` — tra web xong không có
+   nghĩa diễn giải đã được người có chuyên môn duyệt.
 5. Trả lời người dùng, **kèm số hiệu văn bản và ngày hiệu lực**. Không nói trống không
    "thuế suất là 10%" mà nói "10% theo Luật 48/2024/QH15, hiệu lực từ 01/7/2025".
 

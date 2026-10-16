@@ -125,14 +125,43 @@ Sau khi bóc tách, kiểm ba điều — rẻ và bắt được hầu hết l�
 Ngoài ra báo ngay nếu thấy: **hóa đơn trùng số**, **ngày ngoài kỳ đang làm**, **MST bên mua không
 phải công ty của người dùng**. Đây là những thứ kế toán muốn biết nhất và thường không nghĩ để hỏi.
 
+## Đọc ≠ xác thực
+
+Đọc được XML không có nghĩa hóa đơn là thật. Mỗi dòng có `xac_thuc` với ba trạng thái riêng —
+báo đúng chữ, xem `references/kiem-soat.md`:
+
+- `xml_schema` — `not_checked` trừ khi đưa XSD (`--xsd`); `fail` khi XML hỏng.
+- `chu_ky` — `valid` chỉ khi chữ ký toàn vẹn VÀ chứng thư chuỗi về CA tin cậy do người dùng đưa
+  (`--ca-tin-cay ca.pem`). Không có CA thì tối đa `not_checked` kèm `toan_ven_chu_ky: valid`.
+  `absent` (không ký) là việc cần xem — một số loại hóa đơn được miễn chữ ký số.
+- `trang_thai_cqt` — luôn `not_checked`: công cụ không tra hệ thống của cơ quan thuế.
+
+Một thông điệp `<TDiep>` có thể chứa nhiều `<HDon>` — mỗi hóa đơn ra một dòng (`tep` ghi `#1`,
+`#2`). Một thẻ tiền lặp với giá trị khác nhau trong cùng hóa đơn thì để trống và cảnh báo, không
+chọn bừa thẻ đầu tiên.
+
+## Cổng đầy đủ
+
+`tom_tat.tong_tien_hang` / `tong_tien_thue` / `tong_thanh_toan` là **tổng quan sát** — chỉ cộng số
+đọc được, hóa đơn trùng chỉ cộng một lần. `tom_tat.tong_da_kiem` chỉ có khi MỌI hóa đơn đủ dữ liệu
+và không có vấn đề cần xem. `tom_tat.trang_thai`: `draft` (đủ điều kiện để người có trách nhiệm
+xem) hoặc `needs_review` (lý do ở `ly_do_trang_thai`). Mỗi dòng có `trang_thai_dong`: `ok`,
+`thieu_du_lieu`, `can_xem`, `loi_doc`, `trung`. Số âm (hóa đơn điều chỉnh giảm) và 0 đồng là dữ
+liệu hợp lệ, không phải "thiếu".
+
 ## Lệnh
 
 ```bash
 doc_hoa_don.py <thư mục hoặc file> --ra ket_qua.csv
 doc_hoa_don.py <thư mục> --ra ket_qua.json --dinh-dang json
+doc_hoa_don.py <thư mục> --ca-tin-cay ca.pem --yeu-cau-day-du   # mã 2 nếu needs_review
+doc_hoa_don.py <thư mục> --ghi-ho-so [--don-vi <mã>] [--nguoi-lap "..."]   # ghi hồ sơ lần đọc
 ```
 
 Kết quả gồm các cột: `nguon`, `tep`, `ky_hieu`, `so_hd`, `ngay`, `mst_ban`, `ten_ban`, `mst_mua`,
-`ten_mua`, `tien_hang`, `thue_suat`, `tien_thue`, `tong_cong`, `canh_bao`.
+`ten_mua`, `tien_hang`, `thue_suat`, `tien_thue`, `tong_cong`, `canh_bao`, `che_do_hoa_don`
+(văn bản áp theo ngày lập: `ND123/2020` hoặc `ND254/2026`), `xml_schema`, `chu_ky`,
+`trang_thai_cqt`, `trang_thai_dong`. Ô chữ mở đầu bằng `= + - @` được thêm dấu `'` khi xuất CSV/Excel
+để không thành công thức. File XML có DOCTYPE/ENTITY hoặc lớn hơn 20 MB bị từ chối đọc.
 
 Cột `canh_bao` là nơi ghi mọi thứ đáng ngờ. **Đọc nó trước khi báo cáo kết quả cho người dùng.**

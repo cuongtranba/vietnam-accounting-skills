@@ -1,0 +1,145 @@
+{
+  "loai": "goi_kiem_toan",
+  "schema_version": "1.0",
+  "mien_tru": "Gói này là bằng chứng kỹ thuật về một lần chạy công cụ (nguồn, quy tắc, kết quả, người xem). Nó không phải chứng nhận, ý kiến kiểm toán hay xác nhận của Kiểm toán Nhà nước hay cơ quan thuế; danh tính người duyệt là tự khai, chưa được xác thực.",
+  "ho_so": {
+    "canh_bao": [],
+    "cong_cu": "quy_trinh.py chay",
+    "danh_muc": null,
+    "dau_ra": [
+      {
+        "nhan": "LOC-DT-MAU-09.xlsx",
+        "sha256": "fbd82cc1334001a47b5137d451e63c051eb46c42770fd579336f7d97d8b27000"
+      }
+    ],
+    "dau_vao": [
+      {
+        "dau_van_tay_bo_cuc": "0883b7c98787008ff409072b16a2b1818c5f19c74b8b015cc4fa1f94e4c0c816",
+        "nhan": "DT-MAU-09.xlsx",
+        "sha256": "9e924f6cccc203790bdb4b6bbf76050b3f04677d864433c8f6422b33b6fcd374",
+        "sheet": "Sheet",
+        "so_cot": 4,
+        "vai": "nguon"
+      }
+    ],
+    "don_vi": "mac-dinh",
+    "ket_qua_sha256": "6b9089ac0a057d2a9f0a0921d4906a2f8019f24903db304a1cb7d0619afbc029",
+    "ket_qua_tom_tat": [
+      {
+        "bat_bien": {
+          "bao_toan_dong": true,
+          "bao_toan_tien": true,
+          "doc_lai_khop": true,
+          "dong_tong_nghi_ngo": []
+        },
+        "bien_the": null,
+        "dong_khong_phai_du_lieu": 0,
+        "ly_do_bo": {
+          "Quy tắc 1": 1
+        },
+        "sheet": "Sheet",
+        "so_dong_bo": 1,
+        "so_dong_giu": 2,
+        "so_dong_goc": 3,
+        "tong_tien_bo": 50000,
+        "tong_tien_giu": 130000
+      }
+    ],
+    "ky": null,
+    "loai": "loc",
+    "loai_ban_ghi": "quy_trinh",
+    "ly_do_trang_thai": [],
+    "ngoai_le": [],
+    "nguoi_lap": {
+      "nguon": "tu_khai",
+      "ten": "Người lập mẫu",
+      "xac_thuc": "UNVERIFIED_HUMAN_REVIEW"
+    },
+    "phap_nhan": null,
+    "quy_tac": {
+      "nhan": "loc-mau.toml",
+      "sha256": "15f13d8b4bce4585f53860b426cc1dfec4d4de4a9cd87b928b58e7feac8b1ec0"
+    },
+    "quy_trinh": "loc-mau",
+    "run_id": "run-20261016T170627-536aa10e",
+    "schema_version": "1.0",
+    "skill": {
+      "git_commit": "632ffc32aad95c3a85f5a419602350ba0d9b7f59",
+      "he_dieu_hanh": "Darwin",
+      "phien_ban": "0.4.0",
+      "python": "3.13.15"
+    },
+    "sua_doi_cho": null,
+    "tham_so": {
+      "ban_sua_doi": false,
+      "bien_the": null,
+      "chap_nhan_bo_cuc": false,
+      "chap_nhan_gia_tri_moi": false,
+      "khong_bien_the": false
+    },
+    "thoi_gian": "2026-10-16T17:06:27+07:00",
+    "trang_thai_ket_qua": "draft"
+  },
+  "ho_so_sha256": "189b980515c8fe68cfbfa4f4f40f6acb91c08c71b77194ef240e4ee0220c2bf7",
+  "muc_so_cai": [
+    {
+      "bam": "4ca86b765defa19ef3a5e7a3334f2820bf3eb7bef2b0cb814ad5954674f12657",
+      "ho_so_sha256": "189b980515c8fe68cfbfa4f4f40f6acb91c08c71b77194ef240e4ee0220c2bf7",
+      "loai": "lan_chay",
+      "run_id": "run-20261016T170627-536aa10e",
+      "stt": 1,
+      "thoi_gian": "2026-10-16T17:06:27+07:00",
+      "truoc": null
+    },
+    {
+      "bam": "1fe23c69a1ca2d4b515ad90a12a505f73cdaffce017ac9ad2656b038de0a4587",
+      "don_vi": "mac-dinh",
+      "ghi_chu": "Đã đối chiếu tổng với bản kết xuất",
+      "ho_so_sha256": "189b980515c8fe68cfbfa4f4f40f6acb91c08c71b77194ef240e4ee0220c2bf7",
+      "loai": "duyet",
+      "ngoai_le": null,
+      "nguoi": {
+        "nguon": "tu_khai",
+        "ten": "Người kiểm tra mẫu",
+        "xac_thuc": "UNVERIFIED_HUMAN_REVIEW"
+      },
+      "quyet_dinh": "dong-y",
+      "run_id": "run-20261016T170627-536aa10e",
+      "stt": 2,
+      "thoi_gian": "2026-10-16T17:06:27+07:00",
+      "truoc": "4ca86b765defa19ef3a5e7a3334f2820bf3eb7bef2b0cb814ad5954674f12657",
+      "vai_tro": "nguoi-kiem-tra"
+    }
+  ],
+  "phe_duyet": [
+    {
+      "bam": "1fe23c69a1ca2d4b515ad90a12a505f73cdaffce017ac9ad2656b038de0a4587",
+      "don_vi": "mac-dinh",
+      "ghi_chu": "Đã đối chiếu tổng với bản kết xuất",
+      "ho_so_sha256": "189b980515c8fe68cfbfa4f4f40f6acb91c08c71b77194ef240e4ee0220c2bf7",
+      "loai": "duyet",
+      "ngoai_le": null,
+      "nguoi": {
+        "nguon": "tu_khai",
+        "ten": "Người kiểm tra mẫu",
+        "xac_thuc": "UNVERIFIED_HUMAN_REVIEW"
+      },
+      "quyet_dinh": "dong-y",
+      "run_id": "run-20261016T170627-536aa10e",
+      "stt": 2,
+      "thoi_gian": "2026-10-16T17:06:27+07:00",
+      "truoc": "4ca86b765defa19ef3a5e7a3334f2820bf3eb7bef2b0cb814ad5954674f12657",
+      "vai_tro": "nguoi-kiem-tra"
+    }
+  ],
+  "kiem_tai_luc_xuat": {
+    "toan_ven": true,
+    "ho_so_khop_so_cai": true,
+    "so_cai_hop_le": true,
+    "thay_doi": [],
+    "khong_tim_thay": [],
+    "trang_thai_duyet": "da_xem_chua_xac_thuc"
+  },
+  "bam_dong_cuoi_so_cai": "1fe23c69a1ca2d4b515ad90a12a505f73cdaffce017ac9ad2656b038de0a4587",
+  "xuat_luc": "2026-10-16T17:06:27+07:00"
+}

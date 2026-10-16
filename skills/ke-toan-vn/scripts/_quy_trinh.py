@@ -160,6 +160,29 @@ def chuan_quy_tac(qt: dict, danh_muc: dict, vi_tri: str) -> dict:
     }
 
 
+_NHAN_TONG = {"tong", "tong cong", "cong", "tong so", "cong phat sinh", "tong cong phat sinh",
+              "cong cuoi ky", "tong cong cuoi ky"}
+
+
+def la_dong_tong(gia_tri: list) -> bool:
+    """Dòng mang nhãn tổng/cộng (đứng một mình trong ô) — cộng nó cùng các dòng chi tiết là cộng
+    trùng. "Tổng phân tích tế bào máu" là tên dịch vụ, không phải nhãn tổng: chỉ khớp khi cả ô
+    đúng là nhãn (bỏ dấu, bỏ ':' cuối)."""
+    for v in gia_tri:
+        if isinstance(v, str):
+            s = unicodedata.normalize("NFD", chuan(v).rstrip(" :."))
+            s = "".join(c for c in s if unicodedata.category(c) != "Mn").replace("đ", "d")
+            if s in _NHAN_TONG:
+                return True
+    return False
+
+
+def bang_nhau_tien(a: float, b: float) -> bool:
+    """So hai tổng CHƯA làm tròn, chỉ chừa sai số dấu phẩy động. Làm tròn từng phần rồi cộng
+    (0,005 → 0,01, ba lần) khác làm tròn tổng (0,015 → 0,01) — so như thế là báo hỏng giả."""
+    return abs(a - b) <= 1e-6 * max(1.0, abs(a), abs(b))
+
+
 def thoa(dk: dict, v) -> bool:
     """Một ô có thoả TẤT CẢ phép so trong điều kiện của cột không."""
     s = chuan(v)
@@ -309,12 +332,42 @@ def doc_bang(duong_dan: Path, sheet: str | None, dong_tieu_de: int = 1):
     return ten, tieu_de, dong
 
 
+def doc_tieu_de(duong_dan: Path, sheet: str | None, dong_tieu_de: int = 1) -> tuple[str, list]:
+    """Chỉ đọc dòng tiêu đề — để kiểm bố cục TRƯỚC khi đọc (và ghi) gì khác."""
+    import openpyxl
+
+    if not duong_dan.exists():
+        raise LoiQuyTrinh(f"Không thấy file {duong_dan}")
+    wb = openpyxl.load_workbook(duong_dan, read_only=True, data_only=True)
+    try:
+        ten = chon_sheet(wb.sheetnames, sheet, duong_dan.name)
+        r = next(wb[ten].iter_rows(min_row=dong_tieu_de, max_row=dong_tieu_de, values_only=True),
+                 ())
+    finally:
+        wb.close()
+    tieu_de = list(r)
+    while tieu_de and tieu_de[-1] is None:
+        tieu_de.pop()
+    return ten, [str(x) if x is not None else "" for x in tieu_de]
+
+
+def dau_van_tay(tieu_de: list) -> str:
+    """Dấu vân tay bố cục: SHA-256 của dãy tiêu đề đã chuẩn hoá."""
+    return hashlib.sha256(json.dumps([chuan(x) for x in tieu_de],
+                                     ensure_ascii=False).encode()).hexdigest()
+
+
 def bam(duong_dan: Path) -> str:
+    """16 ký tự đầu SHA-256 — nhãn ngắn trong lịch sử chạy. Hồ sơ kiểm toán dùng bam_day_du."""
+    return bam_day_du(duong_dan)[:16]
+
+
+def bam_day_du(duong_dan: Path) -> str:
     h = hashlib.sha256()
     with duong_dan.open("rb") as f:
         for khoi in iter(lambda: f.read(1 << 20), b""):
             h.update(khoi)
-    return h.hexdigest()[:16]
+    return h.hexdigest()
 
 
 # --- Lịch sử chạy và giá trị đã biết ----------------------------------------------------
@@ -341,20 +394,48 @@ def ghi_lich_su(home: Path, ten: str, ban_ghi: dict) -> None:
         f.write(json.dumps(ban_ghi, ensure_ascii=False, default=str) + "\n")
 
 
-def so_bo_cuc(truoc: list | None, nay: list) -> dict | None:
-    """So tiêu đề kỳ này với lần chạy trước. None = không đổi hoặc chưa có lần trước."""
-    if truoc is None:
-        return None
-    a = [str(x) if x is not None else "" for x in truoc]
+def so_bo_cuc(truoc: list | None, nay: list, tham_chieu: set | None = None) -> dict | None:
+    """So tiêu đề kỳ này với lần chạy trước, và phân loại mức độ theo cột quy trình dùng.
+
+    None = không đổi và không có gì mơ hồ. `muc_do`:
+      vo_hai       chỉ thêm/bớt/đổi chỗ cột mà quy trình KHÔNG dùng, hoặc cột dùng theo TÊN đổi
+                   chỗ (tra theo tên nên vẫn đúng) — chạy tiếp, có cảnh báo;
+      nghiem_trong cột dùng theo tên bị mất hoặc trùng tên (không biết lấy cột nào), hay cột dùng
+                   theo VỊ TRÍ ($F) giờ mang tên khác — số liệu sẽ đổi nghĩa mà không ai thấy.
+    """
+    a = [str(x) if x is not None else "" for x in (truoc or [])]
     b = [str(x) if x is not None else "" for x in nay]
-    if a == b:
+    nghiem_trong = []
+    dem = {}
+    for x in b:
+        if chuan(x):
+            dem[chuan(x)] = dem.get(chuan(x), 0) + 1
+    for c in sorted(tham_chieu or ()):
+        if c.startswith("$"):
+            from openpyxl.utils import column_index_from_string
+
+            i = column_index_from_string(c[1:].upper()) - 1
+            cu, moi = (a[i] if i < len(a) else ""), (b[i] if i < len(b) else "")
+            if truoc is not None and chuan(cu) != chuan(moi):
+                nghiem_trong.append({"cot": c, "ly_do": f"cột {c} lần trước là {cu!r}, nay là "
+                                                        f"{moi!r}"})
+        elif dem.get(chuan(c), 0) == 0:
+            nghiem_trong.append({"cot": c, "ly_do": "không còn cột này ở dòng tiêu đề",
+                                 "cot_moi_xuat_hien": [x for x in b if x and x not in a]})
+        elif dem[chuan(c)] > 1:
+            nghiem_trong.append({"cot": c, "ly_do": f"có {dem[chuan(c)]} cột cùng tên — không "
+                                                    "biết lấy cột nào"})
+    if (truoc is None or a == b) and not nghiem_trong:
         return None
     return {
         "them": [x for x in b if x and x not in a],
         "bot": [x for x in a if x and x not in b],
         "doi_vi_tri": a != b and set(a) == set(b),
-        "so_cot_truoc": len(a),
+        "so_cot_truoc": len(a) if truoc is not None else None,
         "so_cot_nay": len(b),
+        "muc_do": "nghiem_trong" if nghiem_trong else "vo_hai",
+        "cot_nghiem_trong": nghiem_trong,
+        "dau_van_tay": dau_van_tay(b),
     }
 
 
@@ -405,7 +486,7 @@ def kiem_gia_tri_moi(home: Path, ten: str, quan_sat: dict, chap_nhan: bool,
         gop[cot] = list(theo_khoa.values())
     if ghi:
         ghi_gia_tri_da_biet(home, ten, gop)
-    return {"lan_dau_ghi_nhan": lan_dau, "gia_tri_moi_da_chap_nhan": moi}
+    return {"lan_dau_ghi_nhan": lan_dau, "gia_tri_moi_da_chap_nhan": moi, "_gop": gop}
 
 
 # --- Kỳ báo cáo ---------------------------------------------------------------------------

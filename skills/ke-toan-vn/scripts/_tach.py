@@ -22,9 +22,11 @@ import re
 from copy import copy
 from pathlib import Path
 
+from _xuat import giu_chu
 from _quy_trinh import (
     KHOA_CHUNG, LoiQuyTrinh, bam, chi_so_cot, chon_sheet, chuan, chuan_quy_tac, kiem_khoa,
-    la_so, ten_goi, ten_ra, ten_sheet_hop_le, thoa_tat_ca, tra_cot,
+    bang_nhau_tien, la_dong_tong, la_so, ten_goi, ten_ra, ten_sheet_hop_le, thoa_tat_ca,
+    tra_cot,
 )
 
 KHOA_NGUON = {"sheet", "dong_tieu_de", "cot_khoa", "cot_tong", "cot_stt", "dong_du_lieu_khi"}
@@ -40,6 +42,10 @@ def kiem(qt: dict, danh_muc: dict) -> dict:
     kiem_khoa(nguon, KHOA_NGUON, "[nguon]")
     if "cot_khoa" not in nguon:
         raise LoiQuyTrinh("[nguon] cần `cot_khoa` — cột dùng để tách")
+    if chuan(nguon["cot_khoa"]) in ("stt", "tt", "so tt", "số tt") or (
+            nguon.get("cot_stt") and chuan(nguon["cot_khoa"]) == chuan(nguon["cot_stt"])):
+        raise LoiQuyTrinh("`cot_khoa` là cột số thứ tự — STT đánh lại mỗi kỳ nên không phải khoá "
+                          "ổn định để tách. Dùng cột mã/tên khoa.")
     kq = qt.get("ket_qua", {})
     kiem_khoa(kq, KHOA_KET_QUA, "[ket_qua]")
     tg = qt.get("ten_goi")
@@ -81,6 +87,16 @@ def kiem(qt: dict, danh_muc: dict) -> dict:
             {"ma": "_", "khi": nguon["dong_du_lieu_khi"]}, danh_muc, "[nguon]")["khi"]
         if nguon.get("dong_du_lieu_khi") else None,
     }
+
+
+def cot_tham_chieu(spec: dict) -> dict:
+    n, k = spec["nguon"], spec["ket_qua"]
+    cot = {n["cot_khoa"], *n["cot_tong"], *spec.get("theo_doi", [])}
+    for c in (n.get("cot_stt"), k.get("cot_nhan_tong")):
+        if c:
+            cot.add(c)
+    cot |= set(spec["_dong_du_lieu_khi"] or {})
+    return {"nguon": {"sheet": n.get("sheet"), "dong_tieu_de": n["dong_tieu_de"], "cot": cot}}
 
 
 def _cong_thuc_trong_dong(f: str, dong: int, cot_cam: frozenset = frozenset()) -> bool:
@@ -126,7 +142,7 @@ def _gia_tri_o(o_ct, o_gt, dong_cu: int, dong_moi: int, cot_cam: frozenset):
     from openpyxl.formula.translate import Translator
 
     v = o_ct.value
-    if isinstance(v, str) and v.startswith("=") and _cong_thuc_trong_dong(v, dong_cu, cot_cam):
+    if o_ct.data_type == "f" and _cong_thuc_trong_dong(v, dong_cu, cot_cam):
         return Translator(v, origin=f"A{dong_cu}").translate_formula(f"A{dong_moi}")
     return o_gt.value
 
@@ -167,6 +183,7 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
             theo_khoa[x] = nh["ten"]
     dong_nhom = {nh["ten"]: [] for nh in spec["nhom"]}
     ngoai_nhom, khong_phai_dl, gap = {}, 0, set()
+    dong_ngoai, dong_tong, so_dong_du_lieu = [], [], 0
     quan_sat = {c: {} for c in spec.get("theo_doi", [])}
     vi_tri_td = {c: tra_cot(cm, c, p.name) for c in quan_sat}
     for r in range(hd + 1, ws.max_row + 1):
@@ -176,8 +193,16 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
         if dl_khi and not thoa_tat_ca(dl_khi, lambda c, h=hang: h[vi_tri_dk[c]]):
             khong_phai_dl += 1
             continue
+        so_dong_du_lieu += 1
         for c, i in vi_tri_td.items():
             quan_sat[c].setdefault(chuan(hang[i]), str(hang[i] or "").strip())
+        # Dòng cộng dồn lẫn trong dữ liệu: nhãn tổng, hoặc ô tiền là SUM/SUBTOTAL trên NHIỀU
+        # dòng (công thức chỉ trên chính dòng đó, như =SUM(K4:X4), là chuyện bình thường).
+        ct = [ws.cell(r, i + 1).value for i in i_tong]
+        if la_dong_tong(hang) or any(
+                isinstance(f, str) and re.search(r"\b(SUM|SUBTOTAL)\s*\(", f.upper())
+                and not _cong_thuc_trong_dong(f, r) for f in ct):
+            dong_tong.append(r)
         kh = chuan(hang[i_khoa])
         if kh in theo_khoa:
             dong_nhom[theo_khoa[kh]].append(r)
@@ -185,6 +210,7 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
         else:
             nhan = str(hang[i_khoa] or "").strip() or "(trống)"
             ngoai_nhom[nhan] = ngoai_nhom.get(nhan, 0) + 1
+            dong_ngoai.append(r)
 
     nguon_ws = ws
     tong_nguon = {}
@@ -192,6 +218,23 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
         tong_nguon[nh["ten"]] = [
             round(sum(v for r in dong_nhom[nh["ten"]]
                       if la_so(v := ws_gt.cell(r, i + 1).value)), 2) for i in i_tong]
+
+    def cong(ds, i):
+        return sum(v for r in ds if la_so(v := ws_gt.cell(r, i + 1).value))
+    tat_ca = [r for nh in spec["nhom"] for r in dong_nhom[nh["ten"]]] + dong_ngoai
+    bat_bien = {
+        "bao_toan_dong": so_dong_du_lieu == len(tat_ca),
+        "bao_toan_tien": all(
+            bang_nhau_tien(cong(tat_ca, i), sum(cong(dong_nhom[nh["ten"]], i)
+                                                for nh in spec["nhom"]) + cong(dong_ngoai, i))
+            for i in i_tong),
+        "doc_lai_khop": None,  # file kết quả giữ công thức; số chỉ có sau khi tính lại
+        "dong_tong_nghi_ngo": dong_tong,
+        "tong_ngoai_cac_nhom": dict(zip(n["cot_tong"],
+                                        [round(cong(dong_ngoai, i), 2) for i in i_tong])),
+    }
+    if not bat_bien["bao_toan_dong"] or not bat_bien["bao_toan_tien"]:
+        raise LoiQuyTrinh(f"{p.name}: hỏng bảo toàn khi tách {bat_bien} — lỗi công cụ, chưa ghi gì")
 
     cot_cam = frozenset({i_stt + 1}) if i_stt is not None else frozenset()
     merges_dau = [str(m) for m in nguon_ws.merged_cells.ranges if m.max_row <= hd]
@@ -207,9 +250,11 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
                 o = nguon_ws.cell(r, c)
                 d = moi.cell(r, c)
                 v = o.value
-                if isinstance(v, str) and v.startswith("=") and ("!" in v or "[" in v):
+                if o.data_type == "f" and isinstance(v, str) and ("!" in v or "[" in v):
                     v = ws_gt.cell(r, c).value
                 d.value = v
+                if o.data_type != "f":
+                    giu_chu([d])
                 if o.has_style:
                     d._style = copy(o._style)
             if nguon_ws.row_dimensions[r].height:
@@ -222,6 +267,8 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
                 o = nguon_ws.cell(r, c)
                 d = moi.cell(rd, c)
                 d.value = _gia_tri_o(o, ws_gt.cell(r, c), r, rd, cot_cam)
+                if o.data_type != "f":
+                    giu_chu([d])
                 if o.has_style:
                     d._style = copy(o._style)
             if i_stt is not None:
@@ -267,7 +314,7 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
     ra = (Path(ra_dir) if ra_dir else p.parent) / ten_ra(k["ra"], p, tuy_chon.get("ky"))
     from _xuat import luu
 
-    luu(wb, ra)
+    luu(wb, ra, tuy_chon.get("bo_ghi"))
 
     khong_gap = sorted(x for nh in spec["nhom"] for x in nh["gia_tri"] if chuan(x) not in gap)
     return {
@@ -280,6 +327,7 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
             "dong_khong_phai_du_lieu": khong_phai_dl,
             "gia_tri_khong_co_trong_du_lieu": khong_gap,
             "dong_ngoai_cac_nhom": dict(sorted(ngoai_nhom.items(), key=lambda kv: -kv[1])[:40]),
+            "bat_bien": bat_bien,
         }],
         "canh_bao": ([f"Giá trị trong quy trình không có dòng nào kỳ này: {khong_gap} — kiểm "
                       f"tra khoa/phòng có đổi tên không"] if khong_gap else []),
