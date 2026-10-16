@@ -39,7 +39,9 @@ Mỗi giả thuyết trong handoff được kiểm lại trên mã nguồn thậ
    - TT 132/2018 hết hiệu lực từ 01/7/2026 (khoản 2 Điều 12 TT 58/2026);
    - TT 58 chỉ áp dụng cho năm tài chính bắt đầu từ 01/7/2026 (khoản 1 Điều 12).
 
-   Công cụ trả `can_xac_nhan` thay vì đoán. Cần người có chuyên môn hoặc hướng dẫn của Bộ Tài chính.
+   Ban đầu công cụ trả `can_xac_nhan` thay vì đoán. **Cập nhật sau nghiên cứu (2026-10-16):** giữ TT 132 cả năm đó, áp TT 58 từ năm sau. Căn cứ là hỏi đáp của Cục Quản lý kế toán về TT 99 (cùng cấu trúc điều khoản) và khoản 3 Điều 4 TT 58. Công cụ ghi rõ kết luận này là suy luận (`co_so: suy_luan_tuong_tu`, `can_nguoi_duyet: true`). Xem điểm 1 trong `LEGAL-CITATIONS.md`.
+5. **NĐ 214/2025 đã bị sửa ba lần trong năm 2026** (NĐ 165/2026, NĐ 170/2026, NĐ 349/2026). Tài liệu cũ chưa ghi điều này. Điều 31, căn cứ của bảng giá đánh giá, không bị sửa.
+6. **Quy trình làm việc dùng trợ lý AI chạy trên nền tảng ở nước ngoài** có thể là chuyển dữ liệu cá nhân xuyên biên giới (điểm c khoản 1 Điều 20 Luật 91/2025), mà dữ liệu sức khỏe lại là dữ liệu nhạy cảm (NĐ 356/2025). Đây là việc của đơn vị, không phải lỗi mã. Xem điểm 4b trong `LEGAL-CITATIONS.md`.
 
 ## Hoãn, có lý do (cần mở issue có người nhận)
 
@@ -49,7 +51,7 @@ Mỗi giả thuyết trong handoff được kiểm lại trên mã nguồn thậ
 | Tra trạng thái hóa đơn với cơ quan thuế | Cần kênh được cấp phép. Không tra qua trang không chính thức. | `trang_thai_cqt` luôn là `not_checked`. |
 | XSD chính thức QĐ 1450 / chuẩn mới theo NĐ 254 | Không kèm XSD. Người dùng có thể đưa vào qua `--xsd`. | `xml_schema` mặc định `not_checked`. |
 | Danh sách CA tin cậy cho chữ ký số hóa đơn | Danh sách CA được cấp phép do đơn vị tự cung cấp (`--ca-tin-cay`). Thời điểm đánh giá chứng thư là lúc chạy, không phải lúc ký. | Không có CA thì `chu_ky` tối đa là `not_checked` (kèm `toan_ven_chu_ky`). |
-| Chính sách lưu trữ theo loại dữ liệu, legal hold (G10) | Thời hạn lưu trữ theo NĐ 174/2016 và luật chuyên ngành chưa được kiểm từ nguồn chính thức trong phiên này. Không xoá tự động thứ gì. | Hồ sơ giữ vô thời hạn và người dùng tự dọn. |
+| Chính sách lưu trữ theo loại dữ liệu, legal hold (G10) | Đã đọc thời hạn (khoản 5 Điều 41 Luật Kế toán; Điều 12–14 NĐ 174/2016): bảng kê, bảng tổng hợp chi tiết lưu tối thiểu 10 năm. Công cụ cố ý không xoá gì; việc dọn theo danh mục lưu trữ là của đơn vị. Chưa có tính năng legal hold. | Hồ sơ giữ vô thời hạn và người dùng tự dọn. |
 | Kiểm trích dẫn HSMT/HSDT từng tiêu chí ở chế độ chính thức (G09) | Phiếu kỹ thuật có `yeu_cau_hsmt` và `nguon_trang`, nhưng chưa có quy tắc bắt buộc. | Tổ chuyên gia vẫn phải tự đối chiếu. |
 | Giới hạn tài nguyên khi đọc XLSX (zip bomb) | openpyxl không có giới hạn. Đường `read_only` đọc theo luồng. | Một file XLSX độc hại có thể ngốn bộ nhớ. |
 | CI Windows | Đường dẫn font và PowerShell khác. Máy chạy thật của người dùng là Windows nhưng skill chạy ở máy xử lý macOS/Linux. | Chưa kiểm trên Windows. |

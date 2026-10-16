@@ -62,6 +62,31 @@ CAN_CU = {
                  "doanh nghiệp siêu nhỏ được lựa chọn áp dụng chế độ kế toán doanh nghiệp nhỏ và vừa",
         "nguon": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-58-2026-tt-btc-469663.htm",
         "xac_minh": True},
+    "TT58-D4": {
+        "van_ban": "Thông tư 58/2026/TT-BTC", "dieu_khoan": "Điều 4 khoản 2, 3",
+        "trich": "phải áp dụng nhất quán trong một năm tài chính. Việc thay đổi chế độ kế toán áp "
+                 "dụng chỉ được thực hiện tại ngày bắt đầu kỳ kế toán năm tiếp theo",
+        "nguon": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-58-2026-tt-btc-469663.htm",
+        "xac_minh": True},
+    "QLKT-HD-159102": {
+        "van_ban": "Hỏi đáp CSTC — Cục Quản lý kế toán, Bộ Tài chính (14/01/2026)",
+        "dieu_khoan": "về khoản 1 Điều 31 TT 99/2025",
+        "trich": "trường hợp Công ty có năm tài chính bắt đầu từ ngày 01/10/2025 - 30/09/2026 thì "
+                 "chưa áp dụng chế độ kế toán ban hành theo Thông tư số 99 tại thời điểm "
+                 "01/01/2026, việc áp dụng Thông tư số 99 được thực hiện cho năm tài chính bắt đầu "
+                 "từ ngày 01/10/2026",
+        "nguon": "https://portal.mof.gov.vn/hoidapcstc/home/cthoidap/159102",
+        "xac_minh": True},
+    "ND60-D34": {
+        "van_ban": "Nghị định 60/2021/NĐ-CP, khoản 1 Điều 34 (sửa bởi khoản 22 Điều 1 NĐ "
+                   "111/2025/NĐ-CP, hiệu lực 07/7/2025)",
+        "dieu_khoan": "Điều 34 khoản 1",
+        "trich": "Trường hợp đơn vị nhóm 1 xây dựng đề án quản lý, kế toán theo mô hình doanh "
+                 "nghiệp được cấp có thẩm quyền phê duyệt thì thực hiện theo chế độ kế toán doanh "
+                 "nghiệp (trừ đơn vị sự nghiệp công lập đang áp dụng cơ chế tài chính như doanh "
+                 "nghiệp không cần lập đề án được tiếp tục thực hiện chế độ kế toán doanh nghiệp)",
+        "nguon": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-111-2025-nd-cp-44943/56448.htm",
+        "xac_minh": True},
     "TT24-D2": {
         "van_ban": "Thông tư 24/2024/TT-BTC (17/4/2024)", "dieu_khoan": "Điều 2 khoản 1 điểm b",
         "trich": "Đơn vị sự nghiệp công lập (trừ các đơn vị sự nghiệp công lập tự đảm bảo chi thường "
@@ -90,8 +115,16 @@ CAN_CU = {
         "nguon": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-254-2026-nd-cp-469957.htm",
         "xac_minh": True},
     "TT91": {
-        "van_ban": "Thông tư 91/2026/TT-BTC (30/6/2026)", "dieu_khoan": "(hướng dẫn NĐ 254/2026)",
-        "trich": "hiệu lực 01/7/2026 (thuộc tính văn bản trên Công báo)",
+        "van_ban": "Thông tư 91/2026/TT-BTC (30/6/2026)", "dieu_khoan": "Điều 25",
+        "trich": "có hiệu lực thi hành kể từ ngày 01 tháng 7 năm 2026 ... Thông tư số "
+                 "32/2025/TT-BTC ... hết hiệu lực thi hành",
+        "nguon": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-91-2026-tt-btc-470171.htm",
+        "xac_minh": True},
+    "TT91-D24": {
+        "van_ban": "Thông tư 91/2026/TT-BTC", "dieu_khoan": "Điều 24 khoản 2 (câu cuối)",
+        "trich": "Đối với hóa đơn đã lập theo Nghị định số 123/2020/NĐ-CP, Nghị định số "
+                 "70/2025/NĐ-CP và Thông tư số 32/2025/TT-BTC thì thực hiện điều chỉnh hoặc thay "
+                 "thế theo quy định.",
         "nguon": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-91-2026-tt-btc-470171.htm",
         "xac_minh": True},
 }
@@ -136,9 +169,14 @@ def dau_nam_tu_ngay(ngay: date, thang_dau: int) -> date:
     return date(nam, thang_dau, 1)
 
 
-def _kq(che_do: str | None, ly_do: list, can_cu: list, ung_vien=(), hoi=()) -> dict:
+def _kq(che_do: str | None, ly_do: list, can_cu: list, ung_vien=(), hoi=(),
+        co_so: str = "van_ban") -> dict:
+    """`co_so`: van_ban = đọc thẳng từ điều khoản; suy_luan_tuong_tu = văn bản không nói thẳng,
+    suy từ hướng dẫn chính thức cho trường hợp cùng cấu trúc — kèm can_nguoi_duyet."""
     return {
         "trang_thai": "xac_dinh" if che_do else "can_xac_nhan",
+        "co_so": co_so if che_do else None,
+        "can_nguoi_duyet": co_so != "van_ban" and bool(che_do),
         "che_do": {"id": che_do, "ten": CHE_DO[che_do]} if che_do else None,
         "ung_vien": [{"id": u, "ten": CHE_DO[u]} for u in ung_vien],
         "can_xac_nhan": list(hoi),
@@ -209,13 +247,22 @@ def xac_dinh(loai: str | None, dau: date, da_chon: str | None = None,
         if _ngay(nam["ket_thuc"]) < MOC_TT58:
             return _kq("TT132/2018", [f"Năm tài chính kết thúc {nam['ket_thuc']} trước 01/7/2026 "
                                       f"→ TT 132/2018 còn hiệu lực cho cả năm."], can_cu)
-        return _kq(None, [
+        # TT 132 hết hiệu lực 01/7/2026 nhưng TT 58 chỉ áp cho năm bắt đầu từ ngày đó. Văn bản
+        # không nói thẳng phần còn lại của năm này. Cục QLKT đã trả lời đúng cấu trúc này với
+        # TT 99 (thay TT 200 cũng "áp dụng cho năm tài chính bắt đầu từ hoặc sau"): giữ chế độ
+        # cũ cả năm, áp chế độ mới từ năm kế tiếp; khoản 3 Điều 4 TT 58 cũng chỉ cho đổi chế độ
+        # tại ngày bắt đầu kỳ kế toán năm. Kết luận theo suy luận đó, ghi rõ để người duyệt thấy.
+        tiep = date(dau.year + 1, dau.month, 1).isoformat()
+        return _kq("TT132/2018", [
             f"Năm tài chính {nam['bat_dau']}–{nam['ket_thuc']} vắt qua 01/7/2026: TT 132/2018 hết "
-            f"hiệu lực từ 01/7/2026 nhưng TT 58/2026 chỉ áp dụng cho năm tài chính bắt đầu từ "
-            f"01/7/2026. Văn bản không nói rõ phần còn lại của năm này dùng chế độ nào."],
-            can_cu, ["TT132/2018", "TT58/2026"],
-            ["Cần người có chuyên môn (hoặc hướng dẫn của Bộ Tài chính) xác nhận chế độ cho phần "
-             "năm tài chính từ 01/7/2026."])
+            f"hiệu lực từ 01/7/2026, TT 58/2026 chỉ áp dụng cho năm tài chính bắt đầu từ 01/7/2026. "
+            f"Văn bản không nói thẳng phần còn lại của năm này.",
+            f"Giữ TT 132/2018 cho CẢ năm tài chính này, áp TT 58/2026 từ năm bắt đầu {tiep}: suy "
+            f"theo trả lời của Cục Quản lý kế toán cho TT 99 (cùng cách viết hiệu lực theo năm tài "
+            f"chính) và khoản 3 Điều 4 TT 58 (chỉ đổi chế độ tại ngày bắt đầu kỳ kế toán năm). "
+            f"Đây là suy luận, không phải câu chữ của TT 58 — cần người có chuyên môn xác nhận."],
+            can_cu + ["TT58-D4", "QLKT-HD-159102"], ["TT132/2018", "TT58/2026"],
+            co_so="suy_luan_tuong_tu")
 
     if loai == "ho-kinh-doanh":
         if da_chon == "TT58" and dau >= MOC_TT58:
@@ -242,23 +289,30 @@ def xac_dinh(loai: str | None, dau: date, da_chon: str | None = None,
                        can_cu, [hcsn, "TT99/2025" if dau >= MOC_TT99 else "TT200/2014"],
                        ["Mức tự chủ tài chính của đơn vị (tự bảo đảm chi thường xuyên và chi đầu "
                         "tư / chi thường xuyên / một phần / NSNN bảo đảm)?",
-                        "Đơn vị có văn bản cho phép áp dụng chế độ kế toán doanh nghiệp không?"])
+                        "Nếu nhóm 1: có đề án kế toán theo mô hình doanh nghiệp được phê duyệt, "
+                        "hoặc đang áp dụng cơ chế tài chính như doanh nghiệp không?"])
         if tu_chu == "chi-thuong-xuyen-va-dau-tu":
             if duoc_phep_dn == "co":
                 kq = _dn(dau, ly_do + [
-                    "ĐVSNCL tự bảo đảm chi thường xuyên và chi đầu tư, được cơ quan có thẩm quyền "
-                    "cho phép → chế độ kế toán doanh nghiệp (ngoại lệ ở điểm b khoản 1 Điều 2 "
-                    "TT 24/2024). Nếu có kinh phí NSNN, viện trợ, vay nợ nước ngoài hoặc phí được "
-                    "khấu trừ để lại thì vẫn phải lập báo cáo quyết toán kinh phí hoạt động theo "
-                    "Phụ lục III TT 24/2024."])
-                kq["trich_dan"].append({"id": "TT24-D2", **CAN_CU["TT24-D2"],
-                                        "kiem_ngay": KIEM_NGAY})
+                    "ĐVSNCL nhóm 1 (tự bảo đảm chi thường xuyên và chi đầu tư) có đề án quản lý, "
+                    "kế toán theo mô hình doanh nghiệp được cấp có thẩm quyền phê duyệt, hoặc "
+                    "đang áp dụng cơ chế tài chính như doanh nghiệp → chế độ kế toán doanh nghiệp "
+                    "(khoản 1 Điều 34 NĐ 60/2021 sửa bởi NĐ 111/2025; ngoại lệ ở điểm b khoản 1 "
+                    "Điều 2 TT 24/2024). Nếu có kinh phí NSNN, viện trợ, vay nợ nước ngoài hoặc "
+                    "phí được khấu trừ để lại thì vẫn phải lập báo cáo quyết toán kinh phí hoạt "
+                    "động theo Phụ lục III TT 24/2024."])
+                kq["trich_dan"] += [{"id": c, **CAN_CU[c], "kiem_ngay": KIEM_NGAY}
+                                    for c in ("TT24-D2", "ND60-D34")]
                 return kq
             if duoc_phep_dn is None:
-                return _kq(None, ly_do + ["Tự chủ chi thường xuyên và chi đầu tư nhưng chưa rõ đã "
-                                          "được phép áp dụng chế độ doanh nghiệp."], can_cu,
+                return _kq(None, ly_do + ["Tự chủ chi thường xuyên và chi đầu tư nhưng chưa rõ có "
+                                          "đề án kế toán theo mô hình doanh nghiệp được phê "
+                                          "duyệt, hay đang áp dụng cơ chế tài chính như doanh "
+                                          "nghiệp."], can_cu + ["ND60-D34"],
                            [hcsn, "TT99/2025" if dau >= MOC_TT99 else "TT200/2014"],
-                           ["Đơn vị có văn bản cho phép áp dụng chế độ kế toán doanh nghiệp không?"])
+                           ["Đơn vị có đề án quản lý, kế toán theo mô hình doanh nghiệp được cấp "
+                            "có thẩm quyền phê duyệt, hoặc đang áp dụng cơ chế tài chính như doanh "
+                            "nghiệp không?"])
         return _kq(hcsn, ly_do + [f"Đơn vị sự nghiệp công lập (mức tự chủ: {tu_chu}) → {hcsn}."],
                    can_cu)
 
@@ -268,19 +322,21 @@ def xac_dinh(loai: str | None, dau: date, da_chon: str | None = None,
 def che_do_hoa_don(ngay: date) -> dict:
     """Văn bản hóa đơn điện tử theo NGÀY LẬP hóa đơn.
 
-    NĐ 254/2026 có hiệu lực 01/7/2026 và chấm dứt NĐ 123/2020 (Điều 43); Điều 44 không có điều
-    khoản chuyển tiếp chung cho hóa đơn lập trước đó, nên hóa đơn lập trước 01/7/2026 vẫn xét
-    theo văn bản có hiệu lực tại thời điểm lập. Đây là cách hiểu chung về hiệu lực theo thời
-    gian — ghi rõ để người duyệt thấy.
+    NĐ 254/2026 có hiệu lực 01/7/2026 và chấm dứt NĐ 123/2020 (Điều 43). Hóa đơn lập trước đó
+    là hóa đơn "đã lập theo Nghị định số 123/2020/NĐ-CP, Nghị định số 70/2025/NĐ-CP và Thông tư
+    số 32/2025/TT-BTC" (khoản 2 Điều 24 TT 91/2026); việc điều chỉnh, thay thế nó từ 01/7/2026
+    thì làm "theo quy định" — tức theo NĐ 254/TT 91 hiện hành.
     """
     if ngay >= MOC_ND254:
         return {"id": "ND254/2026", "ten": "NĐ 254/2026/NĐ-CP + TT 91/2026/TT-BTC",
                 "trang_thai": "xac_dinh", "can_cu": ["ND254-D43", "TT91"]}
     if ngay >= MOC_ND123:
-        return {"id": "ND123/2020", "ten": "NĐ 123/2020/NĐ-CP (đã sửa bởi NĐ 41/2022, NĐ 70/2025)",
-                "trang_thai": "xac_dinh", "can_cu": ["ND254-D43"],
-                "ghi_chu": "Lập trước 01/7/2026: xét theo văn bản có hiệu lực tại ngày lập (NĐ 254 "
-                           "không có chuyển tiếp chung cho hóa đơn đã lập)."}
+        return {"id": "ND123/2020",
+                "ten": "NĐ 123/2020/NĐ-CP (đã sửa bởi NĐ 41/2022, NĐ 70/2025) + TT 32/2025",
+                "trang_thai": "xac_dinh", "can_cu": ["ND254-D43", "TT91-D24"],
+                "ghi_chu": "Lập trước 01/7/2026: hóa đơn lập theo NĐ 123/2020, NĐ 70/2025, TT 32/2025. "
+                           "Nếu điều chỉnh/thay thế từ 01/7/2026 thì làm theo NĐ 254/2026, "
+                           "TT 91/2026 (khoản 2 Điều 24 TT 91)."}
     return {"id": None, "ten": None, "trang_thai": "can_xac_nhan", "can_cu": [],
             "ghi_chu": "Hóa đơn lập trước 01/7/2022 — ngoài phạm vi bảng tra này."}
 
@@ -296,7 +352,10 @@ def main() -> int:
     p.add_argument("--da-chon", choices=["TT133", "TT99", "TT200", "TT58"],
                    help="Chế độ đơn vị ĐÃ chọn (khi được phép chọn)")
     p.add_argument("--tu-chu", choices=TU_CHU, help="Mức tự chủ tài chính (ĐVSNCL)")
-    p.add_argument("--duoc-phep-ap-dung-che-do-dn", choices=["co", "khong"])
+    p.add_argument("--duoc-phep-ap-dung-che-do-dn", choices=["co", "khong"],
+                   help="ĐVSNCL nhóm 1: co = có đề án kế toán theo mô hình doanh nghiệp được phê "
+                        "duyệt, hoặc đang áp dụng cơ chế tài chính như doanh nghiệp (khoản 1 Điều "
+                        "34 NĐ 60/2021, sửa bởi NĐ 111/2025)")
     p.add_argument("--dang-co-phan-hoa", action="store_true")
     p.add_argument("--to-chuc-tin-dung", action="store_true")
     p.add_argument("--hoa-don-ngay", help="Chỉ tra chế độ hóa đơn cho ngày lập YYYY-MM-DD")

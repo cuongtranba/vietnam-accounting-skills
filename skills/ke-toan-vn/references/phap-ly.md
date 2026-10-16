@@ -60,16 +60,19 @@ dùng là cần kiểm tra lại** trước khi dùng cho việc quan trọng.
 | TT 133/2016/TT-BTC | DN nhỏ và vừa — được chọn TT 133 hoặc TT 99 | — | Không có trong danh sách TT 99 thay; TT 58 Điều 4 khoản 3 vẫn dẫn chiếu (chưa đọc văn bản gốc) |
 | **TT 58/2026/TT-BTC** | DN siêu nhỏ; hộ/cá nhân kinh doanh được chọn | Năm tài chính **bắt đầu từ hoặc sau 01/7/2026** | Điều 12 khoản 1; khoản 2: TT 132/2018 hết hiệu lực từ 01/7/2026 |
 | TT 132/2018/TT-BTC | DN siêu nhỏ | Năm tài chính kết thúc trước 01/7/2026 | — |
-| **TT 24/2024/TT-BTC** | Cơ quan nhà nước, **đơn vị sự nghiệp công lập** (bệnh viện công) | Từ năm tài chính 2025 | Điều 2 khoản 1 điểm b: ĐVSNCL tự bảo đảm chi thường xuyên VÀ chi đầu tư **được cơ quan có thẩm quyền cho phép** thì dùng chế độ DN (vẫn lập báo cáo quyết toán kinh phí theo Phụ lục III nếu có NSNN, viện trợ, vay nợ, phí được để lại). Điều 13: thay TT 107/2017 |
+| **TT 24/2024/TT-BTC** | Cơ quan nhà nước, **đơn vị sự nghiệp công lập** (bệnh viện công) | Từ năm tài chính 2025 | Điều 2 khoản 1 điểm b: ĐVSNCL tự bảo đảm chi thường xuyên VÀ chi đầu tư **được cơ quan có thẩm quyền cho phép** thì dùng chế độ DN (vẫn lập báo cáo quyết toán kinh phí theo Phụ lục III nếu có NSNN, viện trợ, vay nợ, phí được để lại). Điều kiện cụ thể ở khoản 1 Điều 34 NĐ 60/2021 (sửa bởi NĐ 111/2025, từ 07/7/2025): đơn vị nhóm 1 có **đề án quản lý, kế toán theo mô hình doanh nghiệp được phê duyệt**, hoặc **đang áp dụng cơ chế tài chính như doanh nghiệp** (không cần đề án). Điều 13: thay TT 107/2017 |
 
 Ba bẫy:
 
 - **"Bệnh viện" không nói lên chế độ.** Bệnh viện công là ĐVSNCL (TT 24/2024, trừ ngoại lệ trên);
-  bệnh viện tư là doanh nghiệp (TT 99/2025 hoặc TT 133). Hỏi loại đơn vị, mức tự chủ, và văn bản
-  cho phép — đừng suy từ tên.
+  bệnh viện tư là doanh nghiệp (TT 99/2025 hoặc TT 133). Hỏi loại đơn vị, mức tự chủ, và đề án được
+  duyệt / cơ chế tài chính đang áp dụng — đừng suy từ tên.
 - **DN siêu nhỏ có năm tài chính vắt qua 01/7/2026** (vd năm dương lịch 2026): TT 132 hết hiệu lực
-  giữa năm mà TT 58 chưa áp dụng cho năm đó. Văn bản không nói rõ — cần người có chuyên môn hoặc
-  hướng dẫn của Bộ Tài chính.
+  giữa năm mà TT 58 chỉ áp cho năm bắt đầu từ 01/7/2026. TT 58 không nói thẳng; `che_do_ke_toan.py`
+  chọn **giữ TT 132 cả năm, TT 58 từ năm sau** — suy theo trả lời của Cục Quản lý kế toán cho TT 99
+  (năm 01/10/2025–30/09/2026 "chưa áp dụng" TT 99) và khoản 3 Điều 4 TT 58 (chỉ đổi chế độ tại
+  ngày bắt đầu kỳ kế toán năm). Kết quả mang `co_so: suy_luan_tuong_tu` — nói rõ với người dùng
+  đây là suy luận.
 - **Số liệu năm cũ không đổi theo luật mới.** Báo cáo năm 2025 theo TT 200 vẫn là TT 200.
 
 TT 99 (như TT 200) cho phép doanh nghiệp **tự mở tài khoản chi tiết** và tự thiết kế mẫu sổ — nên
@@ -151,6 +154,18 @@ thời gian; `doc_hoa_don.py` ghi cột `che_do_hoa_don` cho từng dòng).
 từ máy tính tiền không bắt buộc chữ ký số (Điều 8 khoản 9 điểm b), tem/vé/thẻ... Người mua không
 nhất thiết ký (Điều 10). Nên "không có chữ ký" là việc cần xem, không tự loại.
 
+### Dữ liệu cá nhân và lưu trữ tài liệu kế toán (đã đọc Công báo 2026-10-16)
+
+| Văn bản | Điểm dùng được ngay |
+|---|---|
+| Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 (hiệu lực 01/01/2026, Điều 38) | Điều 19: xử lý không cần đồng ý khi "phục vụ hoạt động của cơ quan nhà nước…", "trường hợp khác theo quy định của pháp luật" (vd nghĩa vụ kế toán, thuế) — nhưng phải có cơ chế giám sát (khoản 2). Điều 20 khoản 1 điểm c: dùng nền tảng ở nước ngoài để xử lý dữ liệu thu thập tại Việt Nam là chuyển dữ liệu xuyên biên giới → hồ sơ đánh giá tác động gửi cơ quan chuyên trách trong 60 ngày. Điều 26: thông tin sức khỏe. Điều 2 khoản 1: dữ liệu đã **khử nhận dạng** không còn là dữ liệu cá nhân |
+| NĐ 356/2025/NĐ-CP (hiệu lực 01/01/2026, thay NĐ 13/2023) | Điều 4 khoản 1: danh mục dữ liệu nhạy cảm — gồm **tình trạng sức khỏe** (điểm d), thông tin tài khoản/giao dịch ngân hàng (điểm k) |
+| Luật Kế toán 88/2015/QH13 | Khoản 7 Điều 26: được ghi sổ bằng phương tiện điện tử; lưu trên phương tiện điện tử phải an toàn, bảo mật, tra cứu được trong thời hạn lưu trữ. Khoản 5 Điều 41: lưu ít nhất 5 năm / 10 năm / vĩnh viễn |
+| NĐ 174/2016/NĐ-CP | **Điều 13 khoản 1: bảng kê, bảng tổng hợp chi tiết, sổ chi tiết, sổ tổng hợp, BCTC, báo cáo quyết toán… lưu tối thiểu 10 năm**; Điều 12: tài liệu dùng cho quản lý, không trực tiếp ghi sổ — tối thiểu 5 năm; Điều 14: vĩnh viễn. (Chưa kiểm văn bản sửa đổi NĐ 174.) |
+
+⇒ Kết quả công cụ dùng để ghi sổ (bảng kê, bảng tổng hợp theo khoa...) là tài liệu kế toán lưu
+**ít nhất 10 năm** — đừng xoá nó, cũng đừng xoá hồ sơ kiểm toán đi kèm, trước thời hạn đó.
+
 ### Mã số thuế
 
 | Văn bản | Nội dung |
@@ -175,7 +190,7 @@ với cá nhân — nên công cụ kiểm tra phải chấp nhận cả dạng 
 | Luật An ninh mạng 116/2025/QH15 | Sửa vài điều liên quan an ninh mạng | 01/07/2026 | |
 | Luật Công nghệ cao 133/2025/QH15 | Sửa vài điều, thêm nhóm doanh nghiệp công nghệ cao | 01/07/2026 | |
 | **Văn bản hợp nhất 74/VBHN-VPQH (2026)** | Hợp nhất đủ 5 lần sửa trên | | **dùng bản này để tra số điều**, đừng tự cộng dồn |
-| **NĐ 214/2025/NĐ-CP** | Chi tiết Luật Đấu thầu, **lựa chọn nhà thầu** | **04/08/2025** | **văn bản đang áp dụng** |
+| **NĐ 214/2025/NĐ-CP** | Chi tiết Luật Đấu thầu, **lựa chọn nhà thầu** | **04/08/2025** | **văn bản đang áp dụng**; sửa bởi NĐ 165/2026, NĐ 170/2026 (01/7/2026), **NĐ 349/2026** (09/9/2026); hợp nhất: **36/2026/VBHN-NĐ-BTC** (23/9/2026). Điều 31 không đổi (kiểm 2026-10-16) |
 | TT 79/2025/TT-BTC | Mẫu HSMT, đăng tải thông tin lên Hệ thống mạng đấu thầu quốc gia | | |
 | TT 80/2025/TT-BTC | Mẫu HSYC, **báo cáo đánh giá**, báo cáo thẩm định | | |
 | ~~NĐ 63/2014/NĐ-CP~~ | | | ❌ **hết hiệu lực** |

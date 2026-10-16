@@ -119,6 +119,14 @@ hàng hóa", không phải "công ty X chào thiếu mặt hàng Y".
 
 Nguyên tắc này cũng áp dụng cho bộ nhớ: không lưu dữ liệu HSDT vào `.ke-toan-vn/`.
 
+**Dữ liệu cá nhân cũng vậy.** File kết xuất thường có mã/tên bệnh nhân, chẩn đoán, lương nhân
+viên. "Tình trạng sức khỏe" là dữ liệu cá nhân **nhạy cảm** (điểm d khoản 1 Điều 4 NĐ 356/2025),
+và dùng một nền tảng đặt ngoài Việt Nam để xử lý dữ liệu cá nhân thu thập tại Việt Nam là **chuyển
+dữ liệu xuyên biên giới** (điểm c khoản 1 Điều 20 Luật 91/2025) — đơn vị phải có hồ sơ đánh giá
+tác động. Nên: chạy script để máy đọc file tại chỗ, chỉ đưa vào cuộc trò chuyện số tổng, số dòng,
+mã đã che; đừng in hàng loạt dòng có tên/mã bệnh nhân ra màn hình nếu không cần. Không lưu dữ liệu
+dòng vào bộ nhớ hay hồ sơ (hồ sơ kiểm toán đã không chứa chúng).
+
 ---
 
 ## Đọc ≠ xác thực, nháp ≠ đã duyệt

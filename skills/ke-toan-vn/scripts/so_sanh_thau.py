@@ -635,7 +635,9 @@ def main() -> int:
             {"nha_thau": co_gia[0]["Nhà thầu"], "gia_tri": gia_de_nghi_khoan4}
             if co_gia and gia_de_nghi_khoan4 is not None else None),
         "luu_y": LUU_Y,
-        "can_cu_phap_ly": "NĐ 214/2025/NĐ-CP (KHÔNG dùng NĐ 63/2014 hay NĐ 24/2024 — đã hết hiệu lực)",
+        "can_cu_phap_ly": ("NĐ 214/2025/NĐ-CP, đã sửa bởi NĐ 165/2026, NĐ 170/2026, NĐ 349/2026 "
+                           "(Điều 31 không đổi — VBHN 36/2026/VBHN-NĐ-BTC, kiểm 2026-10-16). KHÔNG "
+                           "dùng NĐ 63/2014 hay NĐ 24/2024 — đã hết hiệu lực"),
         "canh_bao_chung": canh_bao_chung,
     }
 

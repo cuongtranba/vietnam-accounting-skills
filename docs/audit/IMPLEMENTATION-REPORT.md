@@ -48,11 +48,16 @@ Chi tiết từng gap, vị trí dòng mã và các phát hiện ngoài handoff:
 
 ## 3. Ma trận trích dẫn pháp lý
 
-Xem [`LEGAL-CITATIONS.md`](LEGAL-CITATIONS.md).
+Xem [`LEGAL-CITATIONS.md`](LEGAL-CITATIONS.md). Đợt nghiên cứu thứ hai (cùng ngày 2026-10-16) đã đọc thêm nguyên văn:
+- TT 91/2026 (Điều 24, 25);
+- NĐ 60/2021 Điều 34 và bản sửa của NĐ 111/2025;
+- Luật 91/2025 (Điều 2, 19, 20, 21, 26, 38) và NĐ 356/2025 (Điều 4, 42);
+- Luật Kế toán (Điều 26, 41), NĐ 174/2016 (Điều 12–14);
+- NĐ 214/2025 Điều 31, NĐ 349/2026 và văn bản hợp nhất 36/2026/VBHN-NĐ-BTC (hai văn bản cuối là bản quét, đọc bằng OCR).
 
-- **Đã đọc nguyên văn bản Công báo:** TT 99/2025 (Điều 2, 31), TT 58/2026 (Điều 2, 4, 12), TT 24/2024 (Điều 2, 13, 14), NĐ 254/2026 (Điều 5, 8, 10, 43, 44, Phụ lục mục 6).
-- **Một phần:** TT 133/2016 (gián tiếp), TT 91/2026, NĐ 141/2026, TT 04/2026/TT-KTNN.
-- **Chưa kiểm:** TT 103/2005, NĐ 174/2016, Luật 91/2025. NĐ 214/2025 dựa vào lần kiểm ở PR #2 và cần kiểm lại trước 2026-10-28.
+Năm điểm cần ký xác nhận đã có kết quả nghiên cứu và kết luận đề xuất. Ô ký vẫn để trống.
+
+Còn **CHƯA KIỂM**: TT 103/2005 (vbpl.vn không đọc được), các bản sửa của Luật Kế toán 2024 và NĐ 174, toàn văn NĐ 165/2026 và NĐ 170/2026.
 
 ## 4. File và giao diện thay đổi
 
@@ -121,14 +126,14 @@ Gói không chứa đường dẫn máy hay nội dung dòng dữ liệu (đã k
 |---|---|
 | Không có xác thực danh tính người duyệt, nên `approved` không đạt được | Đơn vị chọn nhà cung cấp danh tính; lập trình cắm vào `danh_tinh_host()` |
 | Không tra trạng thái hóa đơn với cơ quan thuế | Kênh tích hợp được cấp phép |
-| Khoảng trống chế độ kế toán của DN siêu nhỏ có năm tài chính vắt qua 01/7/2026 | Người có chuyên môn kế toán/pháp lý, hoặc hướng dẫn của Bộ Tài chính |
-| Hóa đơn trước 01/7/2026 xét theo NĐ 123/2020 (cách hiểu về hiệu lực theo thời gian) | Người có chuyên môn pháp lý ký xác nhận |
-| TT 133, TT 91, NĐ 141 mới kiểm một phần; TT 103/2005, NĐ 174/2016, Luật 91/2025 chưa kiểm; NĐ 214/2025 cần kiểm lại trước 2026-10-28 | Người duy trì skill, với người có chuyên môn |
+| DN siêu nhỏ có năm tài chính vắt qua 01/7/2026: đã chọn TT 132 theo suy luận tương tự | Người có chuyên môn ký điểm 1 trong LEGAL-CITATIONS |
+| Đưa dữ liệu dòng (bệnh nhân) vào trợ lý AI chạy ở nước ngoài có thể là chuyển dữ liệu cá nhân xuyên biên giới (Điều 20 Luật 91/2025) | Người phụ trách bảo vệ dữ liệu / pháp chế của đơn vị (điểm 4b) |
+| TT 133, NĐ 141, NĐ 165/2026, NĐ 170/2026 mới kiểm một phần; TT 103/2005 chưa kiểm | Người duy trì skill, với người có chuyên môn |
 | Sổ cái chỉ chống sửa âm thầm, không phải bất biến | Sao lưu sổ cái và gửi mã băm dòng cuối ra ngoài, theo quy trình của đơn vị |
 | Chưa có chính sách lưu trữ theo loại dữ liệu hay legal hold; chưa có CI Windows; chưa giới hạn khi đọc XLSX | Issue hoãn (mục “Hoãn” trong gap register) |
 
 ## 8. Hành động tiếp theo cho người duyệt
 
-1. Đọc `LEGAL-CITATIONS.md` mục “Việc cần người có chuyên môn ký xác nhận”, rồi xác nhận hoặc sửa 5 điểm đó.
+1. Đọc mục “Năm điểm cần người có chuyên môn xác nhận” trong `LEGAL-CITATIONS.md`. Mỗi điểm đã có kết luận đề xuất kèm căn cứ; người có chuyên môn ký hoặc sửa vào ô để trống. Điểm 4b (dữ liệu bệnh nhân và trợ lý AI) cần người phụ trách bảo vệ dữ liệu của đơn vị.
 2. Review PR, đặc biệt các ghi chú tương thích ở mục 5. **Không tự merge.** Thay đổi này đụng ngữ nghĩa pháp lý và kiểm soát.
 3. Sau khi merge, chạy `bash scripts/bootstrap.sh` để cài `signxml`. Lần chạy quy trình thật đầu tiên sẽ bắt đầu ghi hồ sơ vào `.ke-toan-vn/ho-so/`.

@@ -84,11 +84,13 @@ kiem("[ACC-002] suy năm tài chính từ ngày giao dịch + tháng đầu năm
 
 ma, d = chay(CD, "--loai-don-vi", "sieu-nho", "--dau-nam-tai-chinh", "2026-07-01")
 ma2, d2 = chay(CD, "--loai-don-vi", "sieu-nho", "--dau-nam-tai-chinh", "2026-04-01")
-kiem("[ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; 01/4/2026 → cần xác nhận "
-     "(TT 132/2018 hết hiệu lực giữa năm, TT 58 chỉ áp cho năm bắt đầu từ 01/7/2026)",
+kiem("[ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; năm bắt đầu 01/4/2026 → giữ "
+     "TT 132/2018 cả năm, TT 58 từ năm sau (suy theo hỏi đáp Cục QLKT về TT 99 và khoản 3 Điều 4 "
+     "TT 58), có ghi rõ là suy luận cần người duyệt",
      ((d.get("che_do") or {}).get("id"), ma2, d2.get("trang_thai"),
-      sorted(u["id"] for u in d2.get("ung_vien", []))),
-     ("TT58/2026", 2, "can_xac_nhan", ["TT132/2018", "TT58/2026"]))
+      (d2.get("che_do") or {}).get("id"), d2.get("co_so"),
+      any("159102" in c.get("nguon", "") for c in d2.get("trich_dan", []))),
+     ("TT58/2026", 0, "xac_dinh", "TT132/2018", "suy_luan_tuong_tu", True))
 
 ma, d = chay(CD, "--loai-don-vi", "su-nghiep-cong-lap", "--tu-chu", "chi-thuong-xuyen",
              "--dau-nam-tai-chinh", "2026-01-01")
@@ -126,9 +128,11 @@ kiem("DNNVV chưa khai chế độ đã chọn → cần xác nhận giữa TT 1
 
 ma, d = chay(CD, "--hoa-don-ngay", "2026-06-30")
 ma2, d2 = chay(CD, "--hoa-don-ngay", "2026-07-01")
-kiem("hóa đơn lập 30/6/2026 theo NĐ 123/2020; lập 01/7/2026 theo NĐ 254/2026",
-     ((d.get("che_do_hoa_don") or {}).get("id"), (d2.get("che_do_hoa_don") or {}).get("id")),
-     ("ND123/2020", "ND254/2026"))
+kiem("hóa đơn lập 30/6/2026 theo NĐ 123/2020 (căn cứ khoản 2 Điều 24 TT 91/2026); lập 01/7/2026 "
+     "theo NĐ 254/2026",
+     ((d.get("che_do_hoa_don") or {}).get("id"), (d2.get("che_do_hoa_don") or {}).get("id"),
+      any(c["id"] == "TT91-D24" for c in (d.get("che_do_hoa_don") or {}).get("trich_dan", []))),
+     ("ND123/2020", "ND254/2026", True))
 
 # --- G02 -----------------------------------------------------------------------------------
 print("\n[G02/G08] Ghi chú pháp lý theo ngày hiệu lực, hồi tố, nhiều phiên bản cùng ngày")

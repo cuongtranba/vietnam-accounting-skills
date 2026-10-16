@@ -3,13 +3,13 @@
   ✅ [ACC-001] DN năm dương lịch 2026 → TT 99/2025, dẫn Điều 31 và nguồn Công báo
   ✅ [ACC-002] năm tài chính 01/10/2025–30/09/2026 giữ TT 200 cả năm, không đổi giữa năm
   ✅ [ACC-002] suy năm tài chính từ ngày giao dịch + tháng đầu năm (15/3/2026, tháng 10)
-  ✅ [ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; 01/4/2026 → cần xác nhận (TT 132/2018 hết hiệu lực giữa năm, TT 58 chỉ áp cho năm bắt đầu từ 01/7/2026)
+  ✅ [ACC-003] DN siêu nhỏ: năm bắt đầu 01/7/2026 → TT 58/2026; năm bắt đầu 01/4/2026 → giữ TT 132/2018 cả năm, TT 58 từ năm sau (suy theo hỏi đáp Cục QLKT về TT 99 và khoản 3 Điều 4 TT 58), có ghi rõ là suy luận cần người duyệt
   ✅ [ACC-004] bệnh viện công (ĐVSNCL tự chủ chi thường xuyên) → TT 24/2024; bệnh viện tư (doanh nghiệp) → TT 99/2025; ĐVSNCL chưa rõ mức tự chủ → cần xác nhận
   ✅ [ACC-004] ĐVSNCL tự bảo đảm chi thường xuyên và chi đầu tư, được phép → chế độ DN (TT 99), kèm nhắc báo cáo quyết toán kinh phí
   ✅ loại đơn vị khác/không khai → cần xác nhận, KHÔNG rơi về TT 200
   ✅ năm tài chính 2024 vẫn TT 200 — số liệu lịch sử không bị diễn giải lại theo TT 99
   ✅ DNNVV chưa khai chế độ đã chọn → cần xác nhận giữa TT 133 và TT 99; đã chọn TT 133 → TT 133
-  ✅ hóa đơn lập 30/6/2026 theo NĐ 123/2020; lập 01/7/2026 theo NĐ 254/2026
+  ✅ hóa đơn lập 30/6/2026 theo NĐ 123/2020 (căn cứ khoản 2 Điều 24 TT 91/2026); lập 01/7/2026 theo NĐ 254/2026
 
 [G02/G08] Ghi chú pháp lý theo ngày hiệu lực, hồi tố, nhiều phiên bản cùng ngày
   ✅ [ACC-005] tra theo ngày 01/02/2026: áp dụng NĐ 141/2026 (hồi tố từ 01/01/2026, ban hành 29/4/2026), cảnh báo quyết định lập trước ngày ban hành cần rà soát

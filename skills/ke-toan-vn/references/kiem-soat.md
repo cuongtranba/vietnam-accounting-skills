@@ -94,3 +94,15 @@ So khớp với file mẫu chỉ chứng minh "giống lần trước". Nếu l�
 - **Khoá:** cột STT không được làm khoá tách (STT đánh lại mỗi kỳ). Khi đối chiếu dùng khoá STT thì có cảnh báo.
 
 Hỏng bảo toàn là lỗi của công cụ: dừng và không công bố file nào.
+
+## Lưu trữ và dữ liệu cá nhân
+
+- **Không tự xoá.** Công cụ không xoá hồ sơ hay kết quả nào. Bảng kê, bảng tổng hợp chi tiết dùng
+  để ghi sổ là tài liệu kế toán lưu **tối thiểu 10 năm** (khoản 1 Điều 13 NĐ 174/2016); giữ hồ sơ
+  kiểm toán của nó cùng thời hạn. Dọn dẹp là quyết định của đơn vị, theo danh mục lưu trữ của họ.
+- **Hồ sơ không chứa dữ liệu dòng** — chỉ mã băm, số dòng, tổng tiền, tên file. Tên file có tên
+  người (vd "LUONG - NGUYEN VAN A.xlsx") thì nhãn trong hồ sơ cũng có — đặt tên file theo mã.
+- **Xử lý tại chỗ, đưa ra ngoài phần tối thiểu.** Dữ liệu sức khỏe là dữ liệu nhạy cảm (NĐ
+  356/2025). Khi trợ lý AI chạy trên nền tảng ở nước ngoài, mọi nội dung đưa vào cuộc trò chuyện có
+  thể là chuyển dữ liệu xuyên biên giới (Điều 20 Luật 91/2025): chỉ đưa số tổng hợp hoặc dữ liệu đã
+  khử nhận dạng; việc lập hồ sơ đánh giá tác động là trách nhiệm của đơn vị (bên kiểm soát dữ liệu).

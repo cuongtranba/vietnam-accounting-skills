@@ -2,8 +2,9 @@
 
 > **Kiểm hiệu lực văn bản trước khi tin file này.** Chạy `bo_nho.py tra "dau thau"`. Nội dung dưới
 > đây cập nhật ngày 2026-09-13 theo NĐ 214/2025/NĐ-CP và Luật Đấu thầu (bản hợp nhất
-> 74/VBHN-VPQH), và **đã có dự thảo viết lại toàn diện Luật Đấu thầu** (xem cảnh báo bên dưới) —
-> nên TTL bộ nhớ cho mảng đấu thầu chỉ 45 ngày.
+> 74/VBHN-VPQH); phần NĐ 214 kiểm lại ngày 2026-10-16 (các lần sửa đổi, Điều 31). **Đã có dự thảo
+> viết lại toàn diện Luật Đấu thầu** (xem cảnh báo bên dưới) — nên TTL bộ nhớ cho mảng đấu thầu
+> chỉ 45 ngày.
 
 ## Khung pháp lý hiện hành
 
@@ -11,7 +12,7 @@
 |---|---|
 | Luật Đấu thầu 22/2023/QH15, sửa bởi Luật 57/2024/QH15, Luật 90/2025/QH15 (hiệu lực 01/7/2025), Luật Phục hồi, phá sản 142/2025/QH15 (01/3/2026), Luật An ninh mạng 116/2025/QH15 và Luật Công nghệ cao 133/2025/QH15 (cả hai 01/7/2026) | Luật Đấu thầu — **cả 5 lần sửa đều đã có hiệu lực** |
 | **Văn bản hợp nhất số 74/VBHN-VPQH (2026)** | Bản hợp nhất đủ 5 lần sửa trên vào một văn bản — **tra số điều ở đây**, đừng tự cộng dồn các luật sửa đổi |
-| **NĐ 214/2025/NĐ-CP** (hiệu lực 04/8/2025) | Chi tiết lựa chọn nhà thầu — **văn bản đang áp dụng** |
+| **NĐ 214/2025/NĐ-CP** (hiệu lực 04/8/2025) | Chi tiết lựa chọn nhà thầu — **văn bản đang áp dụng**. Đã sửa bởi NĐ 165/2026 và NĐ 170/2026 (cùng ngày 15/5/2026, hiệu lực 01/7/2026) và **NĐ 349/2026/NĐ-CP** (ký 09/9/2026, hiệu lực từ ngày ký — có báo ghi nhầm 20/10/2026). **Văn bản hợp nhất 36/2026/VBHN-NĐ-BTC (23/9/2026)** gộp cả ba — tra số điều ở đây. Điều 31 (sửa lỗi, hiệu chỉnh sai lệch) **không bị sửa** (đối chiếu bản gốc với VBHN, 2026-10-16); NĐ 349 sửa chủ yếu chỉ định thầu, chào giá, mua sắm nhỏ (Điều 18, 21, 35, 78–85, 98, 106, 117, 131, 132, 138, 140, 141, 146) |
 | TT 79/2025/TT-BTC | Mẫu HSMT, đăng tải thông tin |
 | TT 80/2025/TT-BTC | Mẫu HSYC, **báo cáo đánh giá**, báo cáo thẩm định |
 
