@@ -83,6 +83,16 @@ def kiem(qt: dict, danh_muc: dict) -> dict:
     }
 
 
+def cot_tham_chieu(spec: dict) -> dict:
+    n, k = spec["nguon"], spec["ket_qua"]
+    cot = {n["cot_khoa"], *n["cot_tong"], *spec.get("theo_doi", [])}
+    for c in (n.get("cot_stt"), k.get("cot_nhan_tong")):
+        if c:
+            cot.add(c)
+    cot |= set(spec["_dong_du_lieu_khi"] or {})
+    return {"nguon": {"sheet": n.get("sheet"), "dong_tieu_de": n["dong_tieu_de"], "cot": cot}}
+
+
 def _cong_thuc_trong_dong(f: str, dong: int, cot_cam: frozenset = frozenset()) -> bool:
     """Công thức chỉ tham chiếu ô của chính dòng `dong`, cùng sheet, không cố định dòng.
 
@@ -267,7 +277,7 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
     ra = (Path(ra_dir) if ra_dir else p.parent) / ten_ra(k["ra"], p, tuy_chon.get("ky"))
     from _xuat import luu
 
-    luu(wb, ra)
+    luu(wb, ra, tuy_chon.get("bo_ghi"))
 
     khong_gap = sorted(x for nh in spec["nhom"] for x in nh["gia_tri"] if chuan(x) not in gap)
     return {

@@ -69,6 +69,22 @@ def kiem(qt: dict, danh_muc: dict) -> dict:
     }
 
 
+def cot_tham_chieu(spec: dict) -> dict:
+    """Cột mà quy trình dùng — bố cục đổi ở các cột này mới là thay đổi có ý nghĩa tài chính."""
+    n = spec["nguon"]
+    cot = set(n.get("cot_bat_buoc", [])) | set(spec.get("theo_doi", []))
+    for q in spec["quy_tac"]:
+        cot |= cot_cua_quy_tac(q)
+    for b in spec["bien_the"]:
+        for ds in b["them_tru"].values():
+            for t in ds:
+                cot |= set(t)
+    if n.get("cot_tien"):
+        cot.add(n["cot_tien"])
+    cot |= set(spec["_dong_du_lieu_khi"] or {})
+    return {"nguon": {"sheet": n.get("sheet"), "dong_tieu_de": n["dong_tieu_de"], "cot": cot}}
+
+
 def ap_bien_the(spec: dict, ten_file: str, ep: str | None, tat: bool) -> tuple[list, str | None]:
     """Bộ quy tắc áp cho một file, sau khi cộng biến thể (nếu có)."""
     chon = None
@@ -112,6 +128,7 @@ def doc_va_phan_loai(spec: dict, duong_dan: Path, ep_bien_the, tat_bien_the) -> 
         raise LoiQuyTrinh(f"{duong_dan.name}/{ten_sheet}: thiếu cột {thieu}. Bố cục bản kết "
                           f"xuất có thể đã đổi — xem lại dòng tiêu đề {n['dong_tieu_de']}.")
     vi_tri = {c: tra_cot(cm, c, duong_dan.name) for c in can}
+    i_tien = vi_tri[n["cot_tien"]] if n.get("cot_tien") else None
     dl_khi = spec["_dong_du_lieu_khi"]
 
     giu, bo, khong_phai_dl, dem = [], [], 0, {}
@@ -136,10 +153,10 @@ def doc_va_phan_loai(spec: dict, duong_dan: Path, ep_bien_the, tat_bien_the) -> 
     return {"duong_dan": duong_dan, "sheet": ten_sheet, "tieu_de": tieu_de, "cm": cm,
             "giu": giu, "bo": bo, "dem": dem, "bien_the": bien_the,
             "khong_phai_du_lieu": khong_phai_dl, "quan_sat": quan_sat,
-            "quy_tac_ap": [q["ma"] for q in quy_tac]}
+            "quy_tac_ap": [q["ma"] for q in quy_tac], "i_tien": i_tien}
 
 
-def ghi(spec: dict, kq: dict, ra: Path) -> None:
+def ghi(spec: dict, kq: dict, ra: Path, bo_ghi=None) -> None:
     import openpyxl
     from openpyxl.utils import get_column_letter
 
@@ -166,7 +183,7 @@ def ghi(spec: dict, kq: dict, ra: Path) -> None:
         [],
     ]
     if cot_tien:
-        i = kq["cm"][chuan(cot_tien)]
+        i = kq["i_tien"]
         st = get_column_letter(i + 1)
         tong = sum(r[i] for r in kq["giu"] + kq["bo"] if la_so(r[i]))
         dong += [
@@ -198,7 +215,7 @@ def ghi(spec: dict, kq: dict, ra: Path) -> None:
     ws.column_dimensions["A"].width = 40
     ws.column_dimensions["B"].width = 34
     ws.column_dimensions["C"].width = 20
-    luu(wb, ra)
+    luu(wb, ra, bo_ghi)
 
 
 def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
@@ -221,9 +238,8 @@ def ghi_tat_ca(spec: dict, trung_gian: dict, tuy_chon: dict) -> dict:
         p = k["duong_dan"]
         ra = (Path(ra_dir) if ra_dir else p.parent) / ten_ra(spec["ket_qua"]["ra"], p,
                                                              tuy_chon.get("ky"))
-        ghi(spec, k, ra)
-        i = k["cm"].get(chuan(spec["nguon"].get("cot_tien") or "")) \
-            if spec["nguon"].get("cot_tien") else None
+        ghi(spec, k, ra, tuy_chon.get("bo_ghi"))
+        i = k["i_tien"]
 
         def tong(ds, i=i):
             return round(sum(r[i] for r in ds if la_so(r[i])), 2) if i is not None else None

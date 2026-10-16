@@ -63,6 +63,17 @@ def kiem(qt: dict, danh_muc: dict) -> dict:
         "chi_ghi_lech": che_do == "tung_dong", **kq}}
 
 
+def cot_tham_chieu(spec: dict) -> dict:
+    ra = {}
+    for t in ("a", "b"):
+        b = spec[t]
+        cot = set(b["khoa"]) | set(b["chi_tiet"]) | {b["gia_tri"]}
+        for q in b["loai_tru"]:
+            cot |= cot_cua_quy_tac(q)
+        ra[t] = {"sheet": b["sheet"], "dong_tieu_de": b["dong_tieu_de"], "cot": cot}
+    return ra
+
+
 def _so(v) -> float:
     if la_so(v):
         return float(v)
@@ -203,7 +214,7 @@ def chay(spec: dict, tep: dict, tuy_chon: dict) -> dict:
     canh_bao = []
     if k["che_do"] == "gop":
         dong, ngoai_mau = _gop(spec, A, B)
-        _ghi_gop(spec, dong, ra)
+        _ghi_gop(spec, dong, ra, tuy_chon.get("bo_ghi"))
         if ngoai_mau:
             canh_bao.append(f"Khoá chưa có trong thứ tự mẫu, đã nối thêm ở cuối: {ngoai_mau}")
         tom = {"so_khoa": len(dong), "so_khoa_lech": sum(d["lech"] for d in dong),
@@ -214,7 +225,7 @@ def chay(spec: dict, tep: dict, tuy_chon: dict) -> dict:
                          "so_cap_lech": len(d["cap_lech"])} for d in dong if d["lech"]]}
     else:
         dong = _tung_dong(spec, A, B)
-        _ghi_tung_dong(spec, dong, ra)
+        _ghi_tung_dong(spec, dong, ra, tuy_chon.get("bo_ghi"))
         dem = {}
         for d in dong:
             dem[d["ket_qua"]] = dem.get(d["ket_qua"], 0) + 1
@@ -239,7 +250,7 @@ def _tieu_de_gia_tri(spec, t):
     return f"{b['gia_tri']} {b['nhan']}"
 
 
-def _ghi_gop(spec, dong, ra: Path) -> None:
+def _ghi_gop(spec, dong, ra: Path, bo_ghi=None) -> None:
     import openpyxl
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
@@ -294,10 +305,10 @@ def _ghi_gop(spec, dong, ra: Path) -> None:
         ws.column_dimensions[c].width = 16
     ws.column_dimensions[L(so_cot)].width = 80
     ws.freeze_panes = "A2"
-    luu(wb, ra)
+    luu(wb, ra, bo_ghi)
 
 
-def _ghi_tung_dong(spec, dong, ra: Path) -> None:
+def _ghi_tung_dong(spec, dong, ra: Path, bo_ghi=None) -> None:
     import openpyxl
     from openpyxl.styles import PatternFill
 
@@ -335,4 +346,4 @@ def _ghi_tung_dong(spec, dong, ra: Path) -> None:
         t.append(["Sheet đối chiếu chỉ ghi các dòng không khớp."])
     dam_dong(t, 1)
     t.column_dimensions["A"].width = 30
-    luu(wb, ra)
+    luu(wb, ra, bo_ghi)

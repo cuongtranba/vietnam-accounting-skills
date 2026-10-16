@@ -40,6 +40,15 @@ def canh_bao(thong_diep: str) -> None:
     print(f"⚠️  {thong_diep}", file=sys.stderr)
 
 
+def o_an_toan(v):
+    """Giá trị đưa ra CSV/Excel: chuỗi mở đầu bằng = + - @ (hoặc tab, xuống dòng) được thêm dấu
+    nháy đơn để bảng tính hiểu là chữ, không phải công thức. Dữ liệu đến từ hóa đơn/bản kết xuất
+    của bên ngoài; một tên người bán "=HYPERLINK(...)" không được biến thành công thức chạy được."""
+    if isinstance(v, str) and v[:1] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + v
+    return v
+
+
 def can_thu_vien(*ten_module: str) -> None:
     """Kiểm thư viện trước khi chạy, báo lỗi tử tế bằng tiếng Việt thay vì ImportError."""
     import importlib
