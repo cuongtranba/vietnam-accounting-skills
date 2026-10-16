@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.4.0...v0.5.0) (2026-10-16)
+
+
+### Tính năng mới
+
+* kiểm soát kiểm toán được — chế độ kế toán theo năm tài chính, xác thực hóa đơn, cổng đầy đủ, hồ sơ lần chạy, ghi nhận duyệt (P0/P1/P2) ([#11](https://github.com/cuongtranba/vietnam-accounting-skills/issues/11)) ([1e86a45](https://github.com/cuongtranba/vietnam-accounting-skills/commit/1e86a4585a3bd2a0cf2ee17badc024842263bf02))
+
 ## [0.4.0](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.3.0...v0.4.0) (2026-10-13)
 
 
