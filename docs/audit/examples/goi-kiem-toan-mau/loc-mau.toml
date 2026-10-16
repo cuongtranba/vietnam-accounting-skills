@@ -1,0 +1,10 @@
+loai = "loc"
+mo_ta = "Lọc bản kết xuất doanh thu mẫu: bỏ dòng nhóm Máu"
+[nguon]
+cot_tien = "SOTIEN"
+[ket_qua]
+ra = "LOC-{ten_file}.xlsx"
+[[quy_tac]]
+ma = "1"
+mo_ta = "nhóm Máu tính ở báo cáo riêng"
+khi = { NHOM = { bang = ["Máu"] } }

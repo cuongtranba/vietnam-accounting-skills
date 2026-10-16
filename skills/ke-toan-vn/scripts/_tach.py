@@ -25,7 +25,8 @@ from pathlib import Path
 from _xuat import giu_chu
 from _quy_trinh import (
     KHOA_CHUNG, LoiQuyTrinh, bam, chi_so_cot, chon_sheet, chuan, chuan_quy_tac, kiem_khoa,
-    la_dong_tong, la_so, ten_goi, ten_ra, ten_sheet_hop_le, thoa_tat_ca, tra_cot,
+    bang_nhau_tien, la_dong_tong, la_so, ten_goi, ten_ra, ten_sheet_hop_le, thoa_tat_ca,
+    tra_cot,
 )
 
 KHOA_NGUON = {"sheet", "dong_tieu_de", "cot_khoa", "cot_tong", "cot_stt", "dong_du_lieu_khi"}
@@ -219,16 +220,18 @@ def chay(spec: dict, tep: list[Path], tuy_chon: dict) -> dict:
                       if la_so(v := ws_gt.cell(r, i + 1).value)), 2) for i in i_tong]
 
     def cong(ds, i):
-        return round(sum(v for r in ds if la_so(v := ws_gt.cell(r, i + 1).value)), 2)
+        return sum(v for r in ds if la_so(v := ws_gt.cell(r, i + 1).value))
     tat_ca = [r for nh in spec["nhom"] for r in dong_nhom[nh["ten"]]] + dong_ngoai
     bat_bien = {
         "bao_toan_dong": so_dong_du_lieu == len(tat_ca),
         "bao_toan_tien": all(
-            cong(tat_ca, i) == round(sum(tong_nguon[nh["ten"]][j] for nh in spec["nhom"])
-                                     + cong(dong_ngoai, i), 2) for j, i in enumerate(i_tong)),
+            bang_nhau_tien(cong(tat_ca, i), sum(cong(dong_nhom[nh["ten"]], i)
+                                                for nh in spec["nhom"]) + cong(dong_ngoai, i))
+            for i in i_tong),
         "doc_lai_khop": None,  # file kết quả giữ công thức; số chỉ có sau khi tính lại
         "dong_tong_nghi_ngo": dong_tong,
-        "tong_ngoai_cac_nhom": dict(zip(n["cot_tong"], [cong(dong_ngoai, i) for i in i_tong])),
+        "tong_ngoai_cac_nhom": dict(zip(n["cot_tong"],
+                                        [round(cong(dong_ngoai, i), 2) for i in i_tong])),
     }
     if not bat_bien["bao_toan_dong"] or not bat_bien["bao_toan_tien"]:
         raise LoiQuyTrinh(f"{p.name}: hỏng bảo toàn khi tách {bat_bien} — lỗi công cụ, chưa ghi gì")

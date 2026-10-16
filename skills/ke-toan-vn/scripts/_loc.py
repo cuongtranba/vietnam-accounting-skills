@@ -16,7 +16,8 @@ from pathlib import Path
 
 from _quy_trinh import (
     KHOA_CHUNG, LoiQuyTrinh, bam, chi_so_cot, chuan, chuan_quy_tac, cot_cua_quy_tac,
-    doc_bang, khop_quy_tac, khop_ten_file, kiem_khoa, la_dong_tong, la_so, ten_ra,
+    bang_nhau_tien, doc_bang, khop_quy_tac, khop_ten_file, kiem_khoa, la_dong_tong, la_so,
+    ten_ra,
     ten_sheet_hop_le, thoa_tat_ca, tra_cot,
 )
 
@@ -278,8 +279,9 @@ def bat_bien(spec: dict, k: dict, tam: Path | None, tong_giu, tong_bo) -> dict:
     """
     so_goc = k["so_dong_doc"] - k["khong_phai_du_lieu"]
     bao_toan_dong = so_goc == len(k["giu"]) + len(k["bo"])
-    bao_toan_tien = None if k["i_tien"] is None else \
-        round(k["tong_goc"], 2) == round((tong_giu or 0) + (tong_bo or 0), 2)
+    i = k["i_tien"]
+    bao_toan_tien = None if i is None else bang_nhau_tien(
+        k["tong_goc"], sum(r[i] for r in k["giu"] + k["bo"] if la_so(r[i])))
     doc_lai = None
     if tam is not None:
         import openpyxl

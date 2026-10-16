@@ -1,0 +1,15 @@
+{
+  "lenh": "ho_so_kiem_toan.py kiem-goi run-20261016T170627-536aa10e.json --thu-muc-tep nguon",
+  "ket_qua": {
+    "ho_so_khop": true,
+    "dau_vao_khop": true,
+    "chi_tiet": [
+      {
+        "nhan": "DT-MAU-09.xlsx",
+        "khop": true,
+        "co_file": true
+      }
+    ]
+  },
+  "trang_thai_duyet_luc_xuat": "da_xem_chua_xac_thuc"
+}

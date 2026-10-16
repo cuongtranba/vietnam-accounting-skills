@@ -5,10 +5,17 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   kiem-thu:
-    name: Chạy script trên dữ liệu mẫu
-    runs-on: ubuntu-latest
+    name: Chạy script trên dữ liệu mẫu (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -18,11 +25,14 @@ jobs:
 
       # Bộ sinh dữ liệu mẫu cần font có dấu tiếng Việt. Không có font thì reportlab
       # sẽ vẽ ra PDF mất dấu và mọi phép trích xuất hỏng theo — nên cài trước.
+      # macOS có sẵn Arial Unicode; không có thì tao_fixtures.py dừng hẳn, không rơi về Helvetica.
       - name: Cài font tiếng Việt
+        if: runner.os == 'Linux'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-dejavu-core
 
+      # Phiên bản ghim để lần chạy CI tái lập được (xem evals/requirements-ci.txt).
       - name: Cài thư viện
-        run: pip install --quiet openpyxl pandas pdfplumber pypdf lxml python-dateutil XlsxWriter reportlab
+        run: pip install --quiet -r evals/requirements-ci.txt
 
       - name: Sinh dữ liệu mẫu
         run: python evals/tao_fixtures.py
@@ -31,5 +41,9 @@ jobs:
       # và để không lẫn với bộ nhớ thật của người dùng khi chạy cục bộ.
       - name: Kiểm thử hồi quy
         env:
-          KE_TOAN_VN_HOME: /tmp/kt-ci
+          KE_TOAN_VN_HOME: ${{ runner.temp }}/kt-ci
         run: python evals/kiem_thu.py
+
+      # Bộ kiểm soát: mỗi phép kiểm gắn một mã kịch bản trong docs/audit/CONTROL-MATRIX.md.
+      - name: Kiểm thử kiểm soát (ACC/INV/WF/AUD/TEN/BID/SEC)
+        run: python evals/kiem_soat.py

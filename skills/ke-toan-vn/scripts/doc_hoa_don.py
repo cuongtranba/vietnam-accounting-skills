@@ -5,9 +5,10 @@
     doc_hoa_don.py <thư mục> --ra bang_ke.json --dinh-dang json
     doc_hoa_don.py <thư mục> --ca-tin-cay ca.pem --yeu-cau-day-du   # cho bên gọi chặn lại
 
-XML THẮNG PDF. Bản XML là bản gốc có giá trị pháp lý; PDF chỉ là 'bản thể hiện' (Điều 7
-NĐ 123/2020 với hóa đơn lập trước 01/7/2026; khoản 2 Điều 5 NĐ 254/2026 từ 01/7/2026). Khi một
-hóa đơn có cả hai, script đọc XML; PDF cùng tên chỉ dùng để so tổng tiền.
+XML THẮNG PDF. Hóa đơn điện tử là thông điệp dữ liệu (bản XML); PDF chỉ là bản thể hiện, bản
+chuyển sang giấy không có hiệu lực giao dịch (Điều 7 NĐ 123/2020 với hóa đơn lập trước 01/7/2026;
+khoản 2 và điểm b.2 khoản 4 Điều 5 NĐ 254/2026 từ 01/7/2026). Khi một hóa đơn có cả hai, script
+đọc XML; PDF cùng tên chỉ dùng để so tổng tiền.
 
 ĐỌC ≠ XÁC THỰC. Mỗi dòng có `xac_thuc` gồm ba trạng thái riêng (xem xac_thuc_hoa_don.py):
 xml_schema, chu_ky, trang_thai_cqt. Tình trạng trên hệ thống cơ quan thuế luôn `not_checked` —

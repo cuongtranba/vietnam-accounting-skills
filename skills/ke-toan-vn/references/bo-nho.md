@@ -41,10 +41,33 @@ KE_TOAN_VN_HOME=/tmp/kt-thu bo_nho.py tra "..."
 
 ## Bản lưu trữ khi ghi đè
 
-Ghi đè một ghi chú không xoá bản cũ — nó được lưu thành `<tên>.cu-YYYY-MM-DD.md` để đối chiếu
-lịch sử ("trước đây là 500 triệu, nay là 1 tỷ" rất hữu ích khi rà soát kỳ trước). Nhưng lệnh `tra`
-**bỏ qua** các bản `.cu-`: trả chúng về trong kết quả tra cứu thì người đọc có thể lấy nhầm con số
-đã bị thay — đúng cái sai mà cả bộ nhớ này sinh ra để chống.
+Ghi đè một ghi chú không xoá bản cũ — nó được lưu thành `<tên>.cu-YYYY-MM-DD-NNN.md` (NNN tăng
+dần trong ngày, nên cập nhật nhiều lần một ngày không đè mất bản nào; bản cũ chỉ ghi ngày được đọc
+bình thường) để đối chiếu lịch sử ("trước đây là 500 triệu, nay là 1 tỷ" rất hữu ích khi rà soát
+kỳ trước). Lệnh `tra` (không `--ngay`) **bỏ qua** các bản `.cu-`: trả chúng về trong kết quả tra cứu
+hiện hành thì người đọc có thể lấy nhầm con số đã bị thay. Bản mới có hiệu lực muộn hơn bản cũ thì
+bản lưu trữ được ghi `hieu_luc_den` = ngày đó, đánh dấu `hieu_luc_den_suy_ra: true`.
+
+## Tra theo ngày: quy định áp dụng cho KỲ ĐANG XÉT
+
+"Còn hạn" chỉ nói điều mình biết còn mới — không nói nó áp dụng cho giao dịch năm ngoái.
+`tra --ngay YYYY-MM-DD` chọn trong mọi phiên bản (kể cả bản lưu trữ) bản có hiệu lực tại ngày đó:
+
+- `ap_dung` — bản áp dụng (`ban_luu_tru: true` nếu là bản cũ); `None` nếu không bản nào phủ ngày đó
+  (ghi chú không có `hieu_luc_tu` thì không bao giờ được chọn).
+- `hoi_to: true` + cảnh báo khi `ngay_ban_hanh` sau `hieu_luc_tu` — tờ khai lập trước ngày ban hành
+  có thể đã dùng quy định cũ.
+- `lich_su` — các phiên bản khác của chủ đề, để truy nguồn gốc. `lich-su "<chủ đề>"` liệt kê đủ.
+
+Ghi chú pháp lý mới luôn có `can_nguoi_duyet: true`: tra web xong không biến diễn giải thành ý kiến
+đã được người có chuyên môn duyệt. Nguồn phải là URL `https`; `--do-tin-cay cao` mà không có nguồn
+`.gov.vn`/`chinhphu.vn` bị hạ xuống `trung_binh`.
+
+## Nhiều đơn vị
+
+`bo_nho.py --don-vi <mã> ...` (hoặc `KE_TOAN_VN_DON_VI`): quy ước riêng nằm ở
+`<bộ nhớ>/don-vi/<mã>/quy-uoc/`, không lẫn sang đơn vị khác. Ghi chú pháp lý dùng chung. Xem
+`references/kiem-soat.md`.
 
 ## Hai loại kiến thức, xử lý khác nhau
 
@@ -78,7 +101,7 @@ do_tin_cay: cao             # cao = đối chiếu được .gov.vn | trung_binh
 | Đấu thầu (NĐ 214/2025, TT 79+80/2025) | **45 ngày** | NĐ 214/2025 mới hiệu lực 8/2025 và **đã có dự thảo sửa** |
 | Thuế suất, ngưỡng, hạn nộp, mẫu tờ khai | 60 ngày | Đổi 3 lần trong 18 tháng |
 | Quy định hóa đơn (NĐ 254/2026, TT 91/2026) | 90 ngày | Đổi theo nghị định — NĐ 254/2026 vừa thay NĐ 123/2020 và NĐ 70/2025 từ 01/7/2026 |
-| Hệ thống tài khoản (TT 200, TT 133) | 365 ngày | Ổn định từ 2014 |
+| Hệ thống tài khoản (TT 99/2025, TT 200, TT 133, TT 58/2026, TT 24/2024) | 180 ngày | TT 99 thay TT 200 từ năm tài chính 2026, TT 58 thay TT 132 từ 01/7/2026 |
 
 **Ghi chú hết hạn không bị xoá.** Nó được đánh dấu `qua_han` trong INDEX. Trước khi dùng phải tra
 lại và ghi đè, nhưng giữ nội dung cũ lại rất có ích: kế toán thường xuyên phải rà soát kỳ trước,
@@ -101,7 +124,7 @@ Nên ghi những gì quan sát được từ file thật:
 |---|---|
 | `quy-uoc/cong-ty.md` | Các công ty/khách hàng hay gặp và MST của họ, nhà cung cấp quen |
 | `quy-uoc/cot-excel.md` | Cách người dùng đặt tên cột ("Tiền hàng" hay "Thành tiền"?), thứ tự cột quen thuộc, bố cục sheet |
-| `quy-uoc/tai-khoan.md` | Tài khoản cấp 2/3 người dùng tự mở ngoài TT 200 và ý nghĩa của chúng |
+| `quy-uoc/tai-khoan.md` | Tài khoản chi tiết người dùng tự mở ngoài hệ thống tài khoản của chế độ đang áp dụng, và ý nghĩa của chúng |
 | `quy-uoc/phan-mem.md` | Phần mềm đang dùng (HTKK/MISA/Fast/Bravo), phiên bản, định dạng xuất nhập |
 | `quy-uoc/dau-thau.md` | Cấu trúc tiêu chuẩn đánh giá cơ quan hay dùng: các đầu mục HSMT, ngưỡng doanh thu bình quân, số hợp đồng tương tự yêu cầu, cách chấm đạt/không đạt |
 
@@ -126,7 +149,11 @@ Một bộ nhớ âm thầm lớn lên là bộ nhớ không ai tin được, v�
 
 ```bash
 bo_nho.py tra "<chủ đề>"     # tìm ghi chú; báo rõ còn hạn hay đã quá hạn
-bo_nho.py ghi --loai phap-ly --chu-de "..." --tep <file.md>
+bo_nho.py tra "<chủ đề>" --ngay 2025-12-31   # quy định áp dụng TẠI ngày đó
+bo_nho.py lich-su "<chủ đề>" # mọi phiên bản, kể cả bản lưu trữ
+bo_nho.py ghi --loai phap-ly --chu-de "..." --tep <file.md> \
+    --van-ban "NĐ 141/2026/NĐ-CP" --ngay-ban-hanh 2026-04-29 --hieu-luc-tu 2026-01-01 \
+    --dieu-khoan "Điều ..." --sua-doi "NĐ 68/2026/NĐ-CP" --nguon https://... --do-tin-cay cao
 bo_nho.py ghi --loai quy-uoc --chu-de "..." --noi-dung "..."
 bo_nho.py kiem-han           # liệt kê ghi chú quá hạn hoặc hết hiệu lực
 bo_nho.py nhat-ky "<việc đã làm>"

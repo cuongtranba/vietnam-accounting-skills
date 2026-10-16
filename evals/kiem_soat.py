@@ -752,6 +752,17 @@ kiem("tach: ô tiền là công thức SUM trong vùng dữ liệu (dòng cộng
      "needs_review; bảo toàn nguồn = các nhóm + ngoài nhóm",
      (bb.get("dong_tong_nghi_ngo"), d.get("trang_thai_ket_qua"), bb.get("bao_toan_tien")),
      ([4], "needs_review", True))
+# 0,005 đồng mỗi phần: làm tròn từng phần (0,01 + 0,01 + 0,01) ≠ làm tròn tổng (0,015 → 0,01)
+le = [[1, "K. MẮT", 0.005], [2, "K. NỘI", 0.005], [3, "K. KHÁC", 0.005]]
+luu_bang(TMP / "bb" / "ts-le.xlsx", ["STT", "KHOA", "TIEN"], le)
+ma, d = qt("chay", "tach-theo-doi", str(TMP / "bb" / "ts-le.xlsx"), "--ky", "T09.2026",
+           "--ra-thu-muc", str(TMP / "bb-ra"), "--khong-ghi-lich-su", "--chap-nhan-gia-tri-moi")
+src_le = luu_bang(TMP / "bb" / "LE.xlsx", TD, [["A", "Máu", "T", "x", 1, 0.005],
+                                                ["A", "Thuốc", "T", "y", 1, 0.005]])
+ma2, d2 = qt("chay", "loc-bb", str(src_le), "--ra-thu-muc", str(TMP / "bb-ra"),
+             "--khong-ghi-lich-su")
+kiem("số tiền lẻ (0,005 đồng mỗi phần, như khấu hao chia 12) không làm hỏng bảo toàn GIẢ do làm tròn từng "
+     "phần (tach và loc vẫn chạy)", (ma, ma2), (0, 0))
 (qt_home / "quy-trinh" / "tach-stt.toml").write_text(
     'loai = "tach"\n[nguon]\ncot_khoa = "STT"\ncot_stt = "STT"\n[[nhom]]\ngia_tri = ["1"]\n',
     encoding="utf-8")

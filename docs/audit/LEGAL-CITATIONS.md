@@ -1,0 +1,43 @@
+# Ma trận trích dẫn pháp lý và phạm vi áp dụng — kiểm ngày 2026-10-16
+
+Đây là chỉ mục tra cứu có trích dẫn, **không phải ý kiến pháp lý**. Mỗi dòng ghi rõ mức độ đã kiểm:
+
+- **ĐÃ KIỂM:** đã đọc nguyên văn điều khoản trong bản Công báo (PDF tải từ `congbaocdn.chinhphu.vn`), qua trang văn bản trên `congbao.chinhphu.vn`.
+- **MỘT PHẦN:** chỉ xác nhận được thuộc tính văn bản (số, ngày ban hành, ngày hiệu lực) trên cổng chính thức, chưa đọc điều khoản.
+- **CHƯA KIỂM:** không truy cập được nguồn chính thức trong phiên này. Không được dùng làm căn cứ cho một kết luận có hệ quả.
+
+Mã căn cứ trong máy (`che_do_ke_toan.CAN_CU`) là nơi duy nhất giữ các trích dẫn mà công cụ dùng để chọn chế độ.
+
+| Văn bản | Ban hành | Hiệu lực | Điều khoản quyết định (trích nguyên văn ngắn) | Điều kiện năm tài chính / chuyển tiếp | Thay thế / sửa đổi | Phạm vi | Nguồn | Mức kiểm | Dùng ở đâu |
+|---|---|---|---|---|---|---|---|---|---|
+| TT 99/2025/TT-BTC — Chế độ kế toán doanh nghiệp | 27/10/2025 (Công báo số 1563+1564, 16/11/2025) | 01/01/2026 | Điều 31 khoản 1: “có hiệu lực thi hành kể từ ngày 01/01/2026 và áp dụng cho năm tài chính bắt đầu từ hoặc sau ngày 01/01/2026. Thông tư này thay thế cho các Thông tư số 200/2014/TT-BTC …” | Theo ngày BẮT ĐẦU năm tài chính. Năm 01/10/2025–30/09/2026 vẫn dùng TT 200; hỏi đáp CSTC của Bộ Tài chính cũng nêu ví dụ này. Khoản 2: phần kế toán cổ phần hóa DNNN của TT 200 vẫn áp dụng. Khoản 3: DNNVV, cơ sở ngoài công lập, đơn vị kế toán khác được chọn áp dụng. | Thay TT 200/2014, TT 75/2015, TT 53/2016, TT 195/2012 | Điều 2: doanh nghiệp thuộc mọi lĩnh vực, mọi thành phần kinh tế. Tổ chức tín dụng theo NHNN. | https://congbao.chinhphu.vn/van-ban/thong-tu-so-99-2025-tt-btc-46529.htm | **ĐÃ KIỂM** | `che_do_ke_toan.py` (TT99-D31, TT99-D2) |
+| TT 200/2014/TT-BTC | 22/12/2014 | 01/01/2015 | (bị TT 99 thay) | Vẫn áp dụng cho năm tài chính bắt đầu trước 01/01/2026 | Đã sửa bởi TT 75/2015, TT 53/2016 | DN | Suy ra từ Điều 31 TT 99 | ĐÃ KIỂM (qua TT 99) | `che_do_ke_toan.py` |
+| TT 133/2016/TT-BTC — DN nhỏ và vừa | 2016 | — | Không có trong danh sách bị TT 99 thay. TT 58/2026 Điều 4 khoản 3 vẫn dẫn chiếu “chế độ kế toán doanh nghiệp nhỏ và vừa”. | DNNVV chọn TT 133 hoặc TT 99 (khoản 3 Điều 31 TT 99) | — | DNNVV | Gián tiếp qua TT 99, TT 58 | **MỘT PHẦN** — chưa đọc văn bản gốc, chưa kiểm sửa đổi | `che_do_ke_toan.py` (`xac_minh: false`) |
+| TT 58/2026/TT-BTC — DN siêu nhỏ | 25/5/2026 (Công báo số 323, 11/6/2026) | 01/7/2026 | Điều 12 khoản 1: “có hiệu lực thi hành kể từ ngày 01/7/2026 và áp dụng cho năm tài chính bắt đầu từ ngày hoặc sau ngày 01/7/2026”. Khoản 2: TT 132/2018 “hết hiệu lực kể từ ngày Thông tư này có hiệu lực thi hành”. | Theo ngày BẮT ĐẦU năm tài chính. **Khoảng trống:** năm tài chính bắt đầu trước rồi vắt qua 01/7/2026 → công cụ trả `can_xac_nhan`. | Thay TT 132/2018 | Điều 2: DN siêu nhỏ (tiêu chí theo pháp luật hỗ trợ DNNVV). Hộ, cá nhân kinh doanh được chọn áp dụng. Điều 4 khoản 3: được chọn chế độ DNNVV. | https://congbao.chinhphu.vn/van-ban/thong-tu-so-58-2026-tt-btc-469663.htm | **ĐÃ KIỂM** | `che_do_ke_toan.py` (TT58-D12, TT58-D2-D4) |
+| TT 24/2024/TT-BTC — Chế độ kế toán hành chính, sự nghiệp | 17/4/2024 (Công báo số 585+586, 06/5/2024) | 01/01/2025 | Điều 13 khoản 1: “có hiệu lực kể từ ngày 01 tháng 01 năm 2025 và áp dụng từ năm tài chính 2025”. Điều 2 khoản 1 điểm b: “Đơn vị sự nghiệp công lập (trừ các đơn vị sự nghiệp công lập tự đảm bảo chi thường xuyên và chi đầu tư được cơ quan có thẩm quyền cho phép áp dụng chế độ kế toán doanh nghiệp; … thì phải lập báo cáo quyết toán kinh phí hoạt động quy định tại Phụ lục III …)” | Từ năm tài chính 2025. Điều 14: chuyển số dư sau khi khoá sổ năm 2024. | Thay TT 107/2017, TT 108/2018, TT 76/2019, TT 79/2019 | Cơ quan nhà nước, ĐVSNCL (bệnh viện công), tổ chức dùng NSNN | https://congbao.chinhphu.vn/van-ban/thong-tu-so-24-2024-tt-btc-41775/49902.htm | **ĐÃ KIỂM** | `che_do_ke_toan.py` (TT24-D2, TT24-D13) |
+| NĐ 254/2026/NĐ-CP — Hóa đơn điện tử, chứng từ điện tử | 30/6/2026 (Công báo số 402, 16/7/2026) | 01/7/2026 | Điều 43: “có hiệu lực thi hành từ ngày 01 tháng 7 năm 2026 … hết hiệu lực thi hành: a) Nghị định số 123/2020/NĐ-CP …; b) Điều 1 Nghị định số 41/2022/NĐ-CP …; c) Nghị định số 70/2025/NĐ-CP”. Phụ lục, mục 6: chữ ký số người bán là chữ ký số của DN/tổ chức. Điều 8 khoản 9 điểm b: hóa đơn khởi tạo từ máy tính tiền “Không bắt buộc có chữ ký số”. Điều 10: người mua không nhất thiết phải có chữ ký số. | Điều 44 chỉ chuyển tiếp hóa đơn dự trữ quốc gia, biên lai giấy, hóa đơn đặt in. **Không có chuyển tiếp chung** cho hóa đơn đã lập trước 01/7/2026. Công cụ xét hóa đơn theo ngày lập; đây là cách hiểu về hiệu lực theo thời gian, cần người duyệt xác nhận. | Thay NĐ 123/2020, Điều 1 NĐ 41/2022, NĐ 70/2025 | Tổ chức kinh tế, hộ/cá nhân kinh doanh … | https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-254-2026-nd-cp-469957.htm | **ĐÃ KIỂM** | `che_do_ke_toan.che_do_hoa_don`, `xac_thuc_hoa_don.py`, `doc_hoa_don.py` |
+| TT 91/2026/TT-BTC — hướng dẫn NĐ 254/2026 | 30/6/2026 | 01/7/2026 | Thuộc tính văn bản trên Công báo | — | Trang Công báo không ghi văn bản bị thay | — | https://congbao.chinhphu.vn/van-ban/thong-tu-so-91-2026-tt-btc-470171.htm | **MỘT PHẦN** — đã tải bản PDF nhưng chưa đọc điều khoản thay thế | `che_do_ke_toan.py` (TT91) |
+| NĐ 141/2026/NĐ-CP — sửa NĐ 68/2026 (thuế hộ kinh doanh) | 29/4/2026 | 01/01/2026 | Thuộc tính trên chinhphu.vn: ngày ban hành 29-04-2026, ngày có hiệu lực 01-01-2026 (trước ngày ban hành) | Hồi tố: dùng làm kịch bản ACC-005 cho `bo_nho.py tra --ngay` | Sửa NĐ 68/2026, NĐ 320/2025 | Hộ, cá nhân kinh doanh | https://chinhphu.vn/?classid=0&docid=217960&pageid=27160 | **MỘT PHẦN** — chưa đọc điều khoản hiệu lực và mức ngưỡng | Kịch bản test (dữ liệu tổng hợp) |
+| TT 04/2026/TT-KTNN — Hệ thống chuẩn mực KTNN | (bài đăng 03/3/2026) | 30/3/2026 | “có hiệu lực thi hành kể từ ngày 30/3/2026”; 43 chuẩn mực; “được áp dụng thống nhất trong toàn Ngành” | — | — | **Kiểm toán viên nhà nước.** Không phải tiêu chuẩn chứng nhận phần mềm. | https://sav.gov.vn/…/ban-hanh-thong-tu-so-04-2026-tt-ktnn-… | **MỘT PHẦN** (bài đăng chính thức, chưa đọc toàn văn) | CONTROL-MATRIX: chỉ là nguồn cảm hứng thiết kế (CMKTNN 2230, 2250, 2315, 2320, 2450, 2500, 2505 — tên chuẩn mực đã đối chiếu) |
+| NĐ 214/2025/NĐ-CP — lựa chọn nhà thầu | — | 04/8/2025 | Điểm c khoản 2 Điều 31 (đơn giá hiệu chỉnh lấy trong các HSDT đã vượt bước kỹ thuật) | — | Thay NĐ 24/2024 | Lựa chọn nhà thầu | `references/dau-thau.md` (đã kiểm ở PR #2, 2026-09-13) | **CHƯA KIỂM LẠI** trong phiên này. TTL 45 ngày của mảng đấu thầu hết vào 2026-10-28. | `so_sanh_thau.py --che-do chinh-thuc` |
+| TT 103/2005/TT-BTC — tiêu chuẩn phần mềm kế toán | 2005 | — | Trang vbpl.vn tải động, không đọc được | — | — | Phần mềm kế toán | https://vbpl.vn/bonongnghiep/Pages/vbpq-thuoctinh.aspx?ItemID=17130 | **CHƯA KIỂM** | Không dùng. Có thuộc phạm vi “phần mềm kế toán” không là câu hỏi cho người có chuyên môn. |
+| Luật Kế toán 88/2015/QH13 (sửa đổi 29/11/2024) | — | — | TT 99 dẫn “Luật sửa đổi, bổ sung một số điều của Luật Chứng khoán, Luật Kế toán … ngày 29 tháng 11 năm 2024” | — | — | — | Phần căn cứ của TT 99 | **MỘT PHẦN** (gián tiếp) | — |
+| NĐ 174/2016/NĐ-CP — lưu trữ tài liệu kế toán | — | — | — | — | — | — | — | **CHƯA KIỂM** | Không dùng. Công cụ không tự xoá hồ sơ (xem gap G10). |
+| Luật BVDLCN 91/2025/QH15 | — | 01/01/2026 (theo handoff) | — | — | — | — | — | **CHƯA KIỂM** | Không dùng. Công cụ không gọi mạng; hồ sơ không chứa dữ liệu dòng. |
+
+## Việc cần người có chuyên môn ký xác nhận
+
+1. **Khoảng trống của DN siêu nhỏ có năm tài chính vắt qua 01/7/2026** (TT 132 hết hiệu lực, TT 58 chưa áp dụng). Công cụ đang trả `can_xac_nhan`, không chọn thay.
+2. **Hóa đơn lập trước 01/7/2026** xét theo NĐ 123/2020 (đã sửa đổi): đây là cách hiểu về hiệu lực theo thời gian, vì NĐ 254 không có điều khoản chuyển tiếp chung.
+3. **ĐVSNCL tự bảo đảm chi thường xuyên và chi đầu tư:** chỉ được chuyển sang chế độ doanh nghiệp khi **có văn bản cho phép**. Công cụ hỏi chứ không suy ra từ mức tự chủ.
+4. **Phạm vi “phần mềm kế toán” theo TT 103/2005** (chưa kiểm), và mức áp dụng Luật 91/2025 cho dữ liệu bệnh nhân trong file kết xuất.
+5. **NĐ 214/2025** cần kiểm lại trước 2026-10-28 (hết TTL 45 ngày), nhất là khi dự thảo Luật Đấu thầu mới được thông qua.
+
+## Cách kiểm lại
+
+```bash
+# Tải bản Công báo và tìm điều khoản (ví dụ TT 58/2026)
+curl -sL https://congbao.chinhphu.vn/van-ban/thong-tu-so-58-2026-tt-btc-469663.htm \
+  | grep -oE 'https://congbaocdn[^"]+\.pdf' | head -1
+# rồi đọc Điều 12 trong PDF; so với CAN_CU["TT58-D12"] trong scripts/che_do_ke_toan.py
+```

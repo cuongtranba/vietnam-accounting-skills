@@ -69,8 +69,10 @@ Hai phép kiểm bắt buộc, làm bằng công thức ngay trong file:
 
 Nếu không cân, **nói ngay và chỉ rõ tài khoản nào lệch** — đừng giao file không cân mà không cảnh báo.
 
-Hệ thống tài khoản theo TT 200 (hoặc TT 133 với DNNVV). Nhớ rằng TT 200 cho phép doanh nghiệp tự mở
-tài khoản cấp 2, 3 — nên tài khoản lạ trong sổ của người dùng chưa chắc là sai. Tra
+Hệ thống tài khoản theo chế độ ĐƠN VỊ ĐANG ÁP DỤNG cho năm tài chính đó — TT 99/2025 (năm tài chính
+bắt đầu từ 01/01/2026), TT 200 (năm trước đó), TT 133 (DNNVV chọn), TT 58/2026 (DN siêu nhỏ),
+TT 24/2024 (hành chính, sự nghiệp). Hỏi `che_do_ke_toan.py` khi chưa rõ. Các chế độ doanh nghiệp
+cho phép tự mở tài khoản chi tiết — nên tài khoản lạ trong sổ của người dùng chưa chắc là sai. Tra
 `quy-uoc/tai-khoan.md` trước khi kết luận.
 
 ## Báo cáo đánh giá HSDT

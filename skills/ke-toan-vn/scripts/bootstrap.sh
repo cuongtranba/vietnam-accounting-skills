@@ -12,7 +12,7 @@
 
 set -uo pipefail
 
-GOI_PY="openpyxl pandas pdfplumber pypdf lxml python-dateutil XlsxWriter"
+GOI_PY="openpyxl pandas pdfplumber pypdf lxml python-dateutil XlsxWriter signxml"
 
 # --- Tìm thư mục bộ nhớ ------------------------------------------------------
 # Thứ tự: KE_TOAN_VN_HOME -> thư mục cha đầu tiên có .ke-toan-vn/ -> ~/.ke-toan-vn

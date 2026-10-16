@@ -1,13 +1,14 @@
 ---
 name: ke-toan-vn
-description: "Vietnamese accounting and bid-evaluation assistant. Use for Vietnamese invoices, tax, bookkeeping, recurring monthly reports and tender evaluation: e-invoice XML/PDF extraction (hóa đơn điện tử), bảng kê mua vào/bán ra for HTKK or MISA, reconciliation (đối chiếu sổ sách, công nợ, xuất nhập tồn), cleaning Vietnamese spreadsheets, MST validation, tax-rule questions (GTGT, TNDN, TNCN, TT 200/133), monthly reports from software exports (tách/lọc dữ liệu theo khoa/phòng, doanh thu theo khoa, doanh thu tính thuế, chia tiền công, hao phí, dò đơn giá), and evaluating bids as bên mời thầu (chấm thầu, so sánh HSDT, giá đánh giá, hiệu chỉnh sai lệch). Trigger on accounting vocabulary even in casual phrasing (hóa đơn, bảng kê, tờ khai, quyết toán, sổ cái, công nợ, HTKK, MISA, HSDT, HSMT, gói thầu, khoa/phòng, đơn giá, 'làm tương tự tháng trước') and whenever a spreadsheet or PDF is clearly Vietnamese accounting or tender data. Do NOT use for generic spreadsheet/PDF work without that context."
+description: "Vietnamese accounting and bid-evaluation assistant. Use for Vietnamese invoices, tax, bookkeeping, recurring monthly reports and tender evaluation: e-invoice XML/PDF extraction (hóa đơn điện tử), bảng kê mua vào/bán ra for HTKK or MISA, reconciliation (đối chiếu sổ sách, công nợ, xuất nhập tồn), cleaning Vietnamese spreadsheets, MST validation, tax-rule questions (GTGT, TNDN, TNCN, which accounting regime applies — TT 99/2025, TT 200, TT 133, TT 58/2026, TT 24/2024), monthly reports from software exports (tách/lọc dữ liệu theo khoa/phòng, doanh thu theo khoa, doanh thu tính thuế, chia tiền công, hao phí, dò đơn giá), and evaluating bids as bên mời thầu (chấm thầu, so sánh HSDT, giá đánh giá, hiệu chỉnh sai lệch). Trigger on accounting vocabulary even in casual phrasing (hóa đơn, bảng kê, tờ khai, quyết toán, sổ cái, công nợ, HTKK, MISA, HSDT, HSMT, gói thầu, khoa/phòng, đơn giá, 'làm tương tự tháng trước') and whenever a spreadsheet or PDF is clearly Vietnamese accounting or tender data. Do NOT use for generic spreadsheet/PDF work without that context."
 ---
 
 # Kế toán & chấm thầu Việt Nam
 
 Skill này là **lớp nghiệp vụ Việt Nam** đặt trên các skill xử lý file có sẵn (`xlsx`, `pdf`, `docx`).
 Nó không thay thế chúng — nó bổ sung thứ chúng không biết: cấu trúc hóa đơn điện tử theo
-QĐ 1450/QĐ-TCT, mẫu bảng kê HTKK, hệ thống tài khoản TT 200, quy trình chấm thầu theo NĐ 214/2025,
+QĐ 1450/QĐ-TCT, mẫu bảng kê HTKK, chế độ kế toán theo năm tài chính (TT 99/2025 thay TT 200 từ năm
+tài chính 2026), quy trình chấm thầu theo NĐ 214/2025,
 và cách nói chuyện bằng tiếng Việt.
 
 Người dùng là **kế toán chuyên nghiệp**. Họ biết nghiệp vụ giỏi hơn bạn. Việc của bạn là làm phần
@@ -23,7 +24,9 @@ cơ học nhanh và chính xác, chỉ ra chỗ đáng ngờ, rồi để họ q
 | Lập bảng kê, tờ khai, báo cáo | `references/bao-cao.md` | — |
 | Việc lặp lại hằng tháng: tách theo khoa, lọc bản kết xuất, đối chiếu hai nguồn — và mọi câu "ghi nhớ", "làm tương tự", "như tháng trước" | `references/quy-trinh.md` | `quy_trinh.py` |
 | Chấm thầu, so sánh HSDT | `references/dau-thau.md` | `doc_hsdt.py`, `cham_ky_thuat.py`, `so_sanh_thau.py` |
-| Câu hỏi về luật, thuế, tài khoản | `references/phap-ly.md` | `bo_nho.py` |
+| Câu hỏi về luật, thuế, tài khoản | `references/phap-ly.md` | `bo_nho.py` (`tra --ngay` cho kỳ cũ) |
+| Đơn vị áp dụng chế độ kế toán nào (TT 99/200/133/58/24), hóa đơn theo NĐ nào | `references/phap-ly.md` | `che_do_ke_toan.py` |
+| "Số này lấy từ đâu", ai đã duyệt, xuất hồ sơ, làm cho nhiều đơn vị | `references/kiem-soat.md` | `ho_so_kiem_toan.py` |
 | Cách bộ nhớ hoạt động | `references/bo-nho.md` | `bo_nho.py` |
 
 Đường dẫn script tính từ thư mục chứa file này. Chạy bằng Python trong venv của skill:
@@ -80,7 +83,11 @@ pháp lý** phải dựa trên một trong hai nguồn:
 - một ghi chú trong bộ nhớ **còn hạn** (`bo_nho.py tra <chủ đề>`), hoặc
 - một lần tra web mới, rồi ghi vào bộ nhớ.
 
-Luôn kèm **ngày hiệu lực** của văn bản và **văn bản nào đang áp dụng**. Xem `references/phap-ly.md`.
+Luôn kèm **ngày hiệu lực** của văn bản và **văn bản nào đang áp dụng** — áp dụng cho KỲ ĐANG XÉT,
+không phải cho hôm nay. Ghi chú còn hạn chưa chắc đúng cho giao dịch năm ngoái: tra
+`bo_nho.py tra <chủ đề> --ngay <ngày giao dịch>`. Chế độ kế toán đổi theo ngày BẮT ĐẦU năm tài
+chính và loại đơn vị — hỏi `che_do_ke_toan.py`, đừng mặc định TT 200; nó trả `can_xac_nhan` thì
+hỏi người dùng, đừng tự chọn. Xem `references/phap-ly.md`.
 
 Việc thuần kỹ thuật (gộp file, làm sạch dữ liệu, tính tổng) thì làm ngay, không cần tra gì cả.
 
@@ -111,6 +118,16 @@ tra một quy định liên quan. Muốn tra quy định thì hỏi trừu tư�
 hàng hóa", không phải "công ty X chào thiếu mặt hàng Y".
 
 Nguyên tắc này cũng áp dụng cho bộ nhớ: không lưu dữ liệu HSDT vào `.ke-toan-vn/`.
+
+---
+
+## Đọc ≠ xác thực, nháp ≠ đã duyệt
+
+Script đọc được một hóa đơn không có nghĩa hóa đơn là thật; một lô đủ số không có nghĩa đã được
+duyệt. Báo đúng trạng thái script trả về (`xml_schema`, `chu_ky`, `trang_thai_cqt`, `draft` /
+`needs_review`, `da_xem_chua_xac_thuc`) — không bao giờ nói "hợp lệ", "đã xác thực", "đã duyệt"
+hay "đạt chuẩn KTNN" khi script không nói vậy. Tình trạng hóa đơn trên hệ thống cơ quan thuế luôn
+`not_checked`: công cụ không có kênh tra cứu được cấp phép. Chi tiết: `references/kiem-soat.md`.
 
 ---
 
@@ -188,10 +205,12 @@ Các điều dưới đây rút từ phiên làm việc thật. Mỗi cái từn
 - **Tên có dấu lấy từ kết quả liệt kê, đừng gõ lại.** `HAO PHÍ.xlsx` gõ thành `HAO PHI.xlsx` sẽ
   báo "không tìm thấy" và dễ bị hiểu nhầm thành lỗi quyền truy cập. Copy tên từ output của lệnh
   liệt kê; nếu file đến từ máy khác thì nhớ chuyện NFC/NFD ở `references/doi-chieu.md`.
-- **Sửa lại là ghi đè, không đẻ phiên bản.** Khi người dùng yêu cầu chỉnh một kết quả đã giao, sửa
-  chính file kết quả đó và chính script đã tạo ra nó. Đừng sinh `_v2`, `out2/`, hay script thứ hai:
-  vài vòng sau người dùng không còn biết file nào là bản đúng. Trước khi ghi, liệt kê thư mục đích
-  để dùng lại đúng tên cũ. File **đầu vào** gốc thì không bao giờ ghi đè, trừ khi người dùng bảo
+- **Sửa lại là ghi đè, không đẻ phiên bản — cho tới khi đã duyệt.** Khi người dùng yêu cầu chỉnh
+  một kết quả đã giao, sửa chính file kết quả đó và chính script đã tạo ra nó. Đừng sinh `_v2`,
+  `out2/`, hay script thứ hai: vài vòng sau người dùng không còn biết file nào là bản đúng. Trước
+  khi ghi, liệt kê thư mục đích để dùng lại đúng tên cũ. Ngoại lệ: kết quả **đã có người duyệt**
+  là bằng chứng — `quy_trinh.py` từ chối ghi đè và chỉ ghi bản `-SUA<n>` khi có `--ban-sua-doi`
+  (xem `references/kiem-soat.md`). File **đầu vào** gốc thì không bao giờ ghi đè, trừ khi người dùng bảo
   điền thẳng vào chính file đó; khi ấy để một bản sao `_ban-truoc-YYYYMMDD-HHMM` bên cạnh trước.
 - **Làm đúng phạm vi.** "Chỉ cần thêm cột A" nghĩa là chỉ cột A. Thấy chỗ khác đáng sửa thì nói
   ra ở phần báo cáo, đừng tự làm — file kế toán thường đã được nộp hoặc đối chiếu với nơi khác.

@@ -177,6 +177,12 @@ def la_dong_tong(gia_tri: list) -> bool:
     return False
 
 
+def bang_nhau_tien(a: float, b: float) -> bool:
+    """So hai tổng CHƯA làm tròn, chỉ chừa sai số dấu phẩy động. Làm tròn từng phần rồi cộng
+    (0,005 → 0,01, ba lần) khác làm tròn tổng (0,015 → 0,01) — so như thế là báo hỏng giả."""
+    return abs(a - b) <= 1e-6 * max(1.0, abs(a), abs(b))
+
+
 def thoa(dk: dict, v) -> bool:
     """Một ô có thoả TẤT CẢ phép so trong điều kiện của cột không."""
     s = chuan(v)

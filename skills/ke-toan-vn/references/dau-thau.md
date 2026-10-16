@@ -82,7 +82,14 @@ so_sanh_thau.py hsdt.json --danh-muc danh_muc.csv \
 ```
 
 Chạy `so_sanh_thau.py` mà **không** có `--ket-qua-ky-thuat` vẫn được, nhưng nó sẽ cảnh báo rõ rằng
-giá trị hiệu chỉnh có thể sai. Đừng bỏ qua cảnh báo đó.
+giá trị hiệu chỉnh có thể sai. Đừng bỏ qua cảnh báo đó. Bảng này mang `trang_thai: so_bo` — bảng
+tính tham khảo.
+
+Khi cần bảng để đưa vào báo cáo đánh giá, chạy `--che-do chinh-thuc`: nó **không xếp hạng** (cột
+xếp hạng và giá đề nghị trúng thầu để trống, `trang_thai: needs_review`, mã thoát 2) nếu chưa có
+phiếu kỹ thuật hoặc còn nhà thầu chưa có kết luận. Đủ kết luận thì `trang_thai:
+cho_to_chuyen_gia_ky` — vẫn là bảng tính để tổ chuyên gia ký, không phải kết luận của công cụ.
+Chấm thầu không ghi gì vào bộ nhớ hay hồ sơ kiểm toán (nguyên tắc 6).
 
 ### Script chấm kỹ thuật KHÔNG kết luận đạt/không đạt
 
@@ -282,6 +289,8 @@ cham_ky_thuat.py <thư mục HSDT> --hsmt hsmt.pdf --ra phieu_cham.xlsx
 so_sanh_thau.py hsdt.json --danh-muc danh_muc.csv \
     --ket-qua-ky-thuat phieu_cham.xlsx --ra so_sanh.xlsx
 so_sanh_thau.py hsdt.json --danh-muc danh_muc.csv --du-toan 11900000 --ra so_sanh.xlsx
+so_sanh_thau.py hsdt.json --danh-muc danh_muc.csv \
+    --ket-qua-ky-thuat phieu_cham.xlsx --che-do chinh-thuc --ra so_sanh.xlsx   # mã 2 nếu thiếu
 ```
 
 `doc_hsdt.py` gắn `nguon_trang` cho từng trường trích được. Trường không tìm thấy trả `null` kèm
