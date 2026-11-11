@@ -73,9 +73,8 @@ cho tới lúc quyết toán.
 
 Luật thuế Việt Nam đổi rất nhanh. Riêng ngưỡng doanh thu không chịu thuế GTGT của hộ kinh doanh
 đã đổi ba lần trong khoảng hai năm: 100 triệu → 200 triệu (Luật 48/2024/QH15) → 500 triệu
-(Luật 149/2025/QH15) → 1 tỷ (NĐ 141/2026/NĐ-CP ngày 29/4/2026, hồi tố từ 01/01/2026). Chính bản
-trước của câu này cũng từng ghi 500 triệu là mức hiện hành. Trí nhớ của mô hình gần như chắc chắn
-đang giữ con số cũ.
+(Luật 149/2025/QH15) → 1 tỷ (NĐ 141/2026/NĐ-CP ngày 29/4/2026, hồi tố từ 01/01/2026). Trí nhớ
+của mô hình gần như chắc chắn đang giữ con số cũ.
 
 Vì vậy: mọi phát biểu về **thuế suất, ngưỡng, hạn nộp, mẫu biểu, số hiệu tài khoản, quy trình
 pháp lý** phải dựa trên một trong hai nguồn:
