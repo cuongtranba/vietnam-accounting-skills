@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.5.0...v0.5.1) (2026-11-11)
+
+
+### Tài liệu
+
+* **skill:** bỏ câu nhắc tới phiên bản cũ trong nguyên tắc 3 ([#13](https://github.com/cuongtranba/vietnam-accounting-skills/issues/13)) ([6bf096c](https://github.com/cuongtranba/vietnam-accounting-skills/commit/6bf096c4ba9289882f7afb7ae6f66aa5ee43e2c9))
+
 ## [0.5.0](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.4.0...v0.5.0) (2026-10-16)
 
 
