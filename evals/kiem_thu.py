@@ -225,6 +225,21 @@ kiem("tra cứu chỉ trả bản hiện hành, bỏ qua bản lưu trữ .cu-",
 kiem("nội dung là bản mới", "1 tỷ" in d["ghi_chu"][0]["noi_dung"], True)
 kiem("ghi chú còn hạn thì không cần tra web", d["can_tra_web"], False)
 
+print("\nBộ nhớ — khớp chặt, không khớp lẻ từ")
+subprocess.run([PY, bn, "ghi", "--loai", "phap-ly", "--chu-de", "Uu dai hang hoa xuat xu Viet Nam",
+                "--van-ban", "NĐ 214/2025/NĐ-CP", "--nguon", "https://vanban.chinhphu.vn/z",
+                "--noi-dung", "Ưu đãi hàng hóa xuất xứ Việt Nam trong đấu thầu."],
+               capture_output=True, check=True)
+d = chay(bn, "tra", "thuế suất thuế tiêu thụ đặc biệt rượu bia 2027")
+kiem("câu hỏi không liên quan thì vẫn phải tra web", (d["can_tra_web"], d["so_ghi_chu"] <= 3),
+     (True, True))
+d = chay(bn, "tra", "ưu đãi hàng hóa xuất xứ Việt Nam Nghị định 214/2025")
+kiem("hỏi đúng số hiệu văn bản mà ghi chú còn hạn nêu: không cần tra web, ghi chú đó đứng đầu",
+     (d["can_tra_web"], d["ghi_chu"][0]["chu_de"]),
+     (False, "Uu dai hang hoa xuat xu Viet Nam"))
+d = chay(bn, "tra", "ưu đãi hàng hóa xuất xứ Việt Nam Nghị định 99/2026")
+kiem("cùng chủ đề nhưng số hiệu văn bản khác thì phải tra web", d["can_tra_web"], True)
+
 print("\nQuy trình định kỳ — tách theo khoa")
 import shutil  # noqa: E402
 
