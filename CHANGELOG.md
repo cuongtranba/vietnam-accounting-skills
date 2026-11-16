@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.5.1...v0.5.2) (2026-11-16)
+
+
+### Sửa lỗi
+
+* **bo-nho:** lệnh tra chỉ coi là khớp khi đúng số hiệu văn bản hoặc hơn nửa từ khoá ([#15](https://github.com/cuongtranba/vietnam-accounting-skills/issues/15)) ([0fd08a8](https://github.com/cuongtranba/vietnam-accounting-skills/commit/0fd08a8d04d4a049923317d2b6998af92dfb555b))
+
 ## [0.5.1](https://github.com/cuongtranba/vietnam-accounting-skills/compare/v0.5.0...v0.5.1) (2026-11-11)
 
 
