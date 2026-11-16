@@ -162,3 +162,8 @@ bo_nho.py muc-luc            # sinh lại INDEX.md
 
 `tra` là lệnh nên chạy **trước** khi tra web. Nó trả về JSON có trường `can_tra_web: true/false`
 để bạn quyết định nhanh.
+
+`can_tra_web: false` chỉ khi có ghi chú **khớp chặt** còn dùng được: hỏi theo số hiệu văn bản (ví
+dụ `214/2025`) thì ghi chú pháp lý phải nêu đúng số đó; không có số hiệu thì hơn một nửa số từ
+khoá của câu hỏi phải có trong ghi chú. Mỗi ghi chú trả về có `muc_khop` (`chat` | `yeu`); khi
+không có khớp chặt, `tra` chỉ trả tối đa 3 khớp yếu để tham khảo và `can_tra_web` là `true`.

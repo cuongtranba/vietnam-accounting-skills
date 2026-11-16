@@ -66,6 +66,19 @@ def khong_dau(s: str) -> str:
     return s.replace("đ", "d").strip()
 
 
+# Từ nối/hư từ (không dấu) không mang nghĩa chủ đề — bỏ ra khi so khớp.
+TU_DUNG = {"cua", "cho", "voi", "nhu", "khi", "nao", "gi", "la", "va", "cac", "nhung", "mot",
+           "nay", "do", "duoc", "khong", "co", "theo", "trong", "tai", "ve", "hay", "hoac",
+           "the", "bao", "nhieu", "nam", "thang", "ngay"}
+# Số hiệu văn bản dạng 214/2025 (sau khi bỏ dấu).
+MAU_SO_HIEU = re.compile(r"\b\d{1,4}/\d{4}\b")
+# Ngưỡng khớp chặt: HƠN một nửa số từ khoá của câu hỏi phải có trong ghi chú (đúng một nửa vẫn
+# chưa đủ: bỏ dấu làm "thụ"/"thu", "tiêu"/"tiêu" trùng ngẫu nhiên). Một từ trùng lẻ ("thue",
+# "gia") có mặt ở gần như mọi ghi chú nên không đủ để nói "đã có câu trả lời".
+NGUONG_KHOP = 0.5
+TOI_DA_KHOP_YEU = 3
+
+
 def doan_nhom(chu_de: str) -> str:
     """Đoán nhóm chủ đề để chọn TTL phù hợp."""
     can = khong_dau(chu_de)
@@ -249,8 +262,10 @@ def _mo_ta(tep: Path, gc: dict, thu_muc: str, diem: int) -> dict:
 
 def _quet(home: Path, tu_khoa: str, ca_luu_tru: bool, home_dv: Path | None = None) -> list[dict]:
     can = khong_dau(tu_khoa)
-    tu = [t for t in can.split() if len(t) > 2]
-    tim_thay = []
+    tu = list(dict.fromkeys(t for t in can.split() if len(t) > 2 and t not in TU_DUNG
+                                  and not (t.isdigit() and len(t) == 4)))  # năm không là chủ đề
+    so_hieu = MAU_SO_HIEU.findall(can)
+    chat, yeu = [], []
     for thu_muc in ("phap-ly", "quy-uoc"):
         goc = ((home_dv or home) if thu_muc == "quy-uoc" else home) / thu_muc
         if not goc.is_dir():
@@ -264,9 +279,24 @@ def _quet(home: Path, tu_khoa: str, ca_luu_tru: bool, home_dv: Path | None = Non
             gc = doc_ghi_chu(tep)
             noi_dung_can = khong_dau(
                 f"{gc['meta'].get('chu_de', '')} {goc_chu_de(tep)} {gc['noi_dung'][:2000]}")
-            diem = sum(1 for t in tu if t in noi_dung_can)
-            if diem:
-                tim_thay.append(_mo_ta(tep, gc, thu_muc, diem))
+            tu_ghi_chu = set(re.findall(r"[\w/]+", noi_dung_can))
+            diem = sum(1 for t in tu if t in tu_ghi_chu)
+            if not diem:
+                continue
+            if thu_muc == "phap-ly" and so_hieu:
+                # Hỏi theo số hiệu văn bản thì ghi chú phải nêu đúng số hiệu đó (van_ban hoặc
+                # chủ đề); cùng chủ đề nhưng văn bản khác là câu trả lời của văn bản khác.
+                vb = khong_dau(f"{' '.join(gc['meta'].get('van_ban') or [])} "
+                               f"{gc['meta'].get('chu_de', '')}")
+                la_chat = any(sh in vb for sh in so_hieu)
+            else:
+                la_chat = diem / len(tu) > NGUONG_KHOP
+            g = _mo_ta(tep, gc, thu_muc, diem)
+            g["muc_khop"] = "chat" if la_chat else "yeu"
+            (chat if la_chat else yeu).append(g)
+    # Chỉ trả khớp chặt; không có thì trả vài khớp yếu (đã đánh dấu) để tham khảo, không đủ để
+    # nói "không cần tra web".
+    tim_thay = chat or sorted(yeu, key=lambda g: -g["diem_khop"])[:TOI_DA_KHOP_YEU]
     tim_thay.sort(key=lambda g: -g["diem_khop"])
     return tim_thay
 
@@ -314,7 +344,7 @@ def tra_theo_ngay(home: Path, tu_khoa: str, ngay: date, home_dv: Path | None = N
         if ap_dung.get("can_nguoi_duyet") == "true":
             canh_bao.append("Diễn giải chưa được người có chuyên môn duyệt — dùng làm căn cứ tra "
                             "cứu, không phải kết luận pháp lý.")
-    con_dung = ap_dung is not None and (
+    con_dung = ap_dung is not None and ap_dung["muc_khop"] == "chat" and (
         ap_dung["ban_luu_tru"] or ap_dung["tinh_trang"] in ("con_han", "khong_han"))
     return {"ngay": ngay.isoformat(), "ap_dung": ap_dung, "lich_su": lich_su,
             "canh_bao": canh_bao, "can_tra_web": not con_dung,
@@ -334,11 +364,15 @@ def lenh_lich_su(home: Path, tu_khoa: str, home_dv: Path | None = None) -> dict:
 def lenh_tra(home: Path, tu_khoa: str, ngay: date | None = None,
              home_dv: Path | None = None) -> dict:
     tim_thay = _quet(home, tu_khoa, ca_luu_tru=False, home_dv=home_dv)
-    dung_duoc = [g for g in tim_thay if g["tinh_trang"] in ("con_han", "khong_han")]
+    dung_duoc = [g for g in tim_thay if g["muc_khop"] == "chat"
+                 and g["tinh_trang"] in ("con_han", "khong_han")]
     nhom = doan_nhom(tu_khoa)
 
     if dung_duoc:
         loi_khuyen = "Có ghi chú còn dùng được — đọc trường noi_dung. Không cần tra web."
+    elif tim_thay and all(g["muc_khop"] == "yeu" for g in tim_thay):
+        loi_khuyen = ("Chỉ có ghi chú khớp yếu (trùng vài từ, không đúng văn bản/chủ đề) — chỉ để "
+                      "tham khảo. Phải tra web rồi ghi lại bằng lệnh 'ghi'.")
     elif tim_thay:
         loi_khuyen = ("Có ghi chú nhưng ĐÃ QUÁ HẠN hoặc HẾT HIỆU LỰC. Phải tra web lại. "
                       "Giữ nội dung cũ để so sánh 'trước đây là X, nay là Y'.")
